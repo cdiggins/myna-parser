@@ -4,8 +4,12 @@
   "description": "A JavaScript text parsing library.",
   "main": "Myna",
   "scripts": {
-    "test": "mocha tests/mocha_test.js",
-    "cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_test.js -R spec"
+    "test": "mocha tests/mocha_runner.js",
+    "build": "tsc",
+    "win-cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_runner.js -R spec",
+    "gen-docs": "typedoc --out docs/api .",
+    "copy-docs": "copy *.", 
+    "publish": "npm run gen-docs & npm run win-cover & npm test"
   },
   "homepage": "https://github.com/cdiggins/myna-parser",
   "bugs": "https://github.com/cdiggins/myna-parser/issues",
@@ -19,9 +23,9 @@
     "url": "https://github.com/cdiggins/myna-parser.git"
   },
   "devDependencies": {
-    "blanket": "^1.2.3",
+    "istanbul": "~0.4.5", 
     "mocha": "~3.2.0",
-    "typedoc": "^0.5.3",
+    "typedoc": "~0.5.3",
     "typescript": "~2.0.10"
   }
 }
