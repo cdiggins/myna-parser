@@ -12,13 +12,13 @@ For examples of how to construct a parser using Myna see the following pages:
 - https://github.com/cdiggins/myna-parser/blob/master/grammars/arithmetic.js
 
 ## Related Libraries
-The following projects are JavaScript parsing libraries and parser generators hosted on GitHub, listed according to the number of times the repo has been favorited on Github.
+The following projects are JavaScript parsing libraries and parser generators hosted on GitHub, listed according to the number of times the repo has been favorited on Github (as of January 2, 2017).
 
 - https://github.com/zaach/jison (2611)
 - https://github.com/pegjs/pegjs (2078)
 - https://github.com/Hardmath123/nearley (571)
-- https://github.com/jneen/parsimmon 413
-- https://github.com/SAP/chevrotain 304
-- https://github.com/doublec/jsparse 103
-- https://github.com/mattbierner/bennu 81
-- https://github.com/robey/packrattle 66
+- https://github.com/jneen/parsimmon (413)
+- https://github.com/SAP/chevrotain (304)
+- https://github.com/doublec/jsparse (103)
+- https://github.com/mattbierner/bennu (81)
+- https://github.com/robey/packrattle (66)
