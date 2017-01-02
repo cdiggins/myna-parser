@@ -8,8 +8,7 @@
     "build": "tsc",
     "win-cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_runner.js -R spec",
     "gen-docs": "typedoc --out docs/api .",
-    "copy-docs": "copy *.", 
-    "publish": "npm run gen-docs & npm run win-cover & npm test"
+    "publish": "npm run build & npm run gen-docs & npm run win-cover & npm run test"
   },
   "homepage": "https://github.com/cdiggins/myna-parser",
   "bugs": "https://github.com/cdiggins/myna-parser/issues",
