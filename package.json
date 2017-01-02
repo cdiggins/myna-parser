@@ -1,0 +1,27 @@
+{
+  "name": "myna-parser",
+  "version": "0.1.0",
+  "description": "A JavaScript text parsing library.",
+  "main": "Myna",
+  "scripts": {
+    "test": "mocha tests/mocha_test.js",
+    "cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_test.js -R spec"
+  },
+  "homepage": "https://github.com/cdiggins/myna-parser",
+  "bugs": "https://github.com/cdiggins/myna-parser/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Christopher Diggins",
+    "email": "cdiggins@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cdiggins/myna-parser.git"
+  },
+  "devDependencies": {
+    "blanket": "^1.2.3",
+    "mocha": "~3.2.0",
+    "typedoc": "^0.5.3",
+    "typescript": "~2.0.10"
+  }
+}
