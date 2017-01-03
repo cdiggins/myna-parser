@@ -9,13 +9,13 @@
   <div id="qunit"></div>
   <div id="qunit-fixture"></div>
   <script src="qunit-2.0.1.js"></script>
-  <script src="../myna.js"></script>
-  <script src="../grammars/grammar_csv.js"></script>
-  <script src="../grammars/grammar_json.js"></script>
-  <script src="../grammars/grammar_arithmetic.js"></script>
-  <script src="tests.js"></script>
+  <script src="myna.js"></script>
+  <script src="grammars/csv.js"></script>
+  <script src="grammars/json.js"></script>
+  <script src="grammars/arithmetic.js"></script>
+  <script src="tests/tests.js"></script>
   <script>
-    let suiteResults = runAllTests(Myna, [JsonGrammar, ArithmeticGrammar, CsvGrammar]);
+    let suiteResults = tests(Myna, [JsonGrammar, ArithmeticGrammar, CsvGrammar]);
     console.log("Test results");
     for (let s of suiteResults) {
         QUnit.test(s.name, function(assert) {
