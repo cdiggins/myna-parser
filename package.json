@@ -6,7 +6,10 @@
   "scripts": {
     "test": "mocha tests/mocha_runner.js",
     "build": "tsc",
-    "win-cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_runner.js -R spec",
+    "postbuild": "npm run copy-files",
+    "minify": "uglifyjs myna.js -o dist/myna.min.js",
+    "copy-files": "copyfiles myna.ts myna.js tests/tests.js grammars/*.js docs",
+    "win-cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_runner.js --dir docs/coverage -R spec",
     "publish": "npm run build & npm run test & npm run win-cover"
   },
   "homepage": "https://github.com/cdiggins/myna-parser",
@@ -22,11 +25,9 @@
   },
   "devDependencies": {
     "istanbul": "~0.4.5",
-    "mocha": "~3.2.0",
-    "typedoc": "~0.5.3",
-    "typescript": "~2.0.10"
-  },
-  "dependencies": {
-    "explainjs": "0.0.9"
+    "mocha": "~3.2",
+    "typescript": "~2.0",
+    "copyfiles": "~1.0",
+    "uglify": "~2.7.5"
   }
 }
