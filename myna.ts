@@ -7,7 +7,10 @@
 
 // NOTE: we are explicitly bypassing using the TypeScript "export" keyword for 
 // the Myna module otherwise the module won't be usable from browsers without 
-// some using some additional library.   
+// using an additional moduler loader library like 'require'. I am forcing 
+// Myna to be a zero-dependency library.  
+
+// The one and only object you need. 
 module Myna
 {
     //===============================================================

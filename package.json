@@ -7,8 +7,7 @@
     "test": "mocha tests/mocha_runner.js",
     "build": "tsc",
     "win-cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_runner.js -R spec",
-    "gen-docs": "typedoc --out docs/api .",
-    "publish": "npm run build & npm run gen-docs & npm run win-cover & npm run test"
+    "publish": "npm run build & npm run test & npm run win-cover"
   },
   "homepage": "https://github.com/cdiggins/myna-parser",
   "bugs": "https://github.com/cdiggins/myna-parser/issues",
@@ -22,9 +21,12 @@
     "url": "https://github.com/cdiggins/myna-parser.git"
   },
   "devDependencies": {
-    "istanbul": "~0.4.5", 
+    "istanbul": "~0.4.5",
     "mocha": "~3.2.0",
     "typedoc": "~0.5.3",
     "typescript": "~2.0.10"
+  },
+  "dependencies": {
+    "explainjs": "0.0.9"
   }
 }
