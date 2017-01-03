@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for myna-parser\grammars\arithmetic.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">myna-parser/grammars/</a> arithmetic.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>22/22</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">75% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>3/4</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>2/2</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>21/21</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
+&nbsp;
+// Defines a grammar for arithmetic with variables and function application
+function ArithmeticGrammar(myna)  
+{
+    // Setup a shorthand for the Myna parsing library object
+    let m = myna;    
+&nbsp;
+    // These are helper rules, they do not create nodes in the parse tree.  
+    this.fraction       = m.seq(".", m.digit.star);    
+    this.plusOrMinus    = m.char("+-").ws;
+    this.exponent       = m.seq(m.char("eE"), this.plusOrMinus.opt, m.digit.plus); 
+    this.comma          = m.text(",").ws;  
+&nbsp;
+    // The following rules create nodes in the abstract syntax tree 
+    
+    // Using a lazy evaluation rule to allow recursive rule definitions  
+    let _this = this; 
+    this.expr = m.delay(function() { return _this.sum; });
+&nbsp;
+    this.variable   = m.identifier.ast;
+    this.number     = m.seq(m.integer, this.fraction.opt, this.exponent.opt).ast;    
+    this.parenExpr  = m.parenthesized(this.expr.ws).ast;
+    this.args       = m.parenthesized(this.expr.ws.delimited(this.comma)).ast;
+    this.leafExpr   = m.choice(this.number.ws, m.seq(this.parenExpr.or(this.variable).ws, this.args.ws.opt)).ast;
+    this.prefixExpr = m.seq(this.plusOrMinus.opt, this.leafExpr).ast;
+    this.mulExpr    = m.seq(m.char("*/").ws, this.prefixExpr).ast;
+    this.product    = m.seq(this.prefixExpr.ws, this.mulExpr.star).ast; 
+    this.addExpr    = m.seq(m.char("+-").ws, this.product).ast;
+    this.sum        = m.seq(this.product, this.addExpr.star).ast;
+&nbsp;
+    // Finalize the grammar and make it available to all users of the Myna module 
+    m.registerGrammar("arithmetic", this);    
+};
+&nbsp;
+// Export the function for use with Node.js
+<span class="missing-if-branch" title="else path not taken" >E</span>if (typeof module === "object" &amp;&amp; module.exports) 
+    module.exports = ArithmeticGrammar;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jan 03 2017 10:10:43 GMT-0500 (Eastern Standard Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>
