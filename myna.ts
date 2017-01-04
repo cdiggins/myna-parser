@@ -693,7 +693,9 @@ module Myna
     registerGrammar("core", Myna);
 }
 
-// Export the function for use with Node.js
+// Export the function for use with Node.js and the CommonJS module system. 
+// In TypeScript we have to "declare" the module variable to make it a valid symbol, 
+// before we check if it exists. 
 declare let module;
 if (typeof module === "object" && module.exports) 
-    module.exports.Myna = Myna;
+    module.exports = Myna;
