@@ -12,7 +12,7 @@ Myna, and the accompanying grammars, are implemented as CommonJS and Node.js com
 
 ## Why another parsing library? 
 
-I am working on a programming language implementation that can run in the browser. I wanted a JavaScript library (not a code generator) based on the PEG formalism that was easy to extend, robust, and sufficiently efficient. The JavaScript library that comes closest to what I was looking for in terms of API is probably [Parsimmon](https://github.com/jneen/parsimmon). It didn't satisfy my particular needs for the project I'm working on so since I had done this a few times before, (first using C++ templates)[http://www.drdobbs.com/cpp/recursive-descent-peg-parsers-using-c-te/212700432], then (again in C#)[https://www.codeproject.com/Articles/272494/Implementing-Programming-Languages-using-Csharp], I decided to implement my own parser combinator using TypeScript.     
+I am working on a programming language implementation that can run in the browser. I wanted a JavaScript library (not a code generator) based on the PEG formalism that was easy to extend, robust, and sufficiently efficient. The JavaScript library that comes closest to what I was looking for in terms of API is probably [Parsimmon](https://github.com/jneen/parsimmon). It didn't satisfy my particular needs for the project I'm working on so since I had done this a few times before, [first using C++ templates](http://www.drdobbs.com/cpp/recursive-descent-peg-parsers-using-c-te/212700432), [then in C#]([https://www.codeproject.com/Articles/272494/Implementing-Programming-Languages-using-Csharp), I decided to implement my own parser combinator using TypeScript.     
 
 ## Related Libraries
 
