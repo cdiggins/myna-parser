@@ -6,7 +6,7 @@ Myna is a lightweight general purpose JavaScript library for syntactic analysis 
 
 Unlike many popular syntactic analyzers (e.g. [Jison](http://jison.org/), [PEG.js](https://pegjs.org/), [nearley](http://nearley.js.org/), [ANTLR](http://www.antlr.org/)) Myna is an API, not a code generation tool, which makes it easier for programmers to write, debug, and maintain their parsing algorithms. Myna has no dependencies, you can just download [myna.js](https://github.com/cdiggins/myna-parser/raw/master/myna.js) and start using it immediately.
 
-Myna, and the accompanying grammars, are implemented as CommonJS and Node.js compatible JavaScript modules that also "just work" in the browser without the need for an additional module loader. Sorry I do not support AMD.
+Myna, and the accompanying grammars, are implemented as CommonJS and Node.js compatible JavaScript modules that also "just work" in the browser without the need for an additional module loader. 
 
 # Introduction 
 
