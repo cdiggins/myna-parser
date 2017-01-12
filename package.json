@@ -1,16 +1,17 @@
 {
   "name": "myna-parser",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "A JavaScript text parsing library.",
-  "main": "Myna",
+  "main": "myna.js",
   "scripts": {
-    "test": "mocha tests/mocha_runner.js",
     "build": "tsc",
-    "postbuild": "npm run copy-files",
-    "minify": "uglifyjs myna.js -o dist/myna.min.js",
-    "copy-files": "copyfiles myna.ts myna.js tests/tests.js grammars/*.js docs",
-    "win-cover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_runner.js --dir docs/coverage -R spec",
-    "publish": "npm run build & npm run minify & npm run test & npm run win-cover"
+    "test": "mocha tests/mocha_runner.js",
+    "full": "npm run build && npm run wincover",
+    "postbuild": "npm run copyfiles && npm run makedist",
+    "makedist": "uglifyjs myna.js -o dist/myna.min.js",
+    "copyfiles": "copyfiles myna.ts myna.js examples/*.* tests/*.* grammars/*.js docs",
+    "wincover": "istanbul cover %AppData%/npm/node_modules/mocha/bin/_mocha tests/mocha_runner.js --dir docs/coverage -R spec",
+    "gendocs": "echo TODO: add a documentation generation step."
   },
   "homepage": "https://github.com/cdiggins/myna-parser",
   "bugs": "https://github.com/cdiggins/myna-parser/issues",

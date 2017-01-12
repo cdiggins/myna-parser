@@ -7,8 +7,9 @@
 
 // NOTE: we are explicitly bypassing using the TypeScript "export" keyword for 
 // the Myna module otherwise the module won't be usable from browsers without 
-// using an additional moduler loader library like 'require'. I am forcing 
-// Myna to be a zero-dependency library.  
+// using an additional moduler loader library like 'require.js'. That said Myna
+// still exports itself as a module conditionally, see the code at the end of the 
+// file.    
 
 // The one and only object you need. 
 module Myna
@@ -17,7 +18,7 @@ module Myna
     // Global parse functions 
 
     // Called whenever a new parsing session is started  
-    export function _initialize(text:string) {
+    function _initialize(text:string) {
         _input = text;
         _stack = [new AstNode(null)]; 
     }
@@ -117,12 +118,25 @@ module Myna
     //===============================================================
     // AstNode class 
 
-    // Represents a node in the parse tree. 
+    // Represents a node in the generated parse tree. These nodes are returned by the Rule.parse function. If a Rule 
+    // has the "_createAstNode" field set to true (because you created the rule using the ".ast" property), then the 
+    // generated node will also be added to the constructed parse tree.   
     export class AstNode
     {
+        // The list of child nodes in the parse tree. This is not allocated unless used, to minimize memory consumption 
         children: AstNode[] = null;
+
+        // Constructs a new node associated with the given rule.  
         constructor(public rule:Rule, public start:number=0, public end:number=failed) { }
+
+        // Returns the parsed text associated with this node's start and end locations  
         get contents() { return _input.slice(this.start, this.end); } 
+        
+        // Used primarily for debugging: returns a string representation of the parsed children. 
+        get childContents() { return this.children == null ? "[]" : "[" + this.children.map((c) => c.contents).join(",") + "]"; }
+
+        // Used primarily for debugging: returns a string representation of the parse tree
+        get contentsTree() { return this.children == null ? this.contents : "[" + this.children.map((c) => c.contentsTree).join(",") + "]"; }
     }
 
     //===============================================================
@@ -136,6 +150,9 @@ module Myna
     {
         // Identifies individual rule
         name:string = "";
+
+        // Identifies the grammar that this rule belongs to 
+        grammarName:string = "";
 
         // Internal unique identifier
         id:number = genId();
@@ -212,16 +229,24 @@ module Myna
             }                              
         }
 
-        // Defines the type of rules. Used for defining new rule types as combinators. 
+        // Defines the type of rules. Used for defining new rule types as combinators.
+        // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
         setType(typeName:string) : Rule {
             this.type = typeName;
             return this;
         }
 
-        // Sets the name of the rule. 
-        setName(name:string) : Rule {
-            this.name = name;
+        // Sets the name of the rule, and the grammar 
+        // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
+        setName(grammarName:string, ruleName:string) : Rule {
+            this.grammarName = grammarName;
+            this.name = ruleName;
             return this;            
+        }
+
+        // Returns a long name for the rule by combining the grammar name and rule name.  
+        get fullName() : string {
+            return this.grammarName + "." + this.name;
         }
 
         // Returns a default string representation of the rule's definition  
@@ -231,12 +256,12 @@ module Myna
 
         //  Returns the name or the definition if the name is not present
         get nameOrDefinition() : string {
-            return this.name ? this.name : this.definition;
+            return this.fullName ? this.fullName : this.definition;
         }
 
         // Returns a string representation of the rule in the PEG format   
         toString() : string {
-            return this.name + "\t<- " + this.definition;
+            return this.fullName + "\t<- " + this.definition;
         }
 
         // Returns the first child rule
@@ -255,6 +280,7 @@ module Myna
             if (typeof(r) !== typeof(this))
                 throw Exceptions.CloneInvalidType;
             r.name = this.name;
+            r.grammarName = this.grammarName;
             r.type = this.type;
             r._createAstNode = this._createAstNode;
             return r;
@@ -604,8 +630,24 @@ module Myna
     export function doubleQuoted(rule:RuleType) { return guardedSeq("\"", rule, "\"").setType("doubleQuoted"); }
     export function singleQuoted(rule:RuleType) { return guardedSeq("'", rule, "'").setType("singleQuoted"); }
 
-    // Common guarded sequences: with internal whitespace 
+    // Create an array rule by injecting another rule in between each pairs
+    export function join(sep:RuleType, ...xs:RuleType[]) : RuleType[] {
+        let r=[];
+        for (var i=0; i < xs.length; ++i) {
+            if (i > 0) r.push(sep);
+            r.push(xs[i]);
+        } 
+        return r;
+    }
 
+    // Given a list of rules, maps the text to keywords 
+    export function keywordMap(...rules:RuleType[]) { return rules.map((r) => typeof r == "string" ? keyword(r) : r); } 
+
+    // Add whitespace matching rule in between each other rule. 
+    export function seqWs(...rules:RuleType[]) { return seq(...join(ws, ...rules)); } 
+
+    // Common guarded sequences: with internal whitespace
+    
     export function parenthesized(rule:RuleType) { return guardedSeq("(", ws, rule, ws, ")").setType("parenthesized"); }
     export function braced(rule:RuleType) { return guardedSeq("{", ws, rule, ws, "}").setType("braced"); }
     export function bracketed(rule:RuleType) { return guardedSeq("[", ws, rule, ws, "]").setType("bracketed"); }
@@ -676,10 +718,9 @@ module Myna
     {
         for (let k in grammar) {
             if (grammar[k] instanceof Rule) {
-                let ruleName = grammarName + "." + k;
                 let rule = grammar[k];
-                rule.setName(ruleName);
-                rules[ruleName] = rule;
+                rule.setName(grammarName, k);
+                rules[rule.fullName] = rule;
             }
         }
         grammars[grammarName] = grammar;
@@ -693,7 +734,9 @@ module Myna
     registerGrammar("core", Myna);
 }
 
-// Export the function for use with Node.js
+// Export the function for use with Node.js and the CommonJS module system. 
+// In TypeScript we have to "declare" the module variable to make it a valid symbol, 
+// before we check if it exists. 
 declare let module;
 if (typeof module === "object" && module.exports) 
-    module.exports.Myna = Myna;
+    module.exports = Myna;

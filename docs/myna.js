@@ -22,7 +22,6 @@ var Myna;
         _input = text;
         _stack = [new AstNode(null)];
     }
-    Myna._initialize = _initialize;
     // Return true or false depending on whether the rule matches 
     // the beginning of the input string. 
     function match(r, s) {
@@ -97,18 +96,35 @@ var Myna;
     Myna.RuleTypeToRule = RuleTypeToRule;
     //===============================================================
     // AstNode class 
-    // Represents a node in the parse tree. 
+    // Represents a node in the generated parse tree. These nodes are returned by the Rule.parse function. If a Rule 
+    // has the "_createAstNode" field set to true (because you created the rule using the ".ast" property), then the 
+    // generated node will also be added to the constructed parse tree.   
     var AstNode = (function () {
+        // Constructs a new node associated with the given rule.  
         function AstNode(rule, start, end) {
             if (start === void 0) { start = 0; }
             if (end === void 0) { end = failed; }
             this.rule = rule;
             this.start = start;
             this.end = end;
+            // The list of child nodes in the parse tree. This is not allocated unless used, to minimize memory consumption 
             this.children = null;
         }
         Object.defineProperty(AstNode.prototype, "contents", {
+            // Returns the parsed text associated with this node's start and end locations  
             get: function () { return _input.slice(this.start, this.end); },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AstNode.prototype, "childContents", {
+            // Used primarily for debugging: returns a string representation of the parsed children. 
+            get: function () { return this.children == null ? "[]" : "[" + this.children.map(function (c) { return c.contents; }).join(",") + "]"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AstNode.prototype, "contentsTree", {
+            // Used primarily for debugging: returns a string representation of the parse tree
+            get: function () { return this.children == null ? this.contents : "[" + this.children.map(function (c) { return c.contentsTree; }).join(",") + "]"; },
             enumerable: true,
             configurable: true
         });
@@ -127,6 +143,8 @@ var Myna;
             this.rules = rules;
             // Identifies individual rule
             this.name = "";
+            // Identifies the grammar that this rule belongs to 
+            this.grammarName = "";
             // Internal unique identifier
             this.id = genId();
             // Identifies types of rules.  
@@ -184,16 +202,27 @@ var Myna;
                 return end_1;
             }
         };
-        // Defines the type of rules. Used for defining new rule types as combinators. 
+        // Defines the type of rules. Used for defining new rule types as combinators.
+        // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
         Rule.prototype.setType = function (typeName) {
             this.type = typeName;
             return this;
         };
-        // Sets the name of the rule. 
-        Rule.prototype.setName = function (name) {
-            this.name = name;
+        // Sets the name of the rule, and the grammar 
+        // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
+        Rule.prototype.setName = function (grammarName, ruleName) {
+            this.grammarName = grammarName;
+            this.name = ruleName;
             return this;
         };
+        Object.defineProperty(Rule.prototype, "fullName", {
+            // Returns a long name for the rule by combining the grammar name and rule name.  
+            get: function () {
+                return this.grammarName + "." + this.name;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Rule.prototype, "definition", {
             // Returns a default string representation of the rule's definition  
             get: function () {
@@ -205,14 +234,14 @@ var Myna;
         Object.defineProperty(Rule.prototype, "nameOrDefinition", {
             //  Returns the name or the definition if the name is not present
             get: function () {
-                return this.name ? this.name : this.definition;
+                return this.fullName ? this.fullName : this.definition;
             },
             enumerable: true,
             configurable: true
         });
         // Returns a string representation of the rule in the PEG format   
         Rule.prototype.toString = function () {
-            return this.name + "\t<- " + this.definition;
+            return this.fullName + "\t<- " + this.definition;
         };
         Object.defineProperty(Rule.prototype, "firstChild", {
             // Returns the first child rule
@@ -233,6 +262,7 @@ var Myna;
                 if (typeof (r) !== typeof (this))
                     throw Exceptions.CloneInvalidType;
                 r.name = this.name;
+                r.grammarName = this.grammarName;
                 r.type = this.type;
                 r._createAstNode = this._createAstNode;
                 return r;
@@ -728,7 +758,40 @@ var Myna;
     Myna.doubleQuoted = doubleQuoted;
     function singleQuoted(rule) { return guardedSeq("'", rule, "'").setType("singleQuoted"); }
     Myna.singleQuoted = singleQuoted;
-    // Common guarded sequences: with internal whitespace 
+    // Create an array rule by injecting another rule in between each pairs
+    function join(sep) {
+        var xs = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            xs[_i - 1] = arguments[_i];
+        }
+        var r = [];
+        for (var i = 0; i < xs.length; ++i) {
+            if (i > 0)
+                r.push(sep);
+            r.push(xs[i]);
+        }
+        return r;
+    }
+    Myna.join = join;
+    // Given a list of rules, maps the text to keywords 
+    function keywordMap() {
+        var rules = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            rules[_i - 0] = arguments[_i];
+        }
+        return rules.map(function (r) { return typeof r == "string" ? keyword(r) : r; });
+    }
+    Myna.keywordMap = keywordMap;
+    // Add whitespace matching rule in between each other rule. 
+    function seqWs() {
+        var rules = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            rules[_i - 0] = arguments[_i];
+        }
+        return seq.apply(void 0, join.apply(void 0, [Myna.ws].concat(rules)));
+    }
+    Myna.seqWs = seqWs;
+    // Common guarded sequences: with internal whitespace
     function parenthesized(rule) { return guardedSeq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
     Myna.parenthesized = parenthesized;
     function braced(rule) { return guardedSeq("{", Myna.ws, rule, Myna.ws, "}").setType("braced"); }
@@ -802,10 +865,9 @@ var Myna;
     function registerGrammar(grammarName, grammar) {
         for (var k in grammar) {
             if (grammar[k] instanceof Rule) {
-                var ruleName = grammarName + "." + k;
                 var rule = grammar[k];
-                rule.setName(ruleName);
-                Myna.rules[ruleName] = rule;
+                rule.setName(grammarName, k);
+                Myna.rules[rule.fullName] = rule;
             }
         }
         Myna.grammars[grammarName] = grammar;
@@ -818,5 +880,5 @@ var Myna;
     registerGrammar("core", Myna);
 })(Myna || (Myna = {}));
 if (typeof module === "object" && module.exports)
-    module.exports.Myna = Myna;
+    module.exports = Myna;
 //# sourceMappingURL=myna.js.map

@@ -1,0 +1,11 @@
+{
+  "name": "myna-parser-node-test",
+  "version": "1.0.0",
+  "description": "A simple test of the Myna parser NPM package. ",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "Christopher Diggins",
+  "license": "MIT"
+}
