@@ -2,24 +2,38 @@
 
 [![npm version](https://badge.fury.io/js/myna-parser.svg)](https://badge.fury.io/js/myna-parser)
 
-Myna is a lightweight general purpose JavaScript library for syntactic analysis (text parsing) based on the [PEG formalism](http://bford.info/pub/lang/peg). Myna is written using [TypeScript 2.0](https://www.typescriptlang.org/) and targets [ECMAScript 5.1](https://www.ecma-international.org/ecma-262/5.1/). 
+Myna is a lightweight general purpose JavaScript library for syntactic analysis (text parsing) based on the [PEG formalism](http://bford.info/pub/lang/peg). This means that Myna is capable of recognizing any pattern that can be described using a regular-expression or context-free grammar (CFG). Myna is written using [TypeScript 2.0](https://www.typescriptlang.org/) and targets [ECMAScript 5.1](https://www.ecma-international.org/ecma-262/5.1/). 
 
-Unlike many popular syntactic analyzers (e.g. [Jison](http://jison.org/), [PEG.js](https://pegjs.org/), [nearley](http://nearley.js.org/), [ANTLR](http://www.antlr.org/)) Myna is an API, not a code generation tool, which makes it easier for programmers to write, debug, and maintain their parsing algorithms. Myna has no dependencies, you can just download [myna.js](https://github.com/cdiggins/myna-parser/raw/master/myna.js) and start using it immediately.
+Unlike several popular syntactic analyzers (e.g. [Jison](http://jison.org/), [PEG.js](https://pegjs.org/), [nearley](http://nearley.js.org/), [ANTLR](http://www.antlr.org/)) Myna is an API, not a code generation tool, which makes it easier for programmers to write, debug, and maintain their parsing algorithms. This makes Myna closest to [Parsimmon](https://github.com/jneen/parsimmon) and [Chevrotain](https://github.com/SAP/chevrotain). Myna has no dependencies, you can just download [myna.js](https://github.com/cdiggins/myna-parser/raw/master/myna.js) and start using it immediately.
 
 Myna, and the accompanying grammars, are implemented as CommonJS and Node.js compatible JavaScript modules that also "just work" in the browser without the need for an additional module loader. 
 
 # Introduction 
 
+## How is Myna different from a Regular Expression
+
+In many respects any parsing library that can recognize a context-free grammar (CFG) like Myna is similar to writing a regular expression. Many of the same concepts carry over (e.g. concatenation, alternation, Kleene closure, quantification, etc.). The advantages of Myna are that you can easily find and capture patterns that have a nested structure, such as [nested parentheses](http://stackoverflow.com/questions/133601/can-regular-expressions-be-used-to-match-nested-patterns). Other advantages are the you can express sub-patterns as variables or functions, and automatically create a parse tree.  
+
 ## Why another parsing library? 
 
-I am currently working on a programming language implementation that can run in the browser. I wanted a JavaScript library (not a code generator) based on the PEG formalism that was easy to extend, robust, and sufficiently efficient. The JavaScript library that comes closest to what I was looking for in terms of API is probably [Parsimmon](https://github.com/jneen/parsimmon). It did not satisfy my particular needs for the project I am working on, so since I had done this a few times before, [first using C++ templates](http://www.drdobbs.com/cpp/recursive-descent-peg-parsers-using-c-te/212700432), [then in C#](https://www.codeproject.com/Articles/272494/Implementing-Programming-Languages-using-Csharp), I decided to implement my own parser combinator using TypeScript.     
+I am currently working on a programming language implementation that can run in the browser. I wanted a JavaScript library (not a code generator) based on the PEG formalism that was easy to extend, robust, and efficient. The JavaScript library that comes closest to what I was looking for in terms of API is probably [Parsimmon](https://github.com/jneen/parsimmon). It did not satisfy my particular needs for the project I am working on, so since I had done this a few times before, [first using C++ templates](http://www.drdobbs.com/cpp/recursive-descent-peg-parsers-using-c-te/212700432), [then in C#](https://www.codeproject.com/Articles/272494/Implementing-Programming-Languages-using-Csharp), I decided to implement my own parser combinator using TypeScript.
 
-## Related Libraries
+When I looked under the hood at many popular JavaScript libraries that perform text parsing for specific goals (e.g. parsing Markdown, CSV, JSON, XML, JavaScript, TypeScript, YAML), they often use custom hand-written parsers combined with regular expressions. I believe that with enough work a PEG parsing library should eventually be able to have performance on par with these hand-written parsers while making it easier to extend, maintain, re-use, and debug the code-bases. 
+
+## Plans
+
+I am currently working on:
+- extending the test suites 
+- adding more example grammars
+- writing an automated grammar optimizer.  
+
+## Related Parsing Libraries
 
 Like many developers you are probably trying to evaluate which library is best suited for your needs. In my own research here are some JavaScript parsing libraries and parser generators that I found on GitHub, listed according to the number of times the repo has been starred on Github (as of January 2, 2017).
 
 - [Jison](https://github.com/zaach/jison) (2611)
 - [Peg.js](https://github.com/pegjs/pegjs) (2078)
+- [Ohm](https://github.com/harc/ohm) (814)
 - [Nearley](https://github.com/Hardmath123/nearley) (571)
 - [Parsimmon](https://github.com/jneen/parsimmon) (413)
 - [Chevrotain](https://github.com/SAP/chevrotain) (304)
@@ -51,8 +65,9 @@ The Myna library is written in TypeScript 2.0 and is contained in one file `myna
  
 ## Building Myna
 
-The `myna.js` library is generated from the `myna.ts` source file using the TypeScript 2.0 compiler (tsc). I use [npm](http://npmjs.com) as my build tool and task runner. Since my development environment is Windows some of the hacks in the `package.json` file might not work on other platforms, and I would welcome submissions for making my package cross platform. I use Visual Studio Code as my development environment.  
+The `myna.js` library is generated from the `myna.ts` source file using the TypeScript 2.0 compiler (tsc). I use [npm](http://npmjs.com) as my build tool and task runner. Since my development environment is Windows some of the hacks in the `package.json` file might not work on other platforms. I would welcome submissions for making my package cross platform. I use Visual Studio Code as my development environment.  
 
+<!--
 The commands you can use from the shell once you have npm installed are:
 
 - `npm run build` - Runs the TypeScript compiler (tsc) to generate `myna.js` from `myna.ts`. 
@@ -61,6 +76,7 @@ The commands you can use from the shell once you have npm installed are:
 - `npm run makdist` - Creates a minified version of myna `dist\myna.min.js`
 - `npm run wincover` - Creates a code coverage report build using Istanbul (re-runs Mocha)  
 - `npm run copyfiles` - Copies test files and build results to the documentation folder.  
+-->
 
 You can look at the `package.json` file to see how each of the scripts are implemented.    
 
