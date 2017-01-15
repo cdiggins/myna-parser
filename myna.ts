@@ -311,6 +311,7 @@ module Myna
         repeat(count:number) { return repeat(this, count); }
         bounded(min:number, max:number) { return bounded(this, min, max); }
         delimited(delimiter:RuleType) { return delimited(this, delimiter); }        
+        butNot(r:RuleType) { return not(r).then(this); }
     }
 
     //===============================================================
@@ -673,7 +674,7 @@ module Myna
     export let digitNonZero     = range('1', '9');
     export let integer          = choice('0', seq(digitNonZero, digit.star));
     export let hexDigit         = choice(digit,range('a','f'), range('A','F'));
-    export let binaryDigit      = choice('0','1');
+    export let binaryDigit      = char('01');
     export let octalDigit       = range('0','7');
     export let alphaNumeric     = choice(letter, digit);
     export let underscore       = text("_");
@@ -685,7 +686,7 @@ module Myna
     export let newLine          = choice(crlf, "\n");          
     export let space            = text(" ");
     export let tab              = text("\t");    
-    export let ws               = char(" \t\r\n").star;
+    export let ws               = char(" \t\r\n\u00A0\uFEFF").star;    
         
     //===============================================================
     // Grammar functions 
