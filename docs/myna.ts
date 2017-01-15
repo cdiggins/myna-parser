@@ -685,7 +685,7 @@ module Myna
     export let newLine          = choice(crlf, "\n");          
     export let space            = text(" ");
     export let tab              = text("\t");    
-    export let ws               = char(" \t\r\n").star;
+    export let ws               = char(" \t\r\n\u00A0\uFEFF").star;
         
     //===============================================================
     // Grammar functions 
