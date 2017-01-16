@@ -1,6 +1,7 @@
 # Myna Parsing Library 
 
-[![npm version](https://badge.fury.io/js/myna-parser.svg)](https://badge.fury.io/js/myna-parser)
+[![npm version](https://badge.fury.io/js/myna-parser.svg)](https://badge.fury.io/js/myna-parser) 
+[![Build Status](https://travis-ci.org/cdiggins/myna-parser.svg?branch=master)](https://travis-ci.org/cdiggins/myna-parser)
 
 Myna is a lightweight general purpose JavaScript library for syntactic analysis (text parsing) based on the [PEG formalism](http://bford.info/pub/lang/peg). This means that Myna is capable of recognizing any pattern that can be described using a regular-expression or context-free grammar (CFG). Myna is written using [TypeScript 2.0](https://www.typescriptlang.org/) and targets [ECMAScript 5.1](https://www.ecma-international.org/ecma-262/5.1/). 
 
