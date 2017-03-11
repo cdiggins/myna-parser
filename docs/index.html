@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="An introduction and interactive demo for the Myna syntactic analysis library.">
+<meta name="description" content="An introduction and interactive demo for the Myna text parsing library.">
 <meta name="author" content="Christopher Diggins">
 <!-- <link rel="icon" href="../../favicon.ico"> -->
 
@@ -68,8 +68,7 @@ textarea {
 <h1>Myna - a JavaScript text parsing library</h1> 
 
 <p>
-    Myna is a JavaScript library for <i><a href="https://en.wikipedia.org/wiki/Parsing">parsing</a></i> text, or described 
-    another way for performing <i>syntactic analysis</i>.
+    Myna is a JavaScript library for <i><a href="https://en.wikipedia.org/wiki/Parsing">parsing</a></i> structured text.
     Myna parsers are <a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parsers</a> that support 
     both back-tracking and look-ahead (table-based) techniques and can recognize any <i>context-free grammar</i> (CFG).    
 </p>
@@ -110,13 +109,13 @@ textarea {
 <h3>Extended PEG Grammar Representation</h3>
 <p>
     The following is a representation of the grammar using an extended variation of a <i>PEG</i> 
-    (<i>Parsing Expression Grammar</i>). The Myna API extends the PEG formalism through the support of 
-    the following features:
+    (<a href="https://en.wikipedia.org/wiki/Parsing_expression_grammar"><i>Parsing Expression Grammar</i></a>). 
+    The Myna API extends the PEG formalism through the support of the following features:
     <ul>
-        <li>look-ahead operators</li>
+        <li>table lookup operators</li>
         <li>character sets (and negated character sets)</li>
         <li>quantified matches (e.g. between n and m matches)</li>
-        <li>function-based actions and predicates</li>
+        <li>actions and predicates</li>
     </ul>
 </p>
 <textarea spellcheck=false id="peg-grammar" rows="12">
