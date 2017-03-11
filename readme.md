@@ -19,14 +19,7 @@ In many respects any parsing library that can recognize a context-free grammar (
 
 I am currently working on a programming language implementation that can run in the browser. I wanted a JavaScript library (not a code generator) based on the PEG formalism that was easy to extend, robust, and efficient. The JavaScript library that comes closest to what I was looking for in terms of API is probably [Parsimmon](https://github.com/jneen/parsimmon). It did not satisfy my particular needs for the project I am working on, so since I had done this a few times before, [first using C++ templates](http://www.drdobbs.com/cpp/recursive-descent-peg-parsers-using-c-te/212700432), [then in C#](https://www.codeproject.com/Articles/272494/Implementing-Programming-Languages-using-Csharp), I decided to implement my own parser combinator using TypeScript.
 
-When I looked under the hood at many popular JavaScript libraries that perform text parsing for specific goals (e.g. parsing Markdown, CSV, JSON, XML, JavaScript, TypeScript, YAML), they often use custom hand-written parsers combined with regular expressions. I believe that with enough work a PEG parsing library should eventually be able to have performance on par with these hand-written parsers while making it easier to extend, maintain, re-use, and debug the code-bases. 
-
-## Plans
-
-I am currently working on:
-- extending the test suites 
-- adding more example grammars
-- writing an automated grammar optimizer.  
+When I looked under the hood at many popular JavaScript libraries that perform text parsing for specific goals (e.g. parsing Markdown, CSV, JSON, XML, JavaScript, TypeScript, YAML), they often use custom hand-written parsers combined with regular expressions. I believe that with enough work a PEG parsing library should  be able to have performance on par with these hand-written parsers while making it easier to extend, maintain, re-use, and debug the code-bases. 
 
 ## Related Parsing Libraries
 
@@ -48,8 +41,6 @@ You can download the latest [`myna.js`](https://github.com/cdiggins/myna-parser/
 
 > npm i myna-parser
 
-See `tests\node_test.js` for an example of using     
-
 ## Example Grammars 
 
 For examples of how to construct a parser in JavaScript using Myna see the following pages:
@@ -66,17 +57,20 @@ The Myna library is written in TypeScript 2.0 and is contained in one file `myna
  
 ## Building Myna
 
-The `myna.js` library is generated from the `myna.ts` source file using the TypeScript 2.0 compiler (tsc). I use [npm](http://npmjs.com) as my build tool and task runner. Since my development environment is Windows some of the hacks in the `package.json` file might not work on other platforms. I would welcome submissions for making my package cross platform. I use Visual Studio Code as my development environment.  
+The `myna.js` library is generated from the `myna.ts` source file using the TypeScript 2.0 compiler (tsc). I use [npm](http://npmjs.com) as my build tool and task runner. 
+I would welcome submissions for making my package cross platform. I use Visual Studio Code as my development environment.  
 
 <!--
 The commands you can use from the shell once you have npm installed are:
 
 - `npm run build` - Runs the TypeScript compiler (tsc) to generate `myna.js` from `myna.ts`. 
-  - The post build steps are to run `test`, `wincover`, `makedist` and `copyfiles` 
+
+- The post build steps are to run `test`, `wincover`, `makedist` and `copyfiles` 
+
 - `npm run test` or `npm tests` - Runs the Mocha test runner on the test suite `tests\mocha_runner.js`
 - `npm run makdist` - Creates a minified version of myna `dist\myna.min.js`
-- `npm run wincover` - Creates a code coverage report build using Istanbul (re-runs Mocha)  
 - `npm run copyfiles` - Copies test files and build results to the documentation folder.  
+- `npm run wincover` - Creates a code coverage report build using Istanbul (re-runs Mocha)  
 -->
 
 You can look at the `package.json` file to see how each of the scripts are implemented.    

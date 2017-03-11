@@ -1,61 +1,10 @@
 "use strict";
 
-// TODO: test error location reporting.
-// TODO: assure that failing parentheses are reported properly  
-
-function tests(myna, grammarConstructors, evaluators) 
+function tests(mynaTester, evaluators) 
 {
-    let EvalArithmetic = evaluators.arithmetic;
+    let m = mynaTester.myna;
 
-    function testParse(myna, rule, text, shouldFail)  {    
-        if (shouldFail == undefined) shouldFail = false;
-        let result = myna.failed;
-        let err = undefined;    
-        try {        
-            result = myna.parse(rule, text).end;
-        }
-        catch (e) {
-            err = e;
-        }
-
-        return {
-            name : rule.fullName + ": " + text,
-            description : result + "/" + text.length,
-            negative : shouldFail,
-            success : (result == text.length) ^ shouldFail,
-            error : err,
-            ruleDescr : rule.type + ": " + rule.toString(),
-            rule : rule        
-        };
-    }
-
-    function testRule(myna, rule, passStrings, failStrings) 
-    {
-        if (failStrings == undefined) failStrings = [];
-        let passResults = passStrings.map(
-            function (tkn) { 
-                return testParse(myna, rule, tkn, false); 
-            });
-        let failResults = failStrings.map(
-            function (tkn) { 
-                return testParse(myna, rule, tkn, true); 
-            });  
-        return { 
-            name: "Testing rule " + rule.toString(),
-            results : [].concat(passResults, failResults)
-        }; 
-    }
-
-    function simpleParserTests() {
-        let input = "abc 123 def 456 ghi 789";
-    }
-
-    function oddNumberOfXGrammar() {
-        let x = function() { return choice(seq("x", delay(x), "x"), "x"); }
-        return x();
-    }
-
-    function commonGrammarTests(m) {
+    function commonGrammarTests() {
         return [
             [m.letterLower, ['a', 'm', 'z'], ['A', '?', '0', ' ']],
             [m.letterUpper, ['A', 'M', 'Z'], ['a', '?', '0', ' ']],
@@ -80,22 +29,23 @@ function tests(myna, grammarConstructors, evaluators)
             ];
     }
 
-    function coreTests(m) {
+    function coreTests() {
         return [
+            [m.char("a").oneOrMore, ["a","aaa"], ["", "aaab", "bba"]],
             [m.truePredicate, [""], ["a"]],
             [m.falsePredicate, [], ["", "a"]],
             [m.end, [""], ["a", " a", "a "]],
             [m.seq(m.notEnd, m.all), ["a", " ", "jhasd kajshd"], [""]],
             [m.advance, ["a", "Z", "9", "."], ["", " a"]],
-            [m.char("ab").star, ["", "a", "aabbaa"], ["c", "abc"]],
+            [m.char("ab").zeroOrMore, ["", "a", "aabbaa"], ["c", "abc"]],
             [m.text("ab"), ["ab"], ["abc"]],
             [m.all, ["", "ab", "bacasdasd"], []],
             [m.not("ab"), [""], ["ab", "aab", "bc"]],
             [m.seq(m.not("ab"), "bc"), ["bc"], ["", "aab", "ab"]],
             [m.seq(m.not("ab"), m.all), ["ba", "aab", ""], ["ab"]],
-            [m.star("a"), ["", "a","aa", "aaa"], ["b", "aab"]],
-            [m.plus("a"), ["a","aa", "aaa"], ["", "b", "aab"]],
-            [m.star("ab"), ["","ab","ababab"], ["aab", "b"]],
+            [m.zeroOrMore("a"), ["", "a","aa", "aaa"], ["b", "aab"]],
+            [m.oneOrMore("a"), ["a","aa", "aaa"], ["", "b", "aab"]],
+            [m.zeroOrMore("ab"), ["","ab","ababab"], ["aab", "b"]],
             [m.bounded("ab", 1, 2), ["ab", "abab"], ["", "ababab"]],
             [m.repeat("a", 3), ["aaa"], ["aa", "aaaa"]],
             [m.opt("ab"), ["", "ab"], ["abc"]],
@@ -104,7 +54,7 @@ function tests(myna, grammarConstructors, evaluators)
             [m.except("a", m.advance), ["b", "c"], ["", "a"]],
             [m.seq("a", "b"), ["ab"], ["abb", "", "aab", "ba"]],
             [m.choice("a", "b"), ["a", "b"], ["ab", "", "c", "ba"]],
-            [m.seq(m.plus("a"), m.plus("b")), ["aab", "ab", "abb", "aaabb"], ["", "aa", "ba", "bb"]],
+            [m.seq(m.oneOrMore("a"), m.oneOrMore("b")), ["aab", "ab", "abb", "aaabb"], ["", "aa", "ba", "bb"]],
             [m.charExcept("a"), ["b","c"], ["a", ""]],
             [m.seq(m.repeatWhileNot("a", "b"), "b"), ["aaab", "b"], ["abb", "bb"]],
             [m.repeatUntilPast("a", "b"), ["aaab", "b"], ["abb", "bb"]],
@@ -126,10 +76,24 @@ function tests(myna, grammarConstructors, evaluators)
             [m.singleQuoted("a"), ["'a'"], ["''", "a", "", "'a", "a'", "''a", "a''"]],
             [m.tagged("a"), ["<a>"], ["<>", "<", "", "<a", "a>", "<>a", "a<>"]],
             [m.delimited("a", ","), ["", "a", "a,a", "a,a,a"], ["a,", ",a", ",", "aa", "aa,aa"]],
+            [m.choice("a", "b").oneOrMore, ["a","aaa", "b", "abab"], ["", "c", "aaabc", "bbac"]],
+            [m.char("a").oneOrMore, ["a","aaa"], ["", "aaab", "bba"]],
+
+            [m.char("ab").zeroOrMore.butNot("aba"), ["aa", "ab"], ["aba", "abc", "abab"]],
+            [m.char("a").then("b"), ["ab"], ["a", "ba", "b"]],
+            [m.char("a").thenAt(m.end), ["a"], ["ab", "ba", "b"]],
+            [m.char("a").thenAt("b").then("b"), ["ab"], ["a", "ba", "b"]],
+            [m.char("ab").zeroOrMore.thenNot("c").then("d"), ["abd"], ["a", "abc", "ba", "b"]], 
+            [m.char("a").or("b").zeroOrMore, ["a", "b", "aba", ""], ["c"]],
+            [m.char("a").until("b").then("b"), ["b", "aaab"], ["ba"]],
+            [m.char("a").untilPast("b").then("c"), ["bc", "aaabc"], ["bac"]],
+            [m.char("a").repeat(3), ["aaa"], ["aa", "aaaa"]],            
+            [m.char("a").bounded(2,3), ["aa", "aaa"], ["a", "aaaa"]],            
+            [m.char("a").delimited("b"), ["a", "aba", "ababa"], ["aaba","abaa","bab","b"]],            
         ];
     }
 
-    function csvTests(m) {
+    function csvTests() {
         let cg = m.grammars.csv;
         let records = [
                 'Stock Name,Country of Listing,Ticker,Margin Rate,Go Short?,Limited Risk Premium',
@@ -146,7 +110,7 @@ function tests(myna, grammarConstructors, evaluators)
         ];
     }
 
-    function jsonTests(m) {
+    function jsonTests() {
         let jg = m.grammars.json;
         return [
             // JsonGrammar tests*
@@ -180,7 +144,7 @@ function tests(myna, grammarConstructors, evaluators)
         ];
     }
 
-    function arithmeticTests(m) {
+    function arithmeticTests() {
         let ag = m.grammars.arithmetic;
         return [
             [ag.number,     ['0', '100', '421', '123.456', '0.0123e-456'], ["", "abc", "1+2", "e+2", "01", "-"]],
@@ -197,49 +161,34 @@ function tests(myna, grammarConstructors, evaluators)
         ];
     }
 
-    function runParseTests(m, inputs) {
-        return inputs.map(
-            function (input) { 
-                return testRule(m, input[0], input[1], input[2]); 
-            }); 
+    function markdownTests() {
+        let mdg = m.grammars.markdown;
+        return [
+            [mdg.ws,        [' ', '  ', '\t\t'], ['\n', ' a']],
+            [mdg.plainText, [' ', 't', '1123', '$', 'abc def', 'abc1def'], ['\n', '#', '_', 'ab_cd']],
+            [mdg.escaped,   ['\\[', '\\]', '\\@', '\\#', '\\`', `\\(`, '\\)', '\\\\'], ['[', ']', '*', '`', '\\']],
+            [mdg.linkText,  ['[abc]', '[abc\\]def]', '[]'], ['[abc', 'abc]', '[abc]def', '[abc\\]']],
+            [mdg.linkUrl,   ['(abc)', '(abc\\)def)', '()'], ['(abc', 'abc)', '(abc)def', '(abc\\)']],
+            [mdg.image,     ['![text](url)', '![alternate text](http://www.some-url.com/file.svg)'], ['[text](url)', '[text(url)', 'text(url)']],
+            [mdg.link,      ['[text](url)', '[this is to be\nhyperlinked](http://some-url.com)', '[![text](image-url)](hyperlink)'], ['[text](url', '[text(url)', 'text(url)']],
+            [mdg.inline,    ['123', 'ab', '*abc*',  ' ', '\\*', '*', 'ab ab', '*some ~~thing~~*'], ['123\n', 'test *test*']],
+            [mdg.restOfLine,['\n', '123\n', 'ab *cd* \n', 'abc'], ['\n\n']],
+            [mdg.bold,      ['**bold**',  '**123**', '__bold__', '__123__', '** bold **', '__ bold __', '** _ bold _ **', '** a * bc * d **', '__ `bold code` __', '**\\***'], ['* italic *', '_ italic _', '** bold \\**']],
+            [mdg.italic,    ['* italic *', '_ italic _', '_ ~~italicstrike~~ _', '_\\*_', '*\\_*', '_ ** test ** _', '_*test*_', '*some ~~thing~~*'], ['** bold **', '__ italic __']],
+            [mdg.strike,    ['~~ strike ~~', '~~strike~~'], ['* italic *', '_ italic _']],
+            [mdg.heading,   ['# heading\n', '## heading 2\n', '### heading 3 with newline\n', '#### *heading4 italicized*\n'], [' # nope\n', '_#nope_\n']],
+            [mdg.codeBlock, ['```\ntest\ntest\n```'], ['```test```', '``\ntest\ntest\n``']],
+            [mdg.mention,   ['@abc', '@123-456', '@test/reference-something/123'], ['@qw er', 'asd@asd']],
+            [mdg.code,      ['`code`', '`*codebold*`'], ['*`boldcode`*']],
+            [mdg.quote,     ['>\n', '> simple\n', '> line 1\n> line *2*\n', '> no newline'], [' > not valid\n']], 
+            [mdg.list,      ['* test\n* test\n', '- test\n  - nested\n    - nested again\n', '- item1\n* item2\n', '1. item\n2.item\n  34. item\n'], [' - test\n']],
+            [mdg.paragraph, ['abc', 'abc\n', 'abc\nabc', 'abc\nabc\n', 'line 1\nline 2\n', 'some *thing* is happening'], ['', '- test\n']],
+            [mdg.simpleLine,['abc','abc\n','a *b*\n'], []], // '', ' ', '\t', '\n', '  \t\n', '- abc\n'
+            [mdg.document,  ['simple', 'with\nnew\nlines', '# Heading\n\nand some text.', 'stuff\n> and a\n> quote\n\n- and a list\n## And another heading', '# heading\n## and another', '', '\n\n'], []]
+        ];
     }
 
-    function testGrammar(myna, grammarName) {
-        let g = myna.grammars[grammarName];    
-        if (g == undefined) 
-            throw "grammar is missing " + grammarName;    
-        let rules = myna.grammarRules(g);
-        if (rules.length == 0)
-            throw "grammar has no rules " + grammarName;
-        console.log(myna.grammarToString(g));
-    }
-
-    function testExpr(myna, rule, evaluator, input, expected) {
-        let err = undefined;
-        try {
-            let ast = myna.parse(rule, input);
-            if (ast == null) 
-                throw "Parse failed: no AST created";
-            if (ast.end != input.length)
-                throw "Failed to parse whole input " + ast.contents;
-            ast = ast.children[0];
-            let val = evaluator(ast);
-            if (val !== expected) 
-                throw "Value was " + val + " but expected " + expected;
-        }
-        catch (e) {
-            err = e;
-        }
-        return {
-            name : input + " === " + expected,
-            description : "",
-            negative : false,
-            success : err === undefined, 
-            error : err,
-        };
-    }
-
-    let arithmeticEvaluatorTestInputs = [  
+    let arithmeticTestInputs = [  
         ["6 * 7", 42],    
         ["42", 42],
         ["0", 0],    
@@ -264,51 +213,36 @@ function tests(myna, grammarConstructors, evaluators)
         ["3 - -5", 8],        
         ["-3 - -5 * 9", 42]];
 
-    function testEvaluators(m) {
+    function testEvaluators() {
         let r = m.grammars.arithmetic.expr;
-        let e = EvalArithmetic;
+        let e = evaluators.arithmetic;
 
         return [{ 
             name: "Testing Arithmetic evaluator", 
-            results : arithmeticEvaluatorTestInputs.map(function(t) { 
-            return testExpr(m, r, e, t[0], t[1]);
+            results : arithmeticTestInputs.map(function(t) { 
+            return mynaTester.testExpr(r, e, t[0], t[1]);
             })
         }]; 
     }
 
-    function testParsers(myna) {
+    function testParsers() {
         // Get all the tests and concatenate them together 
         let tests = [].concat(
-            commonGrammarTests(myna),
-            coreTests(myna),    
-            jsonTests(myna),
-            csvTests(myna),
-            arithmeticTests(myna));
+            commonGrammarTests(),
+            coreTests(),    
+            jsonTests(),
+            csvTests(),
+            arithmeticTests(),
+            markdownTests());
     
-        // Validate tests 
-        for (let t of tests) 
-            if (t.length != 3 || t[0] === undefined) 
-                throw "Each test must have a rule, an array of passing strings, and an array of failing strings";            
-        
-        return runParseTests(myna, tests);
+        // Validate tests         
+        return mynaTester.testRules(tests);
     }
-
-    // TODO: here I am thinking that each evaluator need to be constructed as a pair of things: an evaluator function and a parse rule. 
-
-    // Construct a grammar from each Grammar constructor
-    for (let grammarFxn of grammarConstructors)
-        new grammarFxn(myna);
-        
-    // Make sure each grammar is registered
-    testGrammar(myna, "arithmetic");
-    testGrammar(myna, "core");
-    testGrammar(myna, "csv");
-    testGrammar(myna, "json");
 
     // Run the evaluator tests and the parsers tests 
     let r = [];
-    r = r.concat(testParsers(myna));
-    r = r.concat(testEvaluators(myna, evaluators));
+    r = r.concat(testParsers());
+    r = r.concat(testEvaluators());
     return r;
 }
 

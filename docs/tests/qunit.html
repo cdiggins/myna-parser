@@ -13,10 +13,20 @@
   <script src="../grammars/csv.js"></script>
   <script src="../grammars/json.js"></script>
   <script src="../grammars/arithmetic.js"></script>
+  <script src="../grammars/markdown.js"></script>
   <script src="../examples/arithmetic_evaluator.js"></script>  
+  <script src="myna_tester.js"></script>
   <script src="tests.js"></script>
   <script>
-    let suiteResults = tests(Myna, [JsonGrammar, ArithmeticGrammar, CsvGrammar], { arithmetic:EvalArithmetic });
+
+    let mynaTester = new MynaTester(Myna);
+    Myna.registerGrammar("json", JsonGrammar);
+    Myna.registerGrammar("arithmetic", ArithmeticGrammar);
+    Myna.registerGrammar("csv", CsvGrammar);
+    Myna.registerGrammar("markdown", MarkdownGrammar);
+
+    let suiteResults = tests(mynaTester, { arithmetic:EvalArithmetic });
+
     console.log("Test results");
     for (let s of suiteResults) {
         QUnit.test(s.name, function(assert) {

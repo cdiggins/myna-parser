@@ -13,15 +13,12 @@ function CsvGrammar(myna, delimiter)
     let m = myna;
 
     this.textdata   = m.charExcept('\n\r"' + delimiter);    
-    this.quoted     = m.doubleQuoted(m.charExcept('"').or('""').star);
-    this.field      = this.textdata.or(this.quoted).star.ast;
+    this.quoted     = m.doubleQuoted(m.charExcept('"').or('""').zeroOrMore);
+    this.field      = this.textdata.or(this.quoted).zeroOrMore.ast;
     this.record     = this.field.delimited(delimiter).ast;
     this.file       = this.record.delimited(m.newLine);   
-
-    // Finalize the grammar and make it available to all users of the Myna module 
-    m.registerGrammar("csv", this);        
 }
 
-// Export the function when using Node.js
+// Export the grammar for usage by Node.js and CommonJs compatible module loaders 
 if (typeof module === "object" && module.exports) 
     module.exports = CsvGrammar;

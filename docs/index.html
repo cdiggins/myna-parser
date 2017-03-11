@@ -1,67 +1,329 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Myna Parsing Library</title>
-<link href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah|Source+Sans+Pro" rel="stylesheet">
-<!-- <link href="https://fonts.googleapis.com/css?family=Cabin" rel="stylesheet"> -->
-<style type="text/css">
-    html {
-        font-family: 'Source Sans Pro', sans-serif;
-    }
-    h1, h2 {
-        font-family: 'Gloria Hallelujah', cursive;        
-    }
-    .boxshadow 
-    {
-         box-shadow: 3px 3px 5px #535353;
-    }
-    .roundbox
-    {  
-        border-radius: 6px 6px 6px 6px;
-    }    
-    .boxcontenttext 
-    {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-    .main 
-    {
-        width: 50%;
-        display: block; 
-        margin-left: auto;
-        margin-right: auto;        
-    }
-    .title 
-    {
-        margin-left: auto;
-        margin-right: auto;        
-        width: 50%;
-        display: block; 
-        border: solid 2px steelblue;
-    }
-    .title-text
-    {
-        text-align: center;
-    }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="An introduction and interactive demo for the Myna syntactic analysis library.">
+<meta name="author" content="Christopher Diggins">
+<!-- <link rel="icon" href="../../favicon.ico"> -->
+
+<!-- Google fonts -->
+<link rel="stylesheet"href="https://fonts.googleapis.com/css?family=Cabin">
+
+<title>Myna - a parsing library in JavaScript</title>
+
+<!-- Bootstrap core CSS -->
+<link rel="stylesheet" href="css/bootstrap.min.css">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<style>
+body {
+    font-family: Cabin;
+    padding-top: 50px;
+}   
+textarea {
+    font-family: Monaco, "Lucida Console", monospace;
+    font-size: smaller;
+    width: 100%;
+    white-space: nowrap;        
+} 
+.starter-template {
+    padding: 40px 15px;
+    text-align: left;
+}    
 </style>
 </head>
-<body>
 
-<div class="title roundbox boxshadow">              
-    <div class="title-text roundbox boxcontenttext">
-        <h2>Myna - a text parsing library for JavaScript<br>by Christopher Diggins</h2> 
+  <body>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+    <div class="navbar-header">
+<a href="https://github.com/cdiggins/myna-parser"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Myna</a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Home</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="https://github.com/cdiggins/myna-parser">GitHub</a></li>
+        <li><a href="https://www.npmjs.com/package/myna-parser">NPM</a></li>
+        </ul>
+    </div><!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container">
+
+<div class="starter-template">
+<h1>Myna - a JavaScript text parsing library</h1> 
+
+<p>
+    Myna is a JavaScript library for <i><a href="https://en.wikipedia.org/wiki/Parsing">parsing</a></i> text, or described 
+    another way for performing <i>syntactic analysis</i>.
+    Myna parsers are <a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parsers</a> that support 
+    both back-tracking and look-ahead (table-based) techniques and can recognize any <i>context-free grammar</i> (CFG).    
+</p>
+<p>
+    For more information on Myna see the <a href="https://github.com/cdiggins/myna-parser/blob/master/readme.md"><code>readme.md</code> 
+    on GitHub</a>.
+</p>
+
+<a name="demo"></a>
+<h2>Introduction to Myna - An Interactive Demo</h2>
+
+
+<h3>Myna Grammars</h3>
+<p>
+    A <i>grammar</i> is a set of parsing rules. In Myna any object that has member
+    fields that are derived from the <code>Myna.Rule</code>
+    class can be considered a grammar. A grammar should be registered with the Myna
+    module using <code>Myna.registerGrammar</code>. This will automatically associate 
+    a name with each rule and store the grammar and its rules in the Myna module.
+</p>
+
+<p>
+    The following are a set of parsing rules from the various example grammars provided with Myna.
+    Choose one of these to change the active grammar used in the interactive demo.
+</p>
+
+<select id="rules" onChange="ruleChanged()">    
+    <option value='markdown.document'>markdown.document</option>
+    <option value='json.object'>json.object</option>
+    <option value='csv.file'>csv.file</option>
+    <option value='arithmetic.expr'>arithmetic.expr</option>
+</select>
+<br/>
+
+<textarea spellcheck=false id="js-grammar" rows="12">
+</textarea>
+
+<h3>Extended PEG Grammar Representation</h3>
+<p>
+    The following is a representation of the grammar using an extended variation of a <i>PEG</i> 
+    (<i>Parsing Expression Grammar</i>). The Myna API extends the PEG formalism through the support of 
+    the following features:
+    <ul>
+        <li>look-ahead operators</li>
+        <li>character sets (and negated character sets)</li>
+        <li>quantified matches (e.g. between n and m matches)</li>
+        <li>function-based actions and predicates</li>
+    </ul>
+</p>
+<textarea spellcheck=false id="peg-grammar" rows="12">
+</textarea>
+
+<h3>Abstract Syntax Tree (AST)</h3>
+<p>
+    When certain rules in a grammar are successfully parsed they add a node to a parse-tree structure called an <i>abstract syntax tree</i>
+    or <i>AST</i> for short. Rules that generate 
+    nodes are copies of other rules created using the <code>.ast</code> property.
+</p>
+<select id="inputs" onChange="inputChanged()">
+</select>
+<input id="inputId" type="file" onchange="onChooseInput(event)" />
+
+<div class="row">
+    <div class="col-sm-6">
+        <textarea spellcheck=false id="inputText" onChange="updateAst()" rows="12">
+        </textarea>
+    </div>
+    <div class="col-sm-6">
+        <textarea spellcheck=false id="outputAst" rows="12">
+        </textarea>
     </div>
 </div>
 
-<div class="main"> 
-    <p>
-        Check out the <a href='tests/qunit.html'>QUnit unit tests results</a> and the <a href="coverage/lcov-report/index.html">coverage report</a> generated by 
-        <a href="https://github.com/gotwarlost/istanbul">Istanbul</a>.      
-    </p>
-    <p>
-        <a href="https://www.github.com/cdiggins/myna-parser">Get the source on Github</a>
-    </p>
-    <p>
-        <a href="https://www.npmjs.com/package/myna-parser">Get the package from NPM</a>
-    </p>
+<h3>AST Schema</h3>
+<!--
+<select id="strategy" onChange="selectStrategy()">
+    <option value="matchBeginning">match beginning</option>
+    <option value="matchEntire">match entire</option>
+    <option value="findFirst">find first</option>
+    <option value="findAll">find all</option>
+    <option value="repeat">repeat</option>
+</select>
+-->
+<p>
+    Only a subset of rules generate nodes in the AST. As a result 
+    the tree structure has a similar shape to the grammar, but can be described 
+    using a simpler language and with fewer rules.      
+</p>
+
+<textarea spellcheck=false id="schema" rows="12">
+</textarea>
+
+<a name="contact"></a>
+<h2>Contact</h2>
+
+<p>
+    Myna is written and developed by <a href="https://github.com/cdiggins">Christopher Diggins</a>. 
+    Use these links if you want to:
+    <ul>
+        <li><a href="https://github.com/cdiggins/myna-parser">browse the source code on GitHub</a></li>
+        <li><a href="https://github.com/cdiggins/myna-parser/issues">submit an issue, suggestion, request, or question</a></li>
+        <li><a href="mailto:cdiggins@gmail.com">talk to me directly</a></li>
+    </ul>
+</p>
+
 </div>
-</body>
+<!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<!--
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+-->
+
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="js/ie10-viewport-bug-workaround.js"></script>
+
+<script src="myna.js"></script>
+<script src="grammars/csv.js"></script>
+<script src="grammars/json.js"></script>
+<script src="grammars/arithmetic.js"></script>
+<script src="grammars/markdown.js"></script>
+<script src="examples/arithmetic_evaluator.js"></script>  
+<script src="tests/myna_tester.js"></script>
+<script src="tests/tests.js"></script>
+<script src="tests/test_inputs.js"></script>
+<script>
+let currentRule = undefined;
+let strategy = undefined; 
+
+function createInputsList() {
+    let elem = document.getElementById("inputs");
+    let items = ["<option value=''>Choose input ...</option>"];
+    for (let key in testInputs) 
+        items.push("<option value='" + key + "'>" + key + "</option>");
+    elem.innerHTML = items.join("\n");
+}
+
+function getGrammarFileName(grammarName) {
+    return "..\\grammars\\" + grammarName + ".js";
+}
+
+function getGrammarFile(grammarName, onRead) {
+    httpRead(getGrammarFileName(grammarName), onRead);
+}
+
+function selectGrammar(grammarName) {    
+    let jsGrammarElem = document.getElementById("js-grammar");
+    getGrammarFile(grammarName, function(text) { 
+        jsGrammarElem.innerHTML = text; 
+    });
+
+    let pegGrammarElem = document.getElementById("peg-grammar");
+    let pegGrammar = Myna.grammarToString(grammarName);
+    pegGrammarElem.innerHTML = pegGrammar;
+
+    let schemaElem = document.getElementById("schema");
+    let schema = Myna.astSchemaToString(grammarName);
+    schemaElem.innerHTML = schema;
+}
+
+function setRule(name) {
+    currentRule = Myna.allRules[name];
+    selectGrammar(currentRule.grammarName);
+    updateAst();
+}
+
+function setInput(text) {
+    let elem = document.getElementById('inputText');
+    elem.value = text;
+    updateAst();
+}
+
+function ruleChanged() {
+    let select = document.getElementById('rules'); 
+    let value = select.options[select.selectedIndex].value;
+    if (value) 
+        setRule(value);    
+}
+
+function inputChanged() {
+    let select = document.getElementById('inputs'); 
+    let value = select.options[select.selectedIndex].value;
+    if (value) 
+        setInput(testInputs[value]);
+}
+
+function astToString(ast) {
+    result = "<" + ast.name + ">\n";
+    if (ast.children != null && ast.children.length > 0)
+        result += ast.children.map(astToString).join("\n");
+    else 
+        result += ast.selfText;    
+    result += "</" + ast.name + ">\n";
+    return result;
+}
+
+function grammarToString(grammarName) {    
+    return Myna.grammarRules(grammarName).map(ruleToString).join('\n');
+}
+
+function httpRead(file, onRead) {
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", file, true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && (xhr.status === 200 || xhr.status == 0))
+            onRead(xhr.responseText);            
+    };
+    xhr.send(null);
+}
+
+function onChooseInput(event) {
+    onChooseFile(event, function(event) { setInput(event.target.result); });
+}
+
+function onChooseFile(event, onLoadFileHandler) {
+    if (typeof window.FileReader !== 'function')
+        throw ("The file API isn't supported on this browser.");
+    let input = event.target;
+    if (!input)
+        throw ("The browser does not properly implement the event object");
+    if (!input.files)
+        throw ("This browser does not support the `files` property of the file input.");
+    if (!input.files[0])
+        return undefined;
+    fileRead(input.files[0], onLoadFileHandler);
+}
+
+function updateAst() {
+    let inputElem = document.getElementById('inputText');
+    let outputElem = document.getElementById('outputAst');
+    let ast = Myna.parse(currentRule, inputElem.value);
+    outputElem.value = astToString(ast);
+}
+
+function selectStrategy() {
+    let select = document.getElementById('strategy'); 
+    let value = select.options[select.selectedIndex].value;
+    strategy = value;
+    updateAst();
+}
+
+Myna.registerGrammar("json", JsonGrammar);
+Myna.registerGrammar("arithmetic", ArithmeticGrammar);
+Myna.registerGrammar("csv", CsvGrammar);
+Myna.registerGrammar("markdown", MarkdownGrammar);
+
+createInputsList();
+setRule("markdown.document");
+setInput(testInputs["markdown"]);
+</script>
+
+  </body>
+</html>

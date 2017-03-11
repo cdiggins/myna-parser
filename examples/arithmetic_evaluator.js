@@ -4,8 +4,7 @@ function EvalArithmetic(expr, logging)
 {
     if (logging) 
     {
-        console.log('evaluating expression "' + expr.contents + '" which was parsed according to rule "' + expr.rule.toString + '"');
-        console.log('children: ' + expr.childContents + ', tree: ' + expr.contentsTree);
+        console.log('evaluating expression "' + expr.selfText + '" which was parsed according to rule "' + expr.rule.toString + '"');
     }
 
     switch (expr.rule.name) 
@@ -40,12 +39,12 @@ function EvalArithmetic(expr, logging)
         {
             let v = EvalArithmetic(expr.children[expr.children.length-1]);
             for (let i=expr.children.length-2; i >= 0; --i)
-                if (expr.children[i].contents == "-")
+                if (expr.children[i].selfText == "-")
                     v = -v;
             return v;
         }
         case "parenExpr" : return EvalArithmetic(expr.children[0]);
-        case "number": return Number(expr.contents);
+        case "number": return Number(expr.selfText);
         case "addExpr": return EvalArithmetic(expr.children[0]);
         case "subExpr": return EvalArithmetic(expr.children[0]);
         case "mulExpr": return EvalArithmetic(expr.children[0]);
