@@ -1,4 +1,4 @@
-# Myna Parsing Library 
+# [Myna Parsing Library](https://cdiggins.github.io/myna-parser/tests/qunit.html)
 
 [![npm version](https://badge.fury.io/js/myna-parser.svg)](https://badge.fury.io/js/myna-parser) 
 [![Build Status](https://travis-ci.org/cdiggins/myna-parser.svg?branch=master)](https://travis-ci.org/cdiggins/myna-parser)
