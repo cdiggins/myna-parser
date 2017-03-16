@@ -14,6 +14,7 @@
   <script src="../grammars/json.js"></script>
   <script src="../grammars/arithmetic.js"></script>
   <script src="../grammars/markdown.js"></script>
+  <script src="../grammars/template.js"></script>
   <script src="../examples/arithmetic_evaluator.js"></script>  
   <script src="myna_tester.js"></script>
   <script src="tests.js"></script>
@@ -24,6 +25,7 @@
     Myna.registerGrammar("arithmetic", ArithmeticGrammar);
     Myna.registerGrammar("csv", CsvGrammar);
     Myna.registerGrammar("markdown", MarkdownGrammar);
+    Myna.registerGrammar("template", TemplateGrammar);
 
     let suiteResults = tests(mynaTester, { arithmetic:EvalArithmetic });
 

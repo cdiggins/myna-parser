@@ -99,11 +99,7 @@ textarea {
     Choose one of these to change the active grammar used in the interactive demo.
 </p>
 
-<select id="rules" onChange="ruleChanged()">    
-    <option value='markdown.document'>markdown.document</option>
-    <option value='json.object'>json.object</option>
-    <option value='csv.file'>csv.file</option>
-    <option value='arithmetic.expr'>arithmetic.expr</option>
+<select id="rules" onChange="ruleChanged()">        
 </select>
 <br/>
 
@@ -181,15 +177,6 @@ textarea {
 </div>
 <!-- /.container -->
 
-
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-
-<!--
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
--->
-
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="js/ie10-viewport-bug-workaround.js"></script>
 
@@ -198,6 +185,7 @@ textarea {
 <script src="grammars/json.js"></script>
 <script src="grammars/arithmetic.js"></script>
 <script src="grammars/markdown.js"></script>
+<script src="grammars/template.js"></script>
 <script src="examples/arithmetic_evaluator.js"></script>  
 <script src="tests/myna_tester.js"></script>
 <script src="tests/tests.js"></script>
@@ -206,12 +194,28 @@ textarea {
 let currentRule = undefined;
 let strategy = undefined; 
 
+function textToOption(text) {
+    return "<option value='" + text + "'>" + text + "</option>"
+}
+
 function createInputsList() {
     let elem = document.getElementById("inputs");
     let items = ["<option value=''>Choose input ...</option>"];
     for (let key in testInputs) 
-        items.push("<option value='" + key + "'>" + key + "</option>");
+        items.push(textToOption(key));
     elem.innerHTML = items.join("\n");
+}
+
+function createRulesList() { 
+    let elem = document.getElementById("rules");
+    let rules = [
+        'markdown.document', 
+        'json.object', 
+        'csv.file', 
+        'arithmetic.expr', 
+        'template.document'
+    ];
+    elem.innerHTML = rules.map(textToOption).join("\n");
 }
 
 function getGrammarFileName(grammarName) {
@@ -268,7 +272,7 @@ function astToString(ast) {
     if (ast.children != null && ast.children.length > 0)
         result += ast.children.map(astToString).join("\n");
     else 
-        result += ast.selfText;    
+        result += ast.allText;    
     result += "</" + ast.name + ">\n";
     return result;
 }
@@ -311,23 +315,26 @@ function updateAst() {
     outputElem.value = astToString(ast);
 }
 
-function selectStrategy() {
+/*function selectStrategy() {
     let select = document.getElementById('strategy'); 
     let value = select.options[select.selectedIndex].value;
     strategy = value;
     updateAst();
-}
+}*/
 
 Myna.registerGrammar("json", JsonGrammar);
 Myna.registerGrammar("arithmetic", ArithmeticGrammar);
 Myna.registerGrammar("csv", CsvGrammar);
 Myna.registerGrammar("markdown", MarkdownGrammar);
+Myna.registerGrammar("template", TemplateGrammar);
 
+createRulesList();
 createInputsList();
-setRule("markdown.document");
-setInput(testInputs["markdown"]);
+setRule("template.document");
+setInput(testInputs["template"]);
 </script>
 
+<!-- Google analytics -->
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

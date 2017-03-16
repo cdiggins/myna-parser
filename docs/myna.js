@@ -155,13 +155,42 @@ var Myna;
                 }
             return null;
         };
-        Object.defineProperty(AstNode.prototype, "selfText", {
-            // If this node has no children returns the parsed text associated with this node's start and end locations  
-            // otherwise it returns the parsed text Bbetween the node's start and the first child's start.
+        Object.defineProperty(AstNode.prototype, "_firstChildStart", {
+            // The position of the first child, or the end position for the entire node if no children 
             get: function () {
-                if (this.isLeaf)
-                    return this.allText;
-                return _input.slice(this.start, this.children[0].start);
+                return this.isLeaf ? this.end : this.children[0].start;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AstNode.prototype, "_lastChildEnd", {
+            // The end position of the last child, or the end position for the entire node if no children 
+            get: function () {
+                return this.isLeaf ? this.end : this.children[0].end;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AstNode.prototype, "beforeChildrenText", {
+            // Returns the text before the children, or if no children returns the entire text. 
+            get: function () {
+                return _input.slice(this.start, this._firstChildStart);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AstNode.prototype, "afterChildrenText", {
+            // Returns the text after the children, or if no children returns the empty string.
+            get: function () {
+                return _input.slice(this._lastChildEnd, this.end);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AstNode.prototype, "allChildrenText", {
+            // Returns the text from the beginning of the first child to the end of the last child.
+            get: function () {
+                return _input.slice(this._firstChildStart, this._lastChildEnd);
             },
             enumerable: true,
             configurable: true

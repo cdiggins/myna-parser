@@ -188,6 +188,25 @@ function tests(mynaTester, evaluators)
         ];
     }
 
+    function templateTests() {
+        let tg = m.grammars.template;
+        return [
+            [tg.key, ['abc', ' ', '', '123', '$', '{{', '#'], ['}}', '{{}}']],
+            [tg.escapedVar, ['{{abc}}'], ['{{#abc}}', '{{/abc}}', '{{^abc}}']],
+            [tg.unescapedVar, ['{{&abc}}', '{{{abc}}}'], ['{{#abc}}', '{{/abc}}', '{{^abc}}', '{{abc}}']],
+            [tg.startSection, ['{{#abc}}'], ['{{abc}}', '{{/abc}}', '{{^abc}}']],
+            [tg.startInvertedSection, ['{{^abc}}'], ['{{abc}}', '{{/abc}}', '{{#abc}}']],
+            [tg.endSection, ['{{/abc}}'], ['{{abc}}', '{{abc}}', '{{^abc}}']],
+            [tg.partial, ['{{>abc}}', '{{> abc.html}}'], ['{{abc}}', '{{abc}}', '{{^abc}}']],
+            [tg.comment, ['{{! abc def 123\nsome stuff}}', '{{!}}'], ['{{abc}}', '{{abc}}', '{{^abc}}']],
+            [tg.section, ['{{#abc}}{{/abc}}', '{{#section}}stuff{{/section}}', '{{#section}}{{#nested}}more stuff{{/nested}}some {{/section}}', 
+                '{{#A}} {{!this is a comment}} {{/A}}'], ['{{abc}}', '{{abc}}{{/abc}}', '{{^abc}}{{/abc}}']],
+            [tg.invertedSection, ['{{^abc}}{{/abc}}', '{{^nsection}}stuff{{/nsection}}', '{{^nsection}}{{#nested}}more stuff{{/nested}}some {{/nsection}}'], ['{{abc}}', '{{abc}}{{/abc}}', '{{abc}}{{/abc}}']],
+            [tg.plainText, ['', 'abc', '{}', '}}', '{', 'abc \n{}  \t }}}',], ['{{', 'abc {{']],
+            [tg.document, ['', 'abc', '{{abc}}', 'ab\ncd', 'something{{#section}}{{var}}{{/section}}{{anothervar}}something else\nparagraph\n{{#section 2}}yes another\n one{}{{/section 2}}'], []],
+        ]
+    }
+
     let arithmeticTestInputs = [  
         ["6 * 7", 42],    
         ["42", 42],
@@ -233,7 +252,8 @@ function tests(mynaTester, evaluators)
             jsonTests(),
             csvTests(),
             arithmeticTests(),
-            markdownTests());
+            markdownTests(),
+            templateTests());
     
         // Validate tests         
         return mynaTester.testRules(tests);

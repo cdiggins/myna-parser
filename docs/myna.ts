@@ -160,12 +160,29 @@ module Myna
             return null; 
         }
 
-        // If this node has no children returns the parsed text associated with this node's start and end locations  
-        // otherwise it returns the parsed text Bbetween the node's start and the first child's start.
-        get selfText() {
-            if (this.isLeaf)
-                return this.allText;
-            return _input.slice(this.start, this.children[0].start);
+        // The position of the first child, or the end position for the entire node if no children 
+        get _firstChildStart() : number {
+            return this.isLeaf ? this.end : this.children[0].start;
+        }        
+
+        // The end position of the last child, or the end position for the entire node if no children 
+        get _lastChildEnd() : number {
+            return this.isLeaf ? this.end : this.children[0].end;
+        }        
+
+        // Returns the text before the children, or if no children returns the entire text. 
+        get beforeChildrenText() : string {
+            return _input.slice(this.start, this._firstChildStart);
+        }
+
+        // Returns the text after the children, or if no children returns the empty string.
+        get afterChildrenText() : string {
+            return _input.slice(this._lastChildEnd, this.end);
+        }
+
+        // Returns the text from the beginning of the first child to the end of the last child.
+        get allChildrenText() : string {
+            return _input.slice(this._firstChildStart, this._lastChildEnd);
         }
     }
 

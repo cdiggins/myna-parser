@@ -4,7 +4,7 @@ function EvalArithmetic(expr, logging)
 {
     if (logging) 
     {
-        console.log('evaluating expression "' + expr.selfText + '" which was parsed according to rule "' + expr.rule.toString + '"');
+        console.log('evaluating expression "' + expr.allText + '" which was parsed according to rule "' + expr.rule.toString + '"');
     }
 
     switch (expr.rule.name) 
@@ -39,12 +39,12 @@ function EvalArithmetic(expr, logging)
         {
             let v = EvalArithmetic(expr.children[expr.children.length-1]);
             for (let i=expr.children.length-2; i >= 0; --i)
-                if (expr.children[i].selfText == "-")
+                if (expr.children[i].allText == "-")
                     v = -v;
             return v;
         }
         case "parenExpr" : return EvalArithmetic(expr.children[0]);
-        case "number": return Number(expr.selfText);
+        case "number": return Number(expr.allText);
         case "addExpr": return EvalArithmetic(expr.children[0]);
         case "subExpr": return EvalArithmetic(expr.children[0]);
         case "mulExpr": return EvalArithmetic(expr.children[0]);

@@ -41,6 +41,36 @@
 - Why do most rules in the grammar end with ".ast"? (maybe make "ast" the default?).
 - 750 assertions.
 - Analyzing code complexity 
+- Why I stopped measuring code coverage 
+- The importance of supplying grammars. 
+- A minimal parser combinator library
+- If they are objects are they really combinators? 
+- How stateless is Myna really.
+- If static global data is evil why am I using it in Myna.
+- Relearning JavaScript / CSS, and what not
+- Fluent APIs 
+- Difference between concrete syntax tree (CST) and abstract syntax tree (AST)
+- Why we don't capture the CST.
+- How to speed up PEG parsers
+- Why I am so in love with TypeScript, JavaScript. 
+- What to watch out for with PEGs and performance. 
+- Why aren't people using parsing libraries? 
+- How tests reveal assumptions about your code
+- Why tests are not replacements for types
+- Lots of small functions.
+- The data-driven nature of JavaScript 
+- How JavaScript worsk better when not used as an object oriented language
+- Interfaces over classes
+- Good designs for Interfaces
+- 30 years of programming, seriously. I earned these white hairs.
+- The problem of opinion, 
+- Why shouldn't a programmer making more than a master mechanic?
+- Lookahead parsers and PEG parsers, don't really need to change
+- Merging the lexer and parser
+- Why you shouldn't encode actions in a grammar
+- Why an API instead of a code generator. 
+- How to build a type-inference engine http://stackoverflow.com/questions/415532/implementing-type-inference
+
 
 ## For tester
 
@@ -57,16 +87,8 @@
 - Find all
 - Find first
 - Find last 
-- Can Imake a generative grammar from a PEG?
-- How can I express the AST as a class? 
-- Maybe using a class? 
-- I think I can figure out the AST looking at the grammar.
+- Can I make a generative grammar from a PEG?
 
-    this.ast = {
-        document: {
-            zeroOrMore : ['heading', 'list', 'quote', 'codeBlock', 'paragraph'],                        
-        },
-        heading: {
-            seq : ['headingLevel', 'restOfLine'],
-        }
-    }
+## Bugs
+
+"AdvanceWhileNot" should "advancePast"

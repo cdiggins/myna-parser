@@ -1,8 +1,5 @@
 'use strict';
 
-// Load the file system module 
-let fs = require('fs');
-
 // Load the Myna module 
 let myna = require('../myna.js');
 
@@ -12,29 +9,7 @@ let mdGrammar = require('../grammars/markdown.js');
 // Register the Myna grammar 
 myna.registerGrammar("markdown", mdGrammar);
 
-// Returns the contents of a file is utf-8
-function readAllText(path) {
-    return fs.readFileSync(path, 'utf8');
-}
-
-// Writes text to a file, creating it if necessary 
-function writeAllText(path, text) {
-    fs.writeFile(path, text, function(err) {
-        if(err) return console.log(err);
-    });
-} 
-
-// Outputs a parse tree given a string 
-function outputParseTreeForString(input, rule) {
-    let ast = myna.parse(rule, input);
-    let html = markdownAstToHtml(ast, []);    
-    console.log(html.join(""));
-}
-
-function outputParseTreeForFile(path, rule) {
-    return outputParseTreeForString(readAllText(path), rule);
-}
-
+// Returns the HTML for a start tag
 function startTag(tag, attr) {
     let attrStr = "";
     if (attr) {
@@ -45,43 +20,45 @@ function startTag(tag, attr) {
     return "<" + tag + attrStr + ">";
 }
 
+// Returns the HTML for an end tag
 function endTag(tag) {
     return "</" + tag + ">";
 }
 
-function markdownAstToHtml(ast, htmlBuilder) {
-    if (htmlBuilder == undefined)
-        htmlBuilder = [];
+// Returns 
+function markdownAstToHtml(ast, lines) {
+    if (lines == undefined)
+        lines = [];
 
     // Adds each element of the array as markdown 
     function addArray(ast) {
         for (let child of ast)
-            markdownAstToHtml(child, htmlBuilder);
-        return htmlBuilder;
+            markdownAstToHtml(child, lines);
+        return lines;
     }
 
     // Adds tagged content 
     function addTag(tag, ast) {
-        htmlBuilder.push(startTag(tag));
+        lines.push(startTag(tag));
         if (ast instanceof Array)
             addArray(ast); 
         else
-            markdownAstToHtml(ast, htmlBuilder);
-        htmlBuilder.push(endTag(tag));
-        return htmlBuilder;
+            markdownAstToHtml(ast, lines);
+        lines.push(endTag(tag));
+        return lines;
     }
 
     function addLink(url, ast) {
-        htmlBuilder.push(startTag('a', { href:url }));
+        lines.push(startTag('a', { href:url }));
         addArray(ast.children);
-        htmlBuilder.push(endTag('a')) ;
-        return htmlBuilder;
+        lines.push(endTag('a')) ;
+        return lines;
     }
 
     function addImg(url) {
-        htmlBuilder.push(startTag('img', { src:url }));
-        htmlBuilder.push(endTag('img')) ;
-        return htmlBuilder;
+        lines.push(startTag('img', { src:url }));
+        lines.push(endTag('img')) ;
+        return lines;
     }
 
     switch (ast.name)
@@ -124,16 +101,20 @@ function markdownAstToHtml(ast, htmlBuilder) {
             return addImg(ast.children[0]);
         default:
             if (ast.isLeaf)
-                htmlBuilder.push(ast.selfText);
+                lines.push(ast.selfText);
             else 
-                ast.children.forEach(function(c) { markdownAstToHtml(c, htmlBuilder); });
+                ast.children.forEach(function(c) { markdownAstToHtml(c, lines); });
     }
-    return htmlBuilder;
+    return lines;
 }
 
-function demoMarkDown()
-{
-    outputParseTreeForFile('readme.md', myna.allRules["markdown.document"]);
+// Outputs a parse tree given a string 
+function markdownToHtml(input) {
+    let rule = myna.allRules['markdown.document'];
+    let ast = myna.parse(rule, input);
+    return markdownAstToHtml(ast, []);    
 }
 
-demoMarkDown();
+// Export the function for use with Node.js
+if (typeof module === "object" && module.exports) 
+    module.exports = markdownToHtml;
