@@ -3,11 +3,6 @@
 // Usage permitted under terms of MIT License
 
 // A parsing combinator library for JavaScript/TypeScript based on the PEG formalism.
-// Myna is a syntactic analyzer: like a regular expression, except it can recognize 
-// patterns that can't be expressed using a regular expression.  
-// For examples see:
-// * [grammar](./grammars) 
-// * [examples](./examples)
 // For more information see http://www.github.com/cdiggins/myna-parser
 
 // NOTE: we are explicitly bypassing using the TypeScript "export" keyword for 
@@ -17,21 +12,21 @@
 
 module Myna
 {
-    //===============================================================
-    // Global parse functions 
-
-    // Called whenever a new parsing session is started  
-    function _initialize(text:string) {
-        _input = text;
-        _childNodes = [];
+    // This stores the state of the parser and is passed to the 
+    // match and parse functions.
+    export class Parser
+    {        
+        constructor(
+            public input:string, 
+            public nodes:AstNode[] = []) 
+        { }
     }
 
     // Return true or false depending on whether the rule matches 
     // the beginning of the input string. 
-    export function match(r : Rule, s : string) : boolean 
+    export function match(r:Rule, s:string) : boolean 
     {
-        _initialize(s);
-        return r.match(0);        
+        return r.match(new Parser(s), 0);        
     }
 
     // Returns the root node of the abstract syntax tree created 
@@ -43,11 +38,9 @@ module Myna
     // parsed.
     export function parse(r : Rule, s : string) : AstNode
     {
-        _initialize(s);
-        let curNode = new AstNode(r.ast);
-        curNode.children = _childNodes;
-        curNode.end = r.parse(0);
-        _childNodes = [];
+        let p = new Parser(s);
+        let curNode = new AstNode(r.ast, s);
+        curNode.end = r.parse(p, 0);
         return curNode;        
     }
 
@@ -55,9 +48,9 @@ module Myna
     // it fails or the end of the input is arrived. One Astnode is created for each time 
     // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
     // flag set explicitly. 
-    export function tokenize(r : Rule, s : string) : AstNode[]
+    export function tokenize(r:Rule, s:string) : AstNode[]
     {
-        return parse(r.ast.zeroOrMore, s).children;
+        return this.parse(r.ast.zeroOrMore, s).children;
     }
     
     //====================================================================================
@@ -106,12 +99,6 @@ module Myna
     // The returned value of a failed parse
     const failed = -1;
 
-    // This is the input text 
-    let _input = "";
-
-    // The AST being constructed 
-    let _childNodes:AstNode[];
-
     //===============================================================
     // RuleType union of Rule, string, and boolean
 
@@ -138,7 +125,12 @@ module Myna
         children: AstNode[] = null;
 
         // Constructs a new node associated with the given rule.  
-        constructor(public rule:Rule, public start:number=0, public end:number=failed) { }
+        constructor(
+            public rule:Rule, 
+            public input:string,
+            public start:number=0, 
+            public end:number=failed) 
+        { }
 
         // Returns the name of the rule associated with this node
         get name() : string { return this.rule != null ? this.rule.name : "unnamed"; }
@@ -147,7 +139,7 @@ module Myna
         get fullName() : string { return this.rule != null ? this.rule.fullName : "unnamed"; }
 
         // Returns the parsed text associated with this node's start and end locations  
-        get allText() : string { return _input.slice(this.start, this.end); } 
+        get allText() : string { return this.input.slice(this.start, this.end); } 
 
         // Returns true if this node has no children
         get isLeaf() : boolean { return this.children == null || this.children.length == 0; }
@@ -172,17 +164,17 @@ module Myna
 
         // Returns the text before the children, or if no children returns the entire text. 
         get beforeChildrenText() : string {
-            return _input.slice(this.start, this._firstChildStart);
+            return this.input.slice(this.start, this._firstChildStart);
         }
 
         // Returns the text after the children, or if no children returns the empty string.
         get afterChildrenText() : string {
-            return _input.slice(this._lastChildEnd, this.end);
+            return this.input.slice(this._lastChildEnd, this.end);
         }
 
         // Returns the text from the beginning of the first child to the end of the last child.
         get allChildrenText() : string {
-            return _input.slice(this._firstChildStart, this._lastChildEnd);
+            return this.input.slice(this._firstChildStart, this._lastChildEnd);
         }
     }
 
@@ -211,70 +203,69 @@ module Myna
         _createAstNode:boolean = false;
 
         // Note: child-rules are exposed as a public field
-        constructor(public rules:Rule[]) { }
+        constructor(
+            public rules:Rule[]) 
+        { }
         
         // Each rule derived object provides its own implementation of this function.  
-        parseImplementation(index:number):number { 
+        parseImplementation(p:Parser, index:number):number { 
             throw Exceptions.MissingOverride;
         }
 
         // Returns true if this Rule matches the input at the given location 
-        match(index:number):boolean {
+        match(p:Parser, index:number):boolean {
             // Check that the index is valid  
-            if (index < 0 || index > _input.length)
+            if (index < 0 || index > p.input.length)
                 return false;
-            return this.parseImplementation(index) != failed;
+            return this.parseImplementation(p, index) != failed;
         }        
 
         // If successful returns the end-location of where this Rule matches the input 
         // at the given location, or -1 if failed 
-        parse(index:number):number {        
+        parse(p:Parser, index:number):number {        
             // Check that the index is valid  
-            if (index < 0 || index > _input.length)
+            if (index < 0 || index > p.input.length)
                 return failed;
 
             // Either we add a node to the parse tree, or do a regular parse 
             if (!this._createAstNode)
             {
                 // When not creating nodes we just call the parse implementation 
-                return this.parseImplementation(index);
+                return this.parseImplementation(p, index);
             }
             else
             {                 
                 // Remember the old AST node
-                let oldAst = _childNodes;
+                let oldAst = p.nodes;
 
                 // Create a new AST node 
-                let node = new AstNode(this, index);
+                let node = new AstNode(this, p.input, index);
 
                 // Create a new array of child nodes
-                _childNodes = []; 
+                p.nodes = []; 
 
                 // Call the implementation of the parse function 
-                let end = this.parseImplementation(index);
+                node.end = this.parseImplementation(p, index);
 
                 // If the parse failed then we can return 
-                if (end === failed) {
+                if (node.end === failed) {
                     // Restore the previous AST state 
-                    _childNodes = oldAst; 
+                    p.nodes = oldAst; 
                     return failed;
                 }
 
                 // We succeeded, so update the children of this node 
                 // with the "_ast"
-                node.children = _childNodes;                
+                node.children = p.nodes;                
 
                 // Restore the previous AST state 
-                _childNodes = oldAst; 
+                p.nodes = oldAst; 
                 
                 // We are going to add the node to the list of children 
-                _childNodes.push(node);
+                p.nodes.push(node);
 
-                // Set the end of the node parsed to be the current parse result
-                node.end = end;
-                
                 // Return the parse result 
-                return end;
+                return node.end;
             }                              
         }
 
@@ -422,9 +413,9 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(index:number): number {
+        parseImplementation(p:Parser, index:number): number {
             for (let r of this.rules) {
-                index = r.parse(index);
+                index = r.parse(p, index);
                 if (index === failed) return index;
             }
             return index;
@@ -447,13 +438,13 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(index:number): number {
-            let state = _childNodes.length;
+        parseImplementation(p:Parser, index:number): number {
+            let state = p.nodes.length;
             for (let r of this.rules) {
-                let result = r.parse(index);
+                let result = r.parse(p, index);
                 if (result === failed) {
                     // Throw away any created nodes
-                    _childNodes.length = state;
+                    p.nodes.length = state;
                     continue;
                 }
                 return result;
@@ -461,9 +452,9 @@ module Myna
             return failed;
         }        
 
-        match(index:number):boolean {
+        match(p:Parser, index:number):boolean {
             for (let r of this.rules)
-                if (r.match(index))
+                if (r.match(p, index))
                     return true;
             return false;
         }
@@ -486,11 +477,11 @@ module Myna
 
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
 
-        parseImplementation(index:number): number {
+        parseImplementation(p:Parser, index:number): number {
             let result = index;
             // This can loop forever 
             for (let i=0; i < this.max; ++i) {
-                let tmp = this.firstChild.parse(result);
+                let tmp = this.firstChild.parse(p, result);
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
                 if (tmp === failed)
@@ -500,7 +491,7 @@ module Myna
                     if (result === tmp)
                         throw Exceptions.MissingOverride;
                 // Check we don't go past the end of the input 
-                if (i > _input.length)
+                if (i > p.input.length)
                     return failed;
                 result = tmp;
             }            
@@ -525,7 +516,7 @@ module Myna
     {
         type = "advance";
         constructor() { super([]); }
-        parseImplementation(index:number): number { return index < _input.length ? index+1 : failed; }
+        parseImplementation(p:Parser, index:number): number { return index < p.input.length ? index+1 : failed; }
         get definition() : string {
             return ".";
         }
@@ -537,14 +528,14 @@ module Myna
     {
         type = "lookup";
         constructor(public lookup:any, public onDefault:Rule) { super([]); }        
-        parseImplementation(index:number): number {
-            if (index >= _input.length)
+        parseImplementation(p:Parser, index:number): number {
+            if (index >= p.input.length)
                 return failed;
-            let tkn = _input[index];
+            let tkn = p.input[index];
             let r = this.lookup[tkn];
             if (r !== undefined) 
                 return r.parse(index);
-            return this.onDefault.parse(index);
+            return this.onDefault.parse(p, index);
         }           
         get definition() : string {
             return '{' + Object.keys(this.lookup).map(k => '"' + escapeChars(k)  + '" :' + this.lookup[k].toString()).join(',') + '}';
@@ -611,10 +602,10 @@ module Myna
     {
         type = "text";
         constructor(public text:string) { super([]); }
-        parseImplementation(index:number): number {
-            if (index > _input.length - this.text.length) return failed;
+        parseImplementation(p:Parser, index:number): number {
+            if (index > p.input.length - this.text.length) return failed;
             for (let i=0; i < this.text.length; ++i) 
-                if (_input[index+i] !== this.text[i])
+                if (p.input[index+i] !== this.text[i])
                     return failed;
             return index + this.text.length;
         }
@@ -628,7 +619,7 @@ module Myna
     {
         type = "delay";
         constructor(public fn:()=>Rule) { super([]); }        
-        parseImplementation(index:number): number { return this.fn().parse(index); }
+        parseImplementation(p:Parser, index:number): number { return this.fn().parse(p, index); }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "delay(" + this.fn() + ")"; }    
     } 
@@ -642,15 +633,15 @@ module Myna
         // Rules derived from a PredicateRule will only provide an override 
         // of the match function, so the parse is defined in terms of match.  
         // This prevents the creation of parse nodes.     
-        parse(index:number):number {
+        parse(p:Parser, index:number):number {
             let result = failed;
             // We create a new array of children 
             // New nodes will parse this, but will get thrown away if it fails. 
-            let state = _childNodes.length;
-            if (this.match(index))
+            let state = p.nodes.length;
+            if (this.match(p, index))
                 result = index;
             // This discards any nodes created and restores
-            _childNodes.length = state;
+            p.nodes.length = state;
             return result;
         } 
     }
@@ -660,7 +651,7 @@ module Myna
     {
         type = "not";
         constructor(rule:Rule) { super([rule]); }
-        match(index:number):boolean { return !this.firstChild.match(index); }
+        match(p:Parser, index:number):boolean { return !this.firstChild.match(p, index); }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
         get definition() : string { return "!" + this.firstChild.toString(); }
     }   
@@ -670,7 +661,7 @@ module Myna
     {
         type = "at";
         constructor(rule:Rule) { super([rule]); }
-        match(index:number):boolean { return this.firstChild.match(index); }
+        match(p:Parser, index:number):boolean { return this.firstChild.match(p, index); }
         cloneImplementation() : Rule { return new At(this.firstChild); }
         get definition() : string { return "&" + this.firstChild.toString(); }
     }   
@@ -679,8 +670,8 @@ module Myna
     export class Predicate extends PredicateRule
     {
         type = "predicate";
-        constructor(public fn:(index:number)=>boolean) { super([]); }
-        match(index:number):boolean { return this.fn(index); }
+        constructor(public fn:(p:Parser, index:number)=>boolean) { super([]); }
+        match(p:Parser, index:number):boolean { return this.fn(p, index); }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
         get definition() : string { return "predicate(" + this.fn + ")"; }
     }
@@ -786,8 +777,8 @@ module Myna
     //===============================================================    
     // Predicates and actions  
     
-    export function predicate(fn:(index:number)=>boolean) { return new Predicate(fn); }
-    export function action(fn:(index:number)=>void) { return predicate((index)=> { fn(index); return true; }).setType("action"); }
+    export function predicate(fn:(p:Parser, index:number)=>boolean) { return new Predicate(fn); }
+    export function action(fn:(p:Parser, index:number)=>void) { return predicate((p, index)=> { fn(p, index); return true; }).setType("action"); }
     export function err(ex:any) { return action(p=> { ex.location=p; throw(ex); }).setType("err"); }
     export function log(msg:string = "") { return action(p=> { console.log(msg); }).setType("log"); }
     export function assert(rule:RuleType) { return choice(rule, err({rule:rule,type:"assert"})).setType("assert"); }
@@ -837,10 +828,10 @@ module Myna
     //===============================================================    
     // Core grammar rules 
         
-    export let truePredicate    = predicate((index) => true);
-    export let falsePredicate   = predicate((index) => false);        
-    export let end              = predicate((index) => index >= _input.length);
-    export let notEnd           = predicate((index) => index < _input.length);
+    export let truePredicate    = predicate((p, index) => true);
+    export let falsePredicate   = predicate((p, index) => false);        
+    export let end              = predicate((p, index) => index >= p.input.length);
+    export let notEnd           = predicate((p, index) => index < p.input.length);
     export let advance          = new Advance();   
     export let all              = advance.zeroOrMore;
     export let letterLower      = range('a','z');
@@ -933,12 +924,6 @@ module Myna
         let r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
     }
-
-    //===========================================================================
-    // Initialization code
-
-    // The Myna module itself is a grammar. 
-    initializeGrammar("core", Myna);
 }
 
 // Export the function for use with Node.js and the CommonJS module system. 

@@ -7,11 +7,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 // A parsing combinator library for JavaScript/TypeScript based on the PEG formalism.
-// Myna is a syntactic analyzer: like a regular expression, except it can recognize 
-// patterns that can't be expressed using a regular expression.  
-// For examples see:
-// * [grammar](./grammars) 
-// * [examples](./examples)
 // For more information see http://www.github.com/cdiggins/myna-parser
 // NOTE: we are explicitly bypassing using the TypeScript "export" keyword for 
 // the Myna module otherwise the module won't be usable from browsers without 
@@ -19,18 +14,21 @@ var __extends = (this && this.__extends) || function (d, b) {
 // export code at the bottom of the file. 
 var Myna;
 (function (Myna_1) {
-    //===============================================================
-    // Global parse functions 
-    // Called whenever a new parsing session is started  
-    function _initialize(text) {
-        _input = text;
-        _childNodes = [];
-    }
+    // This stores the state of the parser and is passed to the 
+    // match and parse functions.
+    var Parser = (function () {
+        function Parser(input, nodes) {
+            if (nodes === void 0) { nodes = []; }
+            this.input = input;
+            this.nodes = nodes;
+        }
+        return Parser;
+    }());
+    Myna_1.Parser = Parser;
     // Return true or false depending on whether the rule matches 
     // the beginning of the input string. 
     function match(r, s) {
-        _initialize(s);
-        return r.match(0);
+        return r.match(new Parser(s), 0);
     }
     Myna_1.match = match;
     // Returns the root node of the abstract syntax tree created 
@@ -41,11 +39,9 @@ var Myna;
     // property will add nodes in the tree (e.g. identifier.ast) when
     // parsed.
     function parse(r, s) {
-        _initialize(s);
-        var curNode = new AstNode(r.ast);
-        curNode.children = _childNodes;
-        curNode.end = r.parse(0);
-        _childNodes = [];
+        var p = new Parser(s);
+        var curNode = new AstNode(r.ast, s);
+        curNode.end = r.parse(p, 0);
         return curNode;
     }
     Myna_1.parse = parse;
@@ -54,7 +50,7 @@ var Myna;
     // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
     // flag set explicitly. 
     function tokenize(r, s) {
-        return parse(r.ast.zeroOrMore, s).children;
+        return this.parse(r.ast.zeroOrMore, s).children;
     }
     Myna_1.tokenize = tokenize;
     //====================================================================================
@@ -90,10 +86,6 @@ var Myna;
     }
     // The returned value of a failed parse
     var failed = -1;
-    // This is the input text 
-    var _input = "";
-    // The AST being constructed 
-    var _childNodes;
     // Given a RuleType returns an instance of a Rule.
     function RuleTypeToRule(rule) {
         if (rule instanceof Rule)
@@ -112,10 +104,11 @@ var Myna;
     // generated node will also be added to the constructed parse tree.   
     var AstNode = (function () {
         // Constructs a new node associated with the given rule.  
-        function AstNode(rule, start, end) {
+        function AstNode(rule, input, start, end) {
             if (start === void 0) { start = 0; }
             if (end === void 0) { end = failed; }
             this.rule = rule;
+            this.input = input;
             this.start = start;
             this.end = end;
             // The list of child nodes in the parse tree. This is not allocated unless used, to minimize memory consumption 
@@ -135,7 +128,7 @@ var Myna;
         });
         Object.defineProperty(AstNode.prototype, "allText", {
             // Returns the parsed text associated with this node's start and end locations  
-            get: function () { return _input.slice(this.start, this.end); },
+            get: function () { return this.input.slice(this.start, this.end); },
             enumerable: true,
             configurable: true
         });
@@ -174,7 +167,7 @@ var Myna;
         Object.defineProperty(AstNode.prototype, "beforeChildrenText", {
             // Returns the text before the children, or if no children returns the entire text. 
             get: function () {
-                return _input.slice(this.start, this._firstChildStart);
+                return this.input.slice(this.start, this._firstChildStart);
             },
             enumerable: true,
             configurable: true
@@ -182,7 +175,7 @@ var Myna;
         Object.defineProperty(AstNode.prototype, "afterChildrenText", {
             // Returns the text after the children, or if no children returns the empty string.
             get: function () {
-                return _input.slice(this._lastChildEnd, this.end);
+                return this.input.slice(this._lastChildEnd, this.end);
             },
             enumerable: true,
             configurable: true
@@ -190,7 +183,7 @@ var Myna;
         Object.defineProperty(AstNode.prototype, "allChildrenText", {
             // Returns the text from the beginning of the first child to the end of the last child.
             get: function () {
-                return _input.slice(this._firstChildStart, this._lastChildEnd);
+                return this.input.slice(this._firstChildStart, this._lastChildEnd);
             },
             enumerable: true,
             configurable: true
@@ -220,53 +213,51 @@ var Myna;
             this._createAstNode = false;
         }
         // Each rule derived object provides its own implementation of this function.  
-        Rule.prototype.parseImplementation = function (index) {
+        Rule.prototype.parseImplementation = function (p, index) {
             throw Exceptions.MissingOverride;
         };
         // Returns true if this Rule matches the input at the given location 
-        Rule.prototype.match = function (index) {
+        Rule.prototype.match = function (p, index) {
             // Check that the index is valid  
-            if (index < 0 || index > _input.length)
+            if (index < 0 || index > p.input.length)
                 return false;
-            return this.parseImplementation(index) != failed;
+            return this.parseImplementation(p, index) != failed;
         };
         // If successful returns the end-location of where this Rule matches the input 
         // at the given location, or -1 if failed 
-        Rule.prototype.parse = function (index) {
+        Rule.prototype.parse = function (p, index) {
             // Check that the index is valid  
-            if (index < 0 || index > _input.length)
+            if (index < 0 || index > p.input.length)
                 return failed;
             // Either we add a node to the parse tree, or do a regular parse 
             if (!this._createAstNode) {
                 // When not creating nodes we just call the parse implementation 
-                return this.parseImplementation(index);
+                return this.parseImplementation(p, index);
             }
             else {
                 // Remember the old AST node
-                var oldAst = _childNodes;
+                var oldAst = p.nodes;
                 // Create a new AST node 
-                var node = new AstNode(this, index);
+                var node = new AstNode(this, p.input, index);
                 // Create a new array of child nodes
-                _childNodes = [];
+                p.nodes = [];
                 // Call the implementation of the parse function 
-                var end_1 = this.parseImplementation(index);
+                node.end = this.parseImplementation(p, index);
                 // If the parse failed then we can return 
-                if (end_1 === failed) {
+                if (node.end === failed) {
                     // Restore the previous AST state 
-                    _childNodes = oldAst;
+                    p.nodes = oldAst;
                     return failed;
                 }
                 // We succeeded, so update the children of this node 
                 // with the "_ast"
-                node.children = _childNodes;
+                node.children = p.nodes;
                 // Restore the previous AST state 
-                _childNodes = oldAst;
+                p.nodes = oldAst;
                 // We are going to add the node to the list of children 
-                _childNodes.push(node);
-                // Set the end of the node parsed to be the current parse result
-                node.end = end_1;
+                p.nodes.push(node);
                 // Return the parse result 
-                return end_1;
+                return node.end;
             }
         };
         // Defines the type of rules. Used for defining new rule types as combinators.
@@ -467,10 +458,10 @@ var Myna;
             _super.call(this, rules);
             this.type = "seq";
         }
-        Sequence.prototype.parseImplementation = function (index) {
+        Sequence.prototype.parseImplementation = function (p, index) {
             for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
                 var r = _a[_i];
-                index = r.parse(index);
+                index = r.parse(p, index);
                 if (index === failed)
                     return index;
             }
@@ -497,24 +488,24 @@ var Myna;
             _super.call(this, rules);
             this.type = "choice";
         }
-        Choice.prototype.parseImplementation = function (index) {
-            var state = _childNodes.length;
+        Choice.prototype.parseImplementation = function (p, index) {
+            var state = p.nodes.length;
             for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
                 var r = _a[_i];
-                var result = r.parse(index);
+                var result = r.parse(p, index);
                 if (result === failed) {
                     // Throw away any created nodes
-                    _childNodes.length = state;
+                    p.nodes.length = state;
                     continue;
                 }
                 return result;
             }
             return failed;
         };
-        Choice.prototype.match = function (index) {
+        Choice.prototype.match = function (p, index) {
             for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
                 var r = _a[_i];
-                if (r.match(index))
+                if (r.match(p, index))
                     return true;
             }
             return false;
@@ -545,11 +536,11 @@ var Myna;
             this.max = max;
             this.type = "bounded";
         }
-        Bounded.prototype.parseImplementation = function (index) {
+        Bounded.prototype.parseImplementation = function (p, index) {
             var result = index;
             // This can loop forever 
             for (var i = 0; i < this.max; ++i) {
-                var tmp = this.firstChild.parse(result);
+                var tmp = this.firstChild.parse(p, result);
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
                 if (tmp === failed)
@@ -559,7 +550,7 @@ var Myna;
                     if (result === tmp)
                         throw Exceptions.MissingOverride;
                 // Check we don't go past the end of the input 
-                if (i > _input.length)
+                if (i > p.input.length)
                     return failed;
                 result = tmp;
             }
@@ -589,7 +580,7 @@ var Myna;
             _super.call(this, []);
             this.type = "advance";
         }
-        Advance.prototype.parseImplementation = function (index) { return index < _input.length ? index + 1 : failed; };
+        Advance.prototype.parseImplementation = function (p, index) { return index < p.input.length ? index + 1 : failed; };
         Object.defineProperty(Advance.prototype, "definition", {
             get: function () {
                 return ".";
@@ -610,14 +601,14 @@ var Myna;
             this.onDefault = onDefault;
             this.type = "lookup";
         }
-        Lookup.prototype.parseImplementation = function (index) {
-            if (index >= _input.length)
+        Lookup.prototype.parseImplementation = function (p, index) {
+            if (index >= p.input.length)
                 return failed;
-            var tkn = _input[index];
+            var tkn = p.input[index];
             var r = this.lookup[tkn];
             if (r !== undefined)
                 return r.parse(index);
-            return this.onDefault.parse(index);
+            return this.onDefault.parse(p, index);
         };
         Object.defineProperty(Lookup.prototype, "definition", {
             get: function () {
@@ -718,11 +709,11 @@ var Myna;
             this.text = text;
             this.type = "text";
         }
-        Text.prototype.parseImplementation = function (index) {
-            if (index > _input.length - this.text.length)
+        Text.prototype.parseImplementation = function (p, index) {
+            if (index > p.input.length - this.text.length)
                 return failed;
             for (var i = 0; i < this.text.length; ++i)
-                if (_input[index + i] !== this.text[i])
+                if (p.input[index + i] !== this.text[i])
                     return failed;
             return index + this.text.length;
         };
@@ -745,7 +736,7 @@ var Myna;
             this.fn = fn;
             this.type = "delay";
         }
-        Delay.prototype.parseImplementation = function (index) { return this.fn().parse(index); };
+        Delay.prototype.parseImplementation = function (p, index) { return this.fn().parse(p, index); };
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
             get: function () { return "delay(" + this.fn() + ")"; },
@@ -766,15 +757,15 @@ var Myna;
         // Rules derived from a PredicateRule will only provide an override 
         // of the match function, so the parse is defined in terms of match.  
         // This prevents the creation of parse nodes.     
-        PredicateRule.prototype.parse = function (index) {
+        PredicateRule.prototype.parse = function (p, index) {
             var result = failed;
             // We create a new array of children 
             // New nodes will parse this, but will get thrown away if it fails. 
-            var state = _childNodes.length;
-            if (this.match(index))
+            var state = p.nodes.length;
+            if (this.match(p, index))
                 result = index;
             // This discards any nodes created and restores
-            _childNodes.length = state;
+            p.nodes.length = state;
             return result;
         };
         return PredicateRule;
@@ -787,7 +778,7 @@ var Myna;
             _super.call(this, [rule]);
             this.type = "not";
         }
-        Not.prototype.match = function (index) { return !this.firstChild.match(index); };
+        Not.prototype.match = function (p, index) { return !this.firstChild.match(p, index); };
         Not.prototype.cloneImplementation = function () { return new Not(this.firstChild); };
         Object.defineProperty(Not.prototype, "definition", {
             get: function () { return "!" + this.firstChild.toString(); },
@@ -804,7 +795,7 @@ var Myna;
             _super.call(this, [rule]);
             this.type = "at";
         }
-        At.prototype.match = function (index) { return this.firstChild.match(index); };
+        At.prototype.match = function (p, index) { return this.firstChild.match(p, index); };
         At.prototype.cloneImplementation = function () { return new At(this.firstChild); };
         Object.defineProperty(At.prototype, "definition", {
             get: function () { return "&" + this.firstChild.toString(); },
@@ -822,7 +813,7 @@ var Myna;
             this.fn = fn;
             this.type = "predicate";
         }
-        Predicate.prototype.match = function (index) { return this.fn(index); };
+        Predicate.prototype.match = function (p, index) { return this.fn(p, index); };
         Predicate.prototype.cloneImplementation = function () { return new Predicate(this.fn); };
         Object.defineProperty(Predicate.prototype, "definition", {
             get: function () { return "predicate(" + this.fn + ")"; },
@@ -952,7 +943,7 @@ var Myna;
     // Predicates and actions  
     function predicate(fn) { return new Predicate(fn); }
     Myna_1.predicate = predicate;
-    function action(fn) { return predicate(function (index) { fn(index); return true; }).setType("action"); }
+    function action(fn) { return predicate(function (p, index) { fn(p, index); return true; }).setType("action"); }
     Myna_1.action = action;
     function err(ex) { return action(function (p) { ex.location = p; throw (ex); }).setType("err"); }
     Myna_1.err = err;
@@ -1036,10 +1027,10 @@ var Myna;
     Myna_1.keywords = keywords;
     //===============================================================    
     // Core grammar rules 
-    Myna_1.truePredicate = predicate(function (index) { return true; });
-    Myna_1.falsePredicate = predicate(function (index) { return false; });
-    Myna_1.end = predicate(function (index) { return index >= _input.length; });
-    Myna_1.notEnd = predicate(function (index) { return index < _input.length; });
+    Myna_1.truePredicate = predicate(function (p, index) { return true; });
+    Myna_1.falsePredicate = predicate(function (p, index) { return false; });
+    Myna_1.end = predicate(function (p, index) { return index >= p.input.length; });
+    Myna_1.notEnd = predicate(function (p, index) { return index < p.input.length; });
     Myna_1.advance = new Advance();
     Myna_1.all = Myna_1.advance.zeroOrMore;
     Myna_1.letterLower = range('a', 'z');
@@ -1127,10 +1118,6 @@ var Myna;
         return r.slice(1, r.length - 1);
     }
     Myna_1.escapeChars = escapeChars;
-    //===========================================================================
-    // Initialization code
-    // The Myna module itself is a grammar. 
-    initializeGrammar("core", Myna);
 })(Myna || (Myna = {}));
 if (typeof module === "object" && module.exports)
     module.exports = Myna;
