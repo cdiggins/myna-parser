@@ -10,16 +10,23 @@ myna.registerGrammar("template", templateCtor);
 // Get the parsing rules  
 let templateRule = myna.allRules["template.document"];
 
+
 function expandAst(ast, data, lines) {
     if (lines == undefined)
         lines = [];
     
     // If there is a child "key" get the value associated with it. 
     let key = ast.getChild("key");
+
+    if (key.contains("."))
     let val = data[key];
 
-    // TODO: if val is callable do something special.
-    // TODO: support "." look-up.
+    // Callable values are expanded
+    if (typeof(val) == 'function')
+    {
+        let content = ast.getChild("sectionContent");
+        val = val(content.allText);
+    }
 
     switch (ast.rule.name) 
     {
@@ -60,7 +67,7 @@ function expandAst(ast, data, lines) {
 }
 
 function expand(template, data) {
-    let lines = expandAst(myna.parse(template));
+    let lines = expandAst(myna.parse(templateRule, template));
     return lines.join("");
 }
 
