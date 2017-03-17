@@ -38,8 +38,9 @@ function TemplateGrammar(myna, start, end) {
     this.var = m.choice(this.escapedVar, this.unescapedVar);
     this.partial = m.seq(start, ">", m.ws.opt, this.key, end).ast;
     this.comment = m.seq(start, "!", this.key, end).ast;    
-    this.section = m.seq(this.startSection, this.recursiveContent, this.endSection).ast;
-    this.invertedSection = m.seq(this.startInvertedSection, this.recursiveContent, this.endSection).ast;
+    this.sectionContent = this.recursiveContent.ast;
+    this.section = m.seq(this.startSection, this.sectionContent, this.endSection).ast;
+    this.invertedSection = m.seq(this.startInvertedSection, this.sectionContent, this.endSection).ast;
     this.plainText = m.advanceWhileNot("{{").ast;
 
     // Mmanually optimize the grammar here by using a lookup. Every type of special rule 
@@ -52,3 +53,7 @@ function TemplateGrammar(myna, start, end) {
 
     this.document = this.content.ast;
 }
+
+// Export the grammar for usage by Node.js and CommonJs compatible module loaders 
+if (typeof module === "object" && module.exports) 
+    module.exports = TemplateGrammar;
