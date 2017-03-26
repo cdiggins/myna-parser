@@ -11,7 +11,7 @@
 // export code at the bottom of the file. 
 
 module Myna
-{
+{   
     // This stores the state of the parser and is passed to the parse and match functions.
     export class Parser
     {        
@@ -28,7 +28,7 @@ module Myna
 
         // Returns true if the index is within the input range. 
         get inRange() : boolean {
-            return this.index >= 0 || this.index < this.input.length;
+            return this.index >= 0 && this.index < this.input.length;
         }
 
         // Sets the state of the parser to be the same as another. 
@@ -250,19 +250,15 @@ module Myna
 
         // Returns true if this Rule matches the input at the given location and never creates nodes 
         match(p:Parser):boolean {
-            // Check that the index is valid, otherwise it fails automatically 
-            if (!p.inRange) return false;
-
             // Remember the old parser state
             let oldP = p.clone();
 
             // Call the derived parse implementation          
             let result = this.parseImplementation(p);
 
-            // If the parse fails, we back-track the index     
-            if (result == failed) {
+            // If the parse fails, we back-track the parser
+            if (result == failed) 
                 p.index = oldP.index;                    
-            }
 
             // Any nodes created are always thrown out 
             p.nodes = oldP.nodes;
@@ -275,19 +271,22 @@ module Myna
         // at the given location, or -1 if failed.
         // Note that PredicateRule overrides this function 
         parse(p:Parser):number {        
-            // Check that the index is valid  
-            if (!p.inRange) return failed;
-
             // Remember the old parser state
             let oldP = p.clone();
             
-            // The result of calling the derived parseImplementation
-            let result = failed;
-
-            // Either we add a node to the parse tree, or do a regular parse 
+            // Either we add a node to the parse tree, or do a regular parse.
             if (!this._createAstNode)
             {
-                result = this.parseImplementation(p);
+                let result = this.parseImplementation(p);
+
+                // Update the parser index
+                if (result !== failed)
+                    p.index = result;
+                else
+                    // In the case of a failed parse, we back-track the parser to the previous state 
+                    p.copyFrom(oldP);
+
+                return result;
             }
             else
             {                 
@@ -299,7 +298,7 @@ module Myna
                 p.nodes = [];
 
                 // Call the implementation of the parse function 
-                result = this.parseImplementation(p);
+                let result = this.parseImplementation(p);
 
                 // Check if the parse succeeded 
                 if (result !== failed) 
@@ -315,13 +314,14 @@ module Myna
                     // Update the parser index
                     p.index = result;
                 }
-            }                              
+                else 
+                {
+                    // In the case of a failed parse, we back-track the parser to the previous state 
+                    p.copyFrom(oldP);
+                }
 
-            // In the case of a failed parse, we back-track the parser to the previous state 
-            if (result == failed) 
-                p.copyFrom(oldP);
-            
-            return result;
+                return result;
+            }                                          
         }
 
         // Defines the type of rules. Used for defining new rule types as combinators.
@@ -567,9 +567,7 @@ module Myna
         type = "advance";
         constructor() { super([]); }
         parseImplementation(p:Parser): number { return p.inRange ? p.index+1 : failed; }
-        get definition() : string {
-            return ".";
-        }
+        get definition() : string { return "<advance>"; }
         cloneImplementation() : Rule { return new Advance(); }                
     }
 
@@ -677,21 +675,30 @@ module Myna
     //=======================================
     // Zero length rules 
 
-    // A PredicateRule that does not advance the input
-    export class PredicateRule extends Rule
+    // A MatchRule that does not advance the input
+    export class MatchRule extends Rule
     {            
-        // Rules derived from a PredicateRule will only provide an override 
-        // of the match function, so the parse is defined in terms of match.  
-        // This prevents the creation of parse nodes.     
-        parseImplementation(p:Parser):number {
-            if (!this.match(p))
-                return failed;
-            return p.index;
+        // Rules derived from a MatchRule will only provide an override 
+        // of the match function, so the parse is ovverriden and defined in terms of match.  
+        // The parser state is always restored. 
+        parseImplementation(p:Parser):number 
+        {
+            // Remember the old parser state
+            let oldP = p.clone();
+            
+            // The result of calling the derived parseImplementation
+            let result = this.match(p);
+
+            // Restore the old parser state 
+            p.copyFrom(oldP);
+
+            // Returns the position of the parser, or failed
+            return result ? p.index : failed;
         } 
     }
 
     // Returns true only if the child rule fails to match.
-    export class Not extends PredicateRule
+    export class Not extends MatchRule
     {
         type = "not";
         constructor(rule:Rule) { super([rule]); }
@@ -701,7 +708,7 @@ module Myna
     }   
 
     // Returns true only if the child rule matches, but does not advance the parser
-    export class At extends PredicateRule
+    export class At extends MatchRule
     {
         type = "at";
         constructor(rule:Rule) { super([rule]); }
@@ -711,13 +718,33 @@ module Myna
     }   
 
     // Uses a function to return true or not based on the behavior of the predicate rule
-    export class Predicate extends PredicateRule
+    export class Predicate extends MatchRule
     {
         type = "predicate";
         constructor(public fn:(p:Parser)=>boolean) { super([]); }
         match(p:Parser):boolean { return this.fn(p); }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
-        get definition() : string { return "predicate(" + this.fn + ")"; }
+        get definition() : string { return "<predicate>"; }
+    }
+    
+    // Returns true always 
+    export class TruePredicate extends MatchRule
+    {
+        type = "true";
+        constructor() { super([]); }
+        match(p:Parser):boolean { return true; }
+        cloneImplementation() : Rule { return new TruePredicate(); }        
+        get definition() : string { return "<true>"; }
+    }
+    
+    // Returns true if at the end of the input, or false otherwise
+    export class AtEndPredicate extends MatchRule
+    {
+        type = "end";
+        constructor() { super([]); }
+        match(p:Parser):boolean { return !p.inRange; }
+        cloneImplementation() : Rule { return new AtEndPredicate(); }        
+        get definition() : string { return "<end>"; }
     }
     
     //===============================================================
@@ -872,10 +899,10 @@ module Myna
     //===============================================================    
     // Core grammar rules 
         
-    export let truePredicate    = predicate(p => true);
-    export let falsePredicate   = predicate(p => false);        
-    export let end              = predicate(p => !p.inRange);
-    export let notEnd           = predicate(p => p.inRange);
+    export let truePredicate    = new TruePredicate();
+    export let falsePredicate   = truePredicate.not;
+    export let end              = new AtEndPredicate();
+    export let notEnd           = end.not;
     export let advance          = new Advance();   
     export let all              = advance.zeroOrMore;
     export let letterLower      = range('a','z');

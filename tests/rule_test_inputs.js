@@ -31,7 +31,7 @@ function RuleTestInputs(myna)
         [m.underscore, ['_'], ['__', '', 'a', '9']],
         [m.identifierFirst, ['A', 'm', '_'], ['0', '4', '?', ' ', '', '/t', 'ab00', '   ']],
         [m.identifierNext, ['A', 'm', '_', '0', '4'], ['?', ' ', '', '/t', 'ab00', '   ']],
-        [m.identifier, ['abc', '_', '_ab01', 'A1', '_b_c_0_'], ['', '0abc', 'ab_ cd', ' ', '\t']],
+        [m.identifier, ['_', 'abc', '_ab01', 'A1', '_b_c_0_'], ['', '0abc', 'ab_ cd', ' ', '\t']],
         [m.hyphen, ['-'], ['?', '', '']],
         [m.crlf, ['\r\n'], ['\r', '\n', '', ' \r\n', '\\r\\n', '\rn']],
         [m.newLine, ['\r\n', '\n'], ['\n\r', '\r', ' \r\n']],

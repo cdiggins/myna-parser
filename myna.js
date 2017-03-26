@@ -28,7 +28,7 @@ var Myna;
         Object.defineProperty(Parser.prototype, "inRange", {
             // Returns true if the index is within the input range. 
             get: function () {
-                return this.index >= 0 || this.index < this.input.length;
+                return this.index >= 0 && this.index < this.input.length;
             },
             enumerable: true,
             configurable: true
@@ -261,17 +261,13 @@ var Myna;
         };
         // Returns true if this Rule matches the input at the given location and never creates nodes 
         Rule.prototype.match = function (p) {
-            // Check that the index is valid, otherwise it fails automatically 
-            if (!p.inRange)
-                return false;
             // Remember the old parser state
             var oldP = p.clone();
             // Call the derived parse implementation          
             var result = this.parseImplementation(p);
-            // If the parse fails, we back-track the index     
-            if (result == failed) {
+            // If the parse fails, we back-track the parser
+            if (result == failed)
                 p.index = oldP.index;
-            }
             // Any nodes created are always thrown out 
             p.nodes = oldP.nodes;
             // We return true or false depending on the success of the parse implementation 
@@ -281,16 +277,18 @@ var Myna;
         // at the given location, or -1 if failed.
         // Note that PredicateRule overrides this function 
         Rule.prototype.parse = function (p) {
-            // Check that the index is valid  
-            if (!p.inRange)
-                return failed;
             // Remember the old parser state
             var oldP = p.clone();
-            // The result of calling the derived parseImplementation
-            var result = failed;
-            // Either we add a node to the parse tree, or do a regular parse 
+            // Either we add a node to the parse tree, or do a regular parse.
             if (!this._createAstNode) {
-                result = this.parseImplementation(p);
+                var result = this.parseImplementation(p);
+                // Update the parser index
+                if (result !== failed)
+                    p.index = result;
+                else
+                    // In the case of a failed parse, we back-track the parser to the previous state 
+                    p.copyFrom(oldP);
+                return result;
             }
             else {
                 // Create a new AST node 
@@ -299,7 +297,7 @@ var Myna;
                 // This is a new list of child nodes.
                 p.nodes = [];
                 // Call the implementation of the parse function 
-                result = this.parseImplementation(p);
+                var result = this.parseImplementation(p);
                 // Check if the parse succeeded 
                 if (result !== failed) {
                     // The current nodes children is the parser node list 
@@ -313,11 +311,12 @@ var Myna;
                     // Update the parser index
                     p.index = result;
                 }
+                else {
+                    // In the case of a failed parse, we back-track the parser to the previous state 
+                    p.copyFrom(oldP);
+                }
+                return result;
             }
-            // In the case of a failed parse, we back-track the parser to the previous state 
-            if (result == failed)
-                p.copyFrom(oldP);
-            return result;
         };
         // Defines the type of rules. Used for defining new rule types as combinators.
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
@@ -635,9 +634,7 @@ var Myna;
         }
         Advance.prototype.parseImplementation = function (p) { return p.inRange ? p.index + 1 : failed; };
         Object.defineProperty(Advance.prototype, "definition", {
-            get: function () {
-                return ".";
-            },
+            get: function () { return "<advance>"; },
             enumerable: true,
             configurable: true
         });
@@ -801,23 +798,28 @@ var Myna;
     Myna.Delay = Delay;
     //=======================================
     // Zero length rules 
-    // A PredicateRule that does not advance the input
-    var PredicateRule = (function (_super) {
-        __extends(PredicateRule, _super);
-        function PredicateRule() {
+    // A MatchRule that does not advance the input
+    var MatchRule = (function (_super) {
+        __extends(MatchRule, _super);
+        function MatchRule() {
             _super.apply(this, arguments);
         }
-        // Rules derived from a PredicateRule will only provide an override 
-        // of the match function, so the parse is defined in terms of match.  
-        // This prevents the creation of parse nodes.     
-        PredicateRule.prototype.parseImplementation = function (p) {
-            if (!this.match(p))
-                return failed;
-            return p.index;
+        // Rules derived from a MatchRule will only provide an override 
+        // of the match function, so the parse is ovverriden and defined in terms of match.  
+        // The parser state is always restored. 
+        MatchRule.prototype.parseImplementation = function (p) {
+            // Remember the old parser state
+            var oldP = p.clone();
+            // The result of calling the derived parseImplementation
+            var result = this.match(p);
+            // Restore the old parser state 
+            p.copyFrom(oldP);
+            // Returns the position of the parser, or failed
+            return result ? p.index : failed;
         };
-        return PredicateRule;
+        return MatchRule;
     }(Rule));
-    Myna.PredicateRule = PredicateRule;
+    Myna.MatchRule = MatchRule;
     // Returns true only if the child rule fails to match.
     var Not = (function (_super) {
         __extends(Not, _super);
@@ -833,7 +835,7 @@ var Myna;
             configurable: true
         });
         return Not;
-    }(PredicateRule));
+    }(MatchRule));
     Myna.Not = Not;
     // Returns true only if the child rule matches, but does not advance the parser
     var At = (function (_super) {
@@ -850,7 +852,7 @@ var Myna;
             configurable: true
         });
         return At;
-    }(PredicateRule));
+    }(MatchRule));
     Myna.At = At;
     // Uses a function to return true or not based on the behavior of the predicate rule
     var Predicate = (function (_super) {
@@ -863,13 +865,47 @@ var Myna;
         Predicate.prototype.match = function (p) { return this.fn(p); };
         Predicate.prototype.cloneImplementation = function () { return new Predicate(this.fn); };
         Object.defineProperty(Predicate.prototype, "definition", {
-            get: function () { return "predicate(" + this.fn + ")"; },
+            get: function () { return "<predicate>"; },
             enumerable: true,
             configurable: true
         });
         return Predicate;
-    }(PredicateRule));
+    }(MatchRule));
     Myna.Predicate = Predicate;
+    // Returns true always 
+    var TruePredicate = (function (_super) {
+        __extends(TruePredicate, _super);
+        function TruePredicate() {
+            _super.call(this, []);
+            this.type = "true";
+        }
+        TruePredicate.prototype.match = function (p) { return true; };
+        TruePredicate.prototype.cloneImplementation = function () { return new TruePredicate(); };
+        Object.defineProperty(TruePredicate.prototype, "definition", {
+            get: function () { return "<true>"; },
+            enumerable: true,
+            configurable: true
+        });
+        return TruePredicate;
+    }(MatchRule));
+    Myna.TruePredicate = TruePredicate;
+    // Returns true if at the end of the input, or false otherwise
+    var AtEndPredicate = (function (_super) {
+        __extends(AtEndPredicate, _super);
+        function AtEndPredicate() {
+            _super.call(this, []);
+            this.type = "end";
+        }
+        AtEndPredicate.prototype.match = function (p) { return !p.inRange; };
+        AtEndPredicate.prototype.cloneImplementation = function () { return new AtEndPredicate(); };
+        Object.defineProperty(AtEndPredicate.prototype, "definition", {
+            get: function () { return "<end>"; },
+            enumerable: true,
+            configurable: true
+        });
+        return AtEndPredicate;
+    }(MatchRule));
+    Myna.AtEndPredicate = AtEndPredicate;
     //===============================================================
     // Rule creation function
     // Create a rule that matches the text 
@@ -1074,10 +1110,10 @@ var Myna;
     Myna.keywords = keywords;
     //===============================================================    
     // Core grammar rules 
-    Myna.truePredicate = predicate(function (p) { return true; });
-    Myna.falsePredicate = predicate(function (p) { return false; });
-    Myna.end = predicate(function (p) { return !p.inRange; });
-    Myna.notEnd = predicate(function (p) { return p.inRange; });
+    Myna.truePredicate = new TruePredicate();
+    Myna.falsePredicate = Myna.truePredicate.not;
+    Myna.end = new AtEndPredicate();
+    Myna.notEnd = Myna.end.not;
     Myna.advance = new Advance();
     Myna.all = Myna.advance.zeroOrMore;
     Myna.letterLower = range('a', 'z');
