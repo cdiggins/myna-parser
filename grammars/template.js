@@ -12,7 +12,7 @@
 // - `&` or `{` indicate an unescaped variable 
 // - `>` indicates a *partial* which is effectively a file include with run-time expansion.
 
-function TemplateGrammar(myna, start, end) {
+function CreateTemplateGrammar(myna, start, end) {
     if (start == undefined)
         start = "{{";
     if (end == undefined)
@@ -23,37 +23,43 @@ function TemplateGrammar(myna, start, end) {
 
     let m = myna;
 
-    // Define a rule so that we can refer to content recursively
-    let _this = this;
-    this.recursiveContent = m.delay(function() { return _this.content; });            
+    // Create the grammar object 
+    let g = new function() 
+    {
+        // Define a rule so that we can refer to content recursively
+        let _this = this;
+        this.recursiveContent = m.delay(function() { return _this.content; });            
 
-    // Main grammar rules. 
-    // Only those with 'ast' will generate nodes in the parse tree 
-    this.key = m.advanceWhileNot(end).ast;
-    this.startSection = m.seq(start, "#", this.key, end);
-    this.endSection = m.seq(start, "/", this.key, end);
-    this.startInvertedSection = m.seq(start, "^", this.key, end);
-    this.escapedVar = m.seq(start, m.notAtChar("#/^!{&<"), this.key, end).ast;
-    this.unescapedVar = m.seq(start, m.choice(m.seq("{", this.key, "}"), m.seq("&", this.key)), end).ast;
-    this.var = m.choice(this.escapedVar, this.unescapedVar);
-    this.partial = m.seq(start, ">", m.ws.opt, this.key, end).ast;
-    this.comment = m.seq(start, "!", this.key, end).ast;    
-    this.sectionContent = this.recursiveContent.ast;
-    this.section = m.seq(this.startSection, this.sectionContent, this.endSection).ast;
-    this.invertedSection = m.seq(this.startInvertedSection, this.sectionContent, this.endSection).ast;
-    this.plainText = m.advanceWhileNot("{{").ast;
+        // Main grammar rules. 
+        // Only those with 'ast' will generate nodes in the parse tree 
+        this.key = m.advanceWhileNot(end).ast;
+        this.startSection = m.seq(start, "#", this.key, end);
+        this.endSection = m.seq(start, "/", this.key, end);
+        this.startInvertedSection = m.seq(start, "^", this.key, end);
+        this.escapedVar = m.seq(start, m.notAtChar("#/^!{&<"), this.key, end).ast;
+        this.unescapedVar = m.seq(start, m.choice(m.seq("{", this.key, "}"), m.seq("&", this.key)), end).ast;
+        this.var = m.choice(this.escapedVar, this.unescapedVar);
+        this.partial = m.seq(start, ">", m.ws.opt, this.key, end).ast;
+        this.comment = m.seq(start, "!", this.key, end).ast;    
+        this.sectionContent = this.recursiveContent.ast;
+        this.section = m.seq(this.startSection, this.sectionContent, this.endSection).ast;
+        this.invertedSection = m.seq(this.startInvertedSection, this.sectionContent, this.endSection).ast;
+        this.plainText = m.advanceWhileNot("{{").ast;
 
-    // Mmanually optimize the grammar here by using a lookup. Every type of special rule 
-    // starts with the first char of the delimiter, otherwise we are just advancing through the text.  
-    let startChar = start[0];
-    this.content = 
-        m.lookup(startChar, 
-            m.choice(this.invertedSection, this.section, this.comment, this.partial, this.var),
-        this.plainText).zeroOrMore;
+        // Mmanually optimize the grammar here by using a lookup. Every type of special rule 
+        // starts with the first char of the delimiter, otherwise we are just advancing through the text.  
+        let startChar = start[0];
+        this.content = 
+            m.lookup(startChar, 
+                m.choice(this.invertedSection, this.section, this.comment, this.partial, this.var),
+            this.plainText).zeroOrMore;
 
-    this.document = this.content.ast;
+        this.document = this.content.ast;
+    }
+
+    return m.registerGrammar("template", g);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 
 if (typeof module === "object" && module.exports) 
-    module.exports = TemplateGrammar;
+    module.exports = CreateTemplateGrammar;

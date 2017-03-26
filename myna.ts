@@ -7,41 +7,73 @@
 
 // NOTE: we are explicitly bypassing using the TypeScript "export" keyword for 
 // the Myna module otherwise the module won't be usable from browsers without 
-// using an additional moduler loader library. Instead we use some manual  
+// using an additional moduler loader library. Instead we have manual  
 // export code at the bottom of the file. 
 
 module Myna
 {
-    // This stores the state of the parser and is passed to the 
-    // match and parse functions.
+    // This stores the state of the parser and is passed to the parse and match functions.
     export class Parser
     {        
         constructor(
             public input:string, 
-            public nodes:AstNode[] = []) 
+            public index:number,
+            public nodes:AstNode[])
         { }
+
+        // Creates a copy of the parser, including a shallow copy of the nodes. 
+        clone() : Parser {
+            return new Parser(this.input, this.index, this.nodes.slice());
+        }
+
+        // Returns true if the index is within the input range. 
+        get inRange() : boolean {
+            return this.index >= 0 || this.index < this.input.length;
+        }
+
+        // Sets the state of the parser to be the same as another. 
+        copyFrom(p:Parser) {
+            this.input = p.input; 
+            this.index = p.index;
+            this.nodes = p.nodes;
+        }
+
+        // Returns a string representation of the location. 
+        get location() : string {
+            return this.index.toString();
+        }
+
+        // Returns a string that helps debugging to figure out exactly where we are in the input string 
+        get debugContext() : string {
+            let contextWidth = 5;
+            let start = this.index - contextWidth - 1;
+            if (start < 0) start = 0;
+            let prefix = this.input.slice(start, this.index - 1);
+            let end = this.index + contextWidth;
+            if (end >= this.input.length) end = this.input.length - 1;
+            let postfix = this.input.slice(this.index, end);
+            return prefix + " >>> " + this.input[this.index] + " <<< " + postfix;
+        }
     }
 
     // Return true or false depending on whether the rule matches 
     // the beginning of the input string. 
     export function match(r:Rule, s:string) : boolean 
     {
-        return r.match(new Parser(s), 0);        
+        return r.match(new Parser(s, 0, []));        
     }
 
     // Returns the root node of the abstract syntax tree created 
-    // by parsing the rule. If no exceptions are thrown, this will 
-    // always return at least one node. If the content fails to parse 
-    // the returned node will have an end position of "failed" (-1).  
-    // Note that only rules returned from the ast 
-    // property will add nodes in the tree (e.g. identifier.ast) when
-    // parsed.
+    // by parsing the rule. 
     export function parse(r : Rule, s : string) : AstNode
     {
-        let p = new Parser(s);
-        let curNode = new AstNode(r.ast, s);
-        curNode.end = r.parse(p, 0);
-        return curNode;        
+        let p = new Parser(s, 0, []);        
+        r.ast.parse(p);  
+        if (!p.nodes || !p.nodes.length)
+            return undefined;
+        if (p.nodes.length > 1)
+            throw Exceptions.TooManyNodes;
+        return p.nodes[0];        
     }
 
     // Returns an array of nodes created by parsing the given rule repeatedly until 
@@ -50,7 +82,8 @@ module Myna
     // flag set explicitly. 
     export function tokenize(r:Rule, s:string) : AstNode[]
     {
-        return this.parse(r.ast.zeroOrMore, s).children;
+        let result = this.parse(r.ast.zeroOrMore, s);
+        return result ? result.children : [];
     }
     
     //====================================================================================
@@ -79,6 +112,9 @@ module Myna
         
         // Grammar construction error: the same token is included twice in the lookup table. 
         TokenIncludedTwiceInLookup,
+
+        // Internal error: parsing the rule created multiple nodes
+        TooManyNodes,
     }
 
     //====================================================================================
@@ -208,65 +244,84 @@ module Myna
         { }
         
         // Each rule derived object provides its own implementation of this function.  
-        parseImplementation(p:Parser, index:number):number { 
+        parseImplementation(p:Parser):number { 
             throw Exceptions.MissingOverride;
         }
 
-        // Returns true if this Rule matches the input at the given location 
-        match(p:Parser, index:number):boolean {
-            // Check that the index is valid  
-            if (index < 0 || index > p.input.length)
-                return false;
-            return this.parseImplementation(p, index) != failed;
+        // Returns true if this Rule matches the input at the given location and never creates nodes 
+        match(p:Parser):boolean {
+            // Check that the index is valid, otherwise it fails automatically 
+            if (!p.inRange) return false;
+
+            // Remember the old parser state
+            let oldP = p.clone();
+
+            // Call the derived parse implementation          
+            let result = this.parseImplementation(p);
+
+            // If the parse fails, we back-track the index     
+            if (result == failed) {
+                p.index = oldP.index;                    
+            }
+
+            // Any nodes created are always thrown out 
+            p.nodes = oldP.nodes;
+
+            // We return true or false depending on the success of the parse implementation 
+            return result != failed;
         }        
 
         // If successful returns the end-location of where this Rule matches the input 
-        // at the given location, or -1 if failed 
-        parse(p:Parser, index:number):number {        
+        // at the given location, or -1 if failed.
+        // Note that PredicateRule overrides this function 
+        parse(p:Parser):number {        
             // Check that the index is valid  
-            if (index < 0 || index > p.input.length)
-                return failed;
+            if (!p.inRange) return failed;
+
+            // Remember the old parser state
+            let oldP = p.clone();
+            
+            // The result of calling the derived parseImplementation
+            let result = failed;
 
             // Either we add a node to the parse tree, or do a regular parse 
             if (!this._createAstNode)
             {
-                // When not creating nodes we just call the parse implementation 
-                return this.parseImplementation(p, index);
+                result = this.parseImplementation(p);
             }
             else
             {                 
-                // Remember the old AST node
-                let oldAst = p.nodes;
-
                 // Create a new AST node 
-                let node = new AstNode(this, p.input, index);
+                let node = new AstNode(this, p.input, p.index);
 
-                // Create a new array of child nodes
-                p.nodes = []; 
+                // Create a new "node list" for the parser.
+                // This is a new list of child nodes.
+                p.nodes = [];
 
                 // Call the implementation of the parse function 
-                node.end = this.parseImplementation(p, index);
+                result = this.parseImplementation(p);
 
-                // If the parse failed then we can return 
-                if (node.end === failed) {
-                    // Restore the previous AST state 
-                    p.nodes = oldAst; 
-                    return failed;
+                // Check if the parse succeeded 
+                if (result !== failed) 
+                {                    
+                    // The current nodes children is the parser node list 
+                    node.children = p.nodes;
+                    // Restore the parser's node list to what it was 
+                    p.nodes = oldP.nodes;
+                    // Add the node to the parser's node list 
+                    p.nodes.push(node);
+                    // Set the node
+                    node.end = result;
+                    // Update the parser index
+                    p.index = result;
                 }
-
-                // We succeeded, so update the children of this node 
-                // with the "_ast"
-                node.children = p.nodes;                
-
-                // Restore the previous AST state 
-                p.nodes = oldAst; 
-                
-                // We are going to add the node to the list of children 
-                p.nodes.push(node);
-
-                // Return the parse result 
-                return node.end;
             }                              
+
+            // In the case of a failed parse, we back-track the parser to the previous state 
+            if (result == failed) 
+                p.copyFrom(oldP);
+            
+            return result;
         }
 
         // Defines the type of rules. Used for defining new rule types as combinators.
@@ -312,6 +367,7 @@ module Myna
         }
 
         // Returns a copy of this rule with default values for all fields.  
+        // Note: Every new rule class must override cloneImplemenation
         cloneImplementation() : Rule {
             throw Exceptions.MissingOverride;
         }
@@ -328,7 +384,8 @@ module Myna
             return r;
         }
 
-        // Returns a copy of the rule that has the property it will create a node in the parse tree. 
+        // Returns a copy of the rule that will create a node in the parse tree.
+        // This property is the only way to create rules that generate nodes in a parse tree. 
         get ast() : Rule {
             let r = this.copy;
             r._createAstNode = true;
@@ -344,7 +401,7 @@ module Myna
         // Returns true if this rule when parsed successfully will create a node in the parse tree 
         get isAstRule() : boolean{
             return this._createAstNode || (this.hasAstChildRule 
-            && (this instanceof Sequence || this instanceof Choice || this instanceof Bounded));
+            && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
         }
 
         // Returns a string that describes the AST nodes created by this rule.
@@ -355,7 +412,7 @@ module Myna
                 return this.name;
             if (rules.length == 1) {
                 let result = rules[0].astRuleNameOrDefn;
-                if (this instanceof Bounded)
+                if (this instanceof Quantified)
                     result += "[" + this.min + "," + this.max + "]";     
                 return result;
             }
@@ -376,7 +433,10 @@ module Myna
             return this.astRuleDefn;
         }
 
-        // Extensions to support method/property chaining a.k.a. fluent syntax
+        //======================================================
+        // Extensions to support method/property chaining. 
+        // This is also known as a fluent API syntax
+
         get opt() : Rule { return opt(this); }
         get zeroOrMore() : Rule { return zeroOrMore(this); }
         get oneOrMore() : Rule { return oneOrMore(this); }
@@ -385,6 +445,7 @@ module Myna
         get ws() : Rule { return this.then(ws); }
         get all() : Rule { return this.then(all); }
         get end() : Rule { return this.then(end); }
+        get assert() : Rule { return assert(this); }
 
         then(r:RuleType) : Rule { return seq(this, r); }
         thenAt(r:RuleType) : Rule { return this.then(at(r)); }
@@ -393,7 +454,7 @@ module Myna
         until(r:RuleType) : Rule { return repeatWhileNot(this, r); }
         untilPast(r:RuleType) : Rule { return repeatUntilPast(this, r); }        
         repeat(count:number) { return repeat(this, count); }
-        bounded(min:number, max:number) { return bounded(this, min, max); }
+        quantified(min:number, max:number) { return quantified(this, min, max); }
         delimited(delimiter:RuleType) { return delimited(this, delimiter); }        
         butNot(r:RuleType) { return not(r).then(this); }
     }
@@ -413,12 +474,11 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(p:Parser, index:number): number {
-            for (let r of this.rules) {
-                index = r.parse(p, index);
-                if (index === failed) return index;
-            }
-            return index;
+        parseImplementation(p:Parser): number {
+            for (let r of this.rules) 
+                if (r.parse(p) == failed)
+                    return failed;
+            return p.index;
         }
 
         get definition() : string {
@@ -438,26 +498,14 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(p:Parser, index:number): number {
-            let state = p.nodes.length;
+        parseImplementation(p:Parser): number {
             for (let r of this.rules) {
-                let result = r.parse(p, index);
-                if (result === failed) {
-                    // Throw away any created nodes
-                    p.nodes.length = state;
-                    continue;
-                }
-                return result;
+                let result = r.parse(p);
+                if (result !== failed) 
+                    return result;
             }
             return failed;
         }        
-
-        match(p:Parser, index:number):boolean {
-            for (let r of this.rules)
-                if (r.match(p, index))
-                    return true;
-            return false;
-        }
 
         get definition() : string {
             let result = this.rules.map((r) => r.toString()).join(" / ");
@@ -471,33 +519,35 @@ module Myna
 
     // A generalization of several rules such as zeroOrMore (0+), oneOrMore (1+), opt(0 or 1),
     // When matching with an unbounded upper limit set the maxium to  -1   
-    export class Bounded extends Rule
+    export class Quantified extends Rule
     {    
-        type = "bounded";
+        type = "quantified";
 
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
 
-        parseImplementation(p:Parser, index:number): number {
-            let result = index;
-            // This can loop forever 
+        parseImplementation(p:Parser): number {
+            let result = p.index;
             for (let i=0; i < this.max; ++i) {
-                let tmp = this.firstChild.parse(p, result);
+                let tmp = this.firstChild.parse(p);
+
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
-                if (tmp === failed)
-                    return (i >= this.min) ? result : failed;
+                if (tmp === failed) 
+                    return i >= this.min ? result : failed;
+
                 // Check for progress, to assure we aren't hitting an infinite loop  
-                if (this.max < 0) 
+                // Without this it is possible to accidentally put a zeroOrMore with a predicate.
+                // For example: myna.truePredicate.zeroOrMore would loop forever 
+                if (this.max == Infinity) 
                     if (result === tmp)
-                        throw Exceptions.MissingOverride;
-                // Check we don't go past the end of the input 
-                if (i > p.input.length)
-                    return failed;
+                        throw Exceptions.InfiniteLoop;
+
                 result = tmp;
             }            
             return result;
         }
 
+        // Used for creating a human readable definition of the grammar.
         get definition() : string {            
             if (this.min == 0 && this.max == 1)
                 return this.firstChild.toString() + "?";
@@ -508,7 +558,7 @@ module Myna
             return this.firstChild.toString() + "{" + this.min + "," + this.max + "}";
          }
 
-        cloneImplementation() : Rule { return new Bounded(this.firstChild, this.min, this.max); }
+        cloneImplementation() : Rule { return new Quantified(this.firstChild, this.min, this.max); }
     }
 
     // Advances the parser by one token unless at the end
@@ -516,7 +566,7 @@ module Myna
     {
         type = "advance";
         constructor() { super([]); }
-        parseImplementation(p:Parser, index:number): number { return index < p.input.length ? index+1 : failed; }
+        parseImplementation(p:Parser): number { return p.inRange ? p.index+1 : failed; }
         get definition() : string {
             return ".";
         }
@@ -528,14 +578,13 @@ module Myna
     {
         type = "lookup";
         constructor(public lookup:any, public onDefault:Rule) { super([]); }        
-        parseImplementation(p:Parser, index:number): number {
-            if (index >= p.input.length)
-                return failed;
-            let tkn = p.input[index];
+        parseImplementation(p:Parser): number {
+            if (!p.inRange) return failed;
+            let tkn = p.input[p.index];
             let r = this.lookup[tkn];
             if (r !== undefined) 
-                return r.parse(index);
-            return this.onDefault.parse(p, index);
+                return r.parse(p);
+            return this.onDefault.parse(p);
         }           
         get definition() : string {
             return '{' + Object.keys(this.lookup).map(k => '"' + escapeChars(k)  + '" :' + this.lookup[k].toString()).join(',') + '}';
@@ -602,12 +651,13 @@ module Myna
     {
         type = "text";
         constructor(public text:string) { super([]); }
-        parseImplementation(p:Parser, index:number): number {
-            if (index > p.input.length - this.text.length) return failed;
+        parseImplementation(p:Parser): number {
+            if (p.index > p.input.length - this.text.length)
+                return failed;
             for (let i=0; i < this.text.length; ++i) 
-                if (p.input[index+i] !== this.text[i])
+                if (p.input[p.index+i] !== this.text[i])
                     return failed;
-            return index + this.text.length;
+            return p.index + this.text.length;
         }
         get definition() : string { return '"' + escapeChars(this.text) + '"' };
         cloneImplementation() : Rule { return new Text(this.text); }        
@@ -619,7 +669,7 @@ module Myna
     {
         type = "delay";
         constructor(public fn:()=>Rule) { super([]); }        
-        parseImplementation(p:Parser, index:number): number { return this.fn().parse(p, index); }
+        parseImplementation(p:Parser): number { return this.fn().parse(p); }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "delay(" + this.fn() + ")"; }    
     } 
@@ -627,22 +677,16 @@ module Myna
     //=======================================
     // Zero length rules 
 
-    // A PredicateRule that does not advance the input and does not create parse nodes in the tree.
+    // A PredicateRule that does not advance the input
     export class PredicateRule extends Rule
     {            
         // Rules derived from a PredicateRule will only provide an override 
         // of the match function, so the parse is defined in terms of match.  
         // This prevents the creation of parse nodes.     
-        parse(p:Parser, index:number):number {
-            let result = failed;
-            // We create a new array of children 
-            // New nodes will parse this, but will get thrown away if it fails. 
-            let state = p.nodes.length;
-            if (this.match(p, index))
-                result = index;
-            // This discards any nodes created and restores
-            p.nodes.length = state;
-            return result;
+        parseImplementation(p:Parser):number {
+            if (!this.match(p))
+                return failed;
+            return p.index;
         } 
     }
 
@@ -651,7 +695,7 @@ module Myna
     {
         type = "not";
         constructor(rule:Rule) { super([rule]); }
-        match(p:Parser, index:number):boolean { return !this.firstChild.match(p, index); }
+        match(p:Parser):boolean { return !this.firstChild.match(p); }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
         get definition() : string { return "!" + this.firstChild.toString(); }
     }   
@@ -661,7 +705,7 @@ module Myna
     {
         type = "at";
         constructor(rule:Rule) { super([rule]); }
-        match(p:Parser, index:number):boolean { return this.firstChild.match(p, index); }
+        match(p:Parser):boolean { return this.firstChild.match(p); }
         cloneImplementation() : Rule { return new At(this.firstChild); }
         get definition() : string { return "&" + this.firstChild.toString(); }
     }   
@@ -670,8 +714,8 @@ module Myna
     export class Predicate extends PredicateRule
     {
         type = "predicate";
-        constructor(public fn:(p:Parser, index:number)=>boolean) { super([]); }
-        match(p:Parser, index:number):boolean { return this.fn(p, index); }
+        constructor(public fn:(p:Parser)=>boolean) { super([]); }
+        match(p:Parser):boolean { return this.fn(p); }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
         get definition() : string { return "predicate(" + this.fn + ")"; }
     }
@@ -707,29 +751,29 @@ module Myna
 
     // Attempts to apply a rule between min and max number of times inclusive. If the maximum is set to Infinity, 
     // it will attempt to match as many times as it can, but throw an exception if the parser does not advance 
-    export function bounded(rule:RuleType, min:number=0, max:number=Infinity) { 
-        return new Bounded(RuleTypeToRule(rule), min, max); 
+    export function quantified(rule:RuleType, min:number=0, max:number=Infinity) { 
+        return new Quantified(RuleTypeToRule(rule), min, max); 
     }
 
     // Attempts to apply the rule 0 or more times. Will always succeed unless the parser does not 
     // advance, in which case an exception is thrown.    
     export function zeroOrMore(rule:RuleType) { 
-        return bounded(rule).setType("zeroOrMore"); 
+        return quantified(rule).setType("zeroOrMore"); 
     };
 
     // Attempts to apply the rule 1 or more times. Will throw an exception if the parser does not advance.  
     export function oneOrMore(rule:RuleType)  { 
-        return bounded(rule, 1).setType("oneOrMore"); 
+        return quantified(rule, 1).setType("oneOrMore"); 
     }
 
     // Attempts to match a rule 0 or 1 times. Always succeeds.   
     export function opt(rule:RuleType)  { 
-        return bounded(rule, 0, 1).setType("opt"); 
+        return quantified(rule, 0, 1).setType("opt"); 
     };
 
     // Attempts to apply a rule a precise number of times
     export function repeat(rule:RuleType, count:number) { 
-        return bounded(rule, count, count).setType("repeat"); 
+        return quantified(rule, count, count).setType("repeat"); 
     }
     
     // Returns true if the rule successfully matches, but does not advance the parser index. 
@@ -777,8 +821,8 @@ module Myna
     //===============================================================    
     // Predicates and actions  
     
-    export function predicate(fn:(p:Parser, index:number)=>boolean) { return new Predicate(fn); }
-    export function action(fn:(p:Parser, index:number)=>void) { return predicate((p, index)=> { fn(p, index); return true; }).setType("action"); }
+    export function predicate(fn:(p:Parser)=>boolean) { return new Predicate(fn); }
+    export function action(fn:(p:Parser)=>void) { return predicate((p)=> { fn(p); return true; }).setType("action"); }
     export function err(ex:any) { return action(p=> { ex.location=p; throw(ex); }).setType("err"); }
     export function log(msg:string = "") { return action(p=> { console.log(msg); }).setType("log"); }
     export function assert(rule:RuleType) { return choice(rule, err({rule:rule,type:"assert"})).setType("assert"); }
@@ -828,10 +872,10 @@ module Myna
     //===============================================================    
     // Core grammar rules 
         
-    export let truePredicate    = predicate((p, index) => true);
-    export let falsePredicate   = predicate((p, index) => false);        
-    export let end              = predicate((p, index) => index >= p.input.length);
-    export let notEnd           = predicate((p, index) => index < p.input.length);
+    export let truePredicate    = predicate(p => true);
+    export let falsePredicate   = predicate(p => false);        
+    export let end              = predicate(p => !p.inRange);
+    export let notEnd           = predicate(p => p.inRange);
     export let advance          = new Advance();   
     export let all              = advance.zeroOrMore;
     export let letterLower      = range('a','z');
@@ -895,17 +939,10 @@ module Myna
         return grammarAstRules(grammarName).map(r => r.name + " <- " + r.astRuleDefn).join('\n');
     }
 
-    // Creates and initializes a Grammar object from a constructor.  
+    // Initializes and register a grammar object and all of the rules. 
     // Sets names for all of the rules from the name of the field it is associated with combined with the 
-    // name of the grammar. Each rule is stored in Myna.rules and each  grammar is stored in Myna.grammars. 
-    export function registerGrammar(grammarName:string, grammarCtor:(Myna)=>void)
-    {
-        let grammar = new grammarCtor(this);
-        initializeGrammar(grammarName, grammar);
-    }
-
-    // Given a constructed grammar, stores it and its rules, and sets the name of the rules/
-    export function initializeGrammar(grammarName:string, grammar:any)
+    // name of the grammar. Each rule is stored in Myna.rules and each grammar is stored in Myna.grammars. 
+    export function registerGrammar(grammarName:string, grammar:any)
     {
         for (let k in grammar) {
             if (grammar[k] instanceof Rule) {
@@ -924,6 +961,12 @@ module Myna
         let r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
     }
+
+    //===========================================================================
+    // Initialization
+
+    // The entire module is a grammar because it is an object that exposes rules as properties
+    registerGrammar("core", Myna);
 }
 
 // Export the function for use with Node.js and the CommonJS module system. 

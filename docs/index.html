@@ -186,7 +186,25 @@ textarea {
 <script src="grammars/arithmetic.js"></script>
 <script src="grammars/markdown.js"></script>
 <script src="grammars/template.js"></script>
-<script src="examples/arithmetic_evaluator.js"></script>  
+
+<script>
+// Create each Grammar.  
+let grammars = [
+    CreateArithmeticGrammar(Myna),
+    CreateCsvGrammar(Myna),
+    CreateHtmlReservedChars(Myna),
+    CreateJsonGrammar(Myna),
+    CreateMarkdownGrammar(Myna),
+    CreateTemplateGrammar(Myna)
+    ];
+
+// Print a representation of the grammar in the console. 
+for (let g in grammar) {
+    console.log(Myna.grammarToString(g));
+}
+ 
+</script>
+
 <script src="tests/myna_tester.js"></script>
 <script src="tests/tests.js"></script>
 <script src="tests/test_inputs.js"></script>
@@ -322,11 +340,7 @@ function updateAst() {
     updateAst();
 }*/
 
-Myna.registerGrammar("json", JsonGrammar);
-Myna.registerGrammar("arithmetic", ArithmeticGrammar);
-Myna.registerGrammar("csv", CsvGrammar);
-Myna.registerGrammar("markdown", MarkdownGrammar);
-Myna.registerGrammar("template", TemplateGrammar);
+
 
 createRulesList();
 createInputsList();

@@ -9,3 +9,4 @@ function testExpand(template, data) {
 }
 
 testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true});
+testExpand("{{a}}", { a:"<<>>"});

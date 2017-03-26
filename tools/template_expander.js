@@ -1,7 +1,7 @@
 'use strict';
 
 // Load the Myna module 
-let myna = require('../myna.js');
+let myna = require('../myna');
 
 // Add the template grammar to Myna
 let templateCtor = require('../grammars/template');
@@ -10,7 +10,8 @@ myna.registerGrammar("template", templateCtor);
 // Get the parsing rules  
 let templateRule = myna.allRules["template.document"];
 
-
+// Given an AST node, a data object, and an optional array of string, converts the nodes 
+// expanding the reserved characters. 
 function expandAst(ast, data, lines) {
     if (lines == undefined)
         lines = [];
