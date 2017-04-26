@@ -1,6 +1,12 @@
-## Popular Libraries that Parser Text
+# Why Parsers Matter
 
-Many popular JavaScript libraries have text parsing algorithms at their core, but many of these do not use parsing libraries. Here are some examples of JavaScript libraries where text parsing is a primary component. I have linked to their core parsing code where possible. 
+Text parsing is a very powerful tool in a programmer's arsenal. The ability to convert from one structured textual form to another
+can be used to construct a wide range of tools. 
+
+## Libraries that use Parsers
+
+Many popular JavaScript libraries have text parsing algorithms at their core, but many of these do not use parsing libraries. Here
+are some examples of JavaScript libraries where text parsing is a primary component. I have linked to their core parsing code where possible. 
 
 - JavaScript 
   - [UglifyJS2](https://github.com/mishoo/UglifyJS2/blob/master/lib/parse.js) (5858)

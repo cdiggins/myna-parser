@@ -1,5 +1,6 @@
 # Things to do 
 
+- [ ] compare the JSON performance with other tools
 - [ ] start work on the optimizer 
   - [ ] get the myna-parser CSV parser faster than Papa parse 
 - [ ] more sample grammars and tools

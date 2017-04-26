@@ -12,7 +12,7 @@
 // - `&` or `{` indicate an unescaped variable 
 // - `>` indicates a *partial* which is effectively a file include with run-time expansion.
 
-function CreateTemplateGrammar(myna, start, end) {
+function CreateMustacheGrammar(myna, start, end) {
     if (start == undefined)
         start = "{{";
     if (end == undefined)
@@ -33,9 +33,10 @@ function CreateTemplateGrammar(myna, start, end) {
         // Main grammar rules. 
         // Only those with 'ast' will generate nodes in the parse tree 
         this.key = m.advanceWhileNot(end).ast;
-        this.startSection = m.seq(start, "#", this.key, end);
+        this.restOfLine = m.char(' \t').zeroOrMore.then('\n');
+        this.startSection = m.seq(start, "#", this.key, end, this.restOfLine);
         this.endSection = m.seq(start, "/", this.key, end);
-        this.startInvertedSection = m.seq(start, "^", this.key, end);
+        this.startInvertedSection = m.seq(start, "^", this.key, end, this.restOfLine);
         this.escapedVar = m.seq(start, m.notAtChar("#/^!{&<"), this.key, end).ast;
         this.unescapedVar = m.seq(start, m.choice(m.seq("{", this.key, "}"), m.seq("&", this.key)), end).ast;
         this.var = m.choice(this.escapedVar, this.unescapedVar);
@@ -57,9 +58,9 @@ function CreateTemplateGrammar(myna, start, end) {
         this.document = this.content.ast;
     }
 
-    return m.registerGrammar("template", g);
+    return m.registerGrammar("mustache", g);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 
 if (typeof module === "object" && module.exports) 
-    module.exports = CreateTemplateGrammar;
+    module.exports = CreateMustacheGrammar;

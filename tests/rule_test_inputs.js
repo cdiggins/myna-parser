@@ -7,7 +7,7 @@ function RuleTestInputs(myna)
     let jg = m.grammars.json;
     let cg = m.grammars.csv;
     let mdg = m.grammars.markdown;
-    let tg = m.grammars.template;
+    let mtg = m.grammars.mustache;
 
     let records = [
             'Stock Name,Country of Listing,Ticker,Margin Rate,Go Short?,Limited Risk Premium',
@@ -171,7 +171,7 @@ function RuleTestInputs(myna)
         [mdg.simpleLine,['abc','abc\n','a *b*\n'], []], // '', ' ', '\t', '\n', '  \t\n', '- abc\n'
         [mdg.document,  ['simple', 'with\nnew\nlines', '# Heading\n\nand some text.', 'stuff\n> and a\n> quote\n\n- and a list\n## And another heading', '# heading\n## and another', '', '\n\n'], []],
 
-        // Template grammar tests
+        // Mustache template grammar tests
         [tg.key, ['abc', ' ', '', '123', '$', '{{', '#'], ['}}', '{{}}']],
         [tg.escapedVar, ['{{abc}}'], ['{{#abc}}', '{{/abc}}', '{{^abc}}']],
         [tg.unescapedVar, ['{{&abc}}', '{{{abc}}}'], ['{{#abc}}', '{{/abc}}', '{{^abc}}', '{{abc}}']],

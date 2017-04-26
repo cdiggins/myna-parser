@@ -21,4 +21,4 @@ function CreateHtmlReservedCharsGrammar(myna)
 
 // Export the main function for usage by Node.js and CommonJs compatible module loaders 
 if (typeof module === "object" && module.exports) 
-    module.exports = CreatemlReservedCharsGrammar;
+    module.exports = CreateHtmlReservedCharsGrammar;

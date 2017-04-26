@@ -931,7 +931,7 @@ module Myna
     export let word             = letter.then(wordChar.zeroOrMore);    
         
     //===============================================================
-    // Grammar functions 
+        // Grammar functions 
     
     // The following are helper functions for grammar objects. A grammar is a loosely defined concept.
     // It is any JavaScript object where one or more member fields are instances of the Rule class.    
@@ -979,6 +979,7 @@ module Myna
             }
         }
         grammars[grammarName] = grammar;
+        return grammar;
     }
 
     //===========================================================================

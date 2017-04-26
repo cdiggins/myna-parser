@@ -1,7 +1,8 @@
 'use strict';
 
-let myna = require("../../myna");
-let escapeHtmlChars = require('../escape_html_chars');
+let fs = require("fs");
+let myna = require("../myna");
+let escapeHtmlChars = require('../tools/myna_escape_html_chars');
 
 function testEscape(text, expected) {
     console.log("Input: " + text);
@@ -11,75 +12,34 @@ function testEscape(text, expected) {
     console.log(result == expected ? "Success" : "Failure");
 }
 
-function MynaAssert() {
-    this.ok = function(condition, message) {
-        if (message)
-            console.log(message);
-        else 
-            message = "";
-        if (!condition) {
-            console.log(condition)
-            throw "failed assertion: " + message;
-        }
-        else {
-            console.log("passed");
-        }
-    }
-}
-
-let assert = new MynaAssert();    
-
-function testParseRule(myna, rule, input, assert) {
-    let ast = myna.parse(rule, input);
-    console.log("Testing rule " + rule + " with input " + input);
-    console.log(ast);
-    assert.ok(ast);
-    assert.ok(ast.first == 0);
-    assert.ok(ast.end == input.length);
-    return true;
-}
-
-function testRule(rule, input) {
-    try {
-        console.log("Testing input: " + input);
-        testParseRule(myna, rule, input, assert);
-    }
-    catch (ex) {
-        console.log("Exception occurred during test");
-        console.log(ex);
-    }
-}
-
-function getRule(grammarName, ruleName) {
-    return myna.allRules[grammarName + '.' + ruleName];
-}
-
-function testRuleInputs(grammarName, ruleName, inputs) {
-    let rule = getRule(grammarName, ruleName);
-    console.log("Testing rule: " + ruleName);
-    console.log(rule.toString());
-    for (let input of inputs) 
-        testRule(rule, input)
-}
-
-function testGrammar(grammarName, ruleToInputs) 
-{
-    console.log("Testing grammar: " + grammarName);
-    console.log(myna.grammarToString(grammarName));
-    for (let ruleName of Object.keys(ruleToInputs))
-        testRuleInputs(grammarName, ruleName, ruleToInputs[ruleName]);
-}
-
-testGrammar("html_reserved_chars", 
-{
-    specialChar : ["a", "?", " ", "\n"],
-    plainText : ["a", "bbb", "x1*"],        
-});
-
 testEscape("123", "123");
-testEscape("'", "&039;");
-testEscape("< >", "&gt; &lt;");
+testEscape("'", "&#039;");
+testEscape("< >", "&lt; &gt;");
 testEscape(" && ", " &amp;&amp; ");
 testEscape('"', "&quot;");
 testEscape("", "");
 
+function timeIt(f) {    
+    let t = process.hrtime();
+    f();
+    t = process.hrtime(t);
+    // https://blog.tompawlak.org/measure-execution-time-nodejs-javascript
+    let msec = Math.floor(t[0] * 1000 + t[1] / (1000 * 1000));
+    console.log('benchmark took %d msec', msec);
+}
+
+function naiveEscapeChars(s) {
+    // http://stackoverflow.com/questions/784586/convert-special-characters-to-html-in-javascript
+    return s.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
+}
+
+var s = fs.readFileSync("tests/data/test.html", "utf-8");
+
+for (var i=0; i < 2; ++i) {
+    var s1, s2;
+    console.log("Running naive test");
+    timeIt(function() { s1 = naiveEscapeChars(s); });
+    console.log("Running Myna test");
+    timeIt(function() { s2 = escapeHtmlChars(s); });
+    console.log(s1 == s2 ? "Tests are same" : "Tests are different");
+}

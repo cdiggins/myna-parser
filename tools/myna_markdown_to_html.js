@@ -1,13 +1,10 @@
 'use strict';
 
 // Load the Myna module 
-let myna = require('../myna.js');
+let myna = require('../myna');
 
 // Load the Myna markdown grammar module 
-let mdGrammar = require('../grammars/markdown.js');
-
-// Register the Myna grammar 
-myna.registerGrammar("markdown", mdGrammar);
+let mdGrammar = require('../grammars/grammar_markdown')(myna);
 
 // Returns the HTML for a start tag
 function startTag(tag, attr) {

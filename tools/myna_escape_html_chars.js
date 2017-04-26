@@ -1,4 +1,4 @@
-// This module quickly replaces HTML reserved characters in text 
+// This module replaces HTML reserved characters in text 
 // with the appropriate entities using the Myna module. 
 // The concept is to scan text creating AST nodes for reserved 
 // characters or "plain text" which are strings of characters 
@@ -8,6 +8,12 @@
 
 // Load the Myna module 
 let myna = require('../myna');
+
+// Get the HTML reserved characters grammar 
+let grammar = require('../grammars/grammar_html_reserved_chars')(myna);
+
+// Get the main rule for parsing the text
+let rule = grammar.text;
 
 // Given a character that belongs to one of the reserved HTML characters 
 // returns the entity representation. For all other text, returns the text  
@@ -33,9 +39,6 @@ function astNodeToHtmlText(ast) {
 // Returns a string, replacing all of the reserved characters with entities 
 function escapeHtmlChars(text) 
 {
-    let ruleName = 'html_reserved_chars.text';
-    let rule = myna.allRules[ruleName];
-    if (!rule) throw new Error("could not find the rule: " + ruleName);
     let ast = myna.parse(rule, text);
     if (!ast.children)    
         return "";

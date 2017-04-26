@@ -1186,6 +1186,7 @@ var Myna;
             }
         }
         Myna.grammars[grammarName] = grammar;
+        return grammar;
     }
     Myna.registerGrammar = registerGrammar;
     //===========================================================================

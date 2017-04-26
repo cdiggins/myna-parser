@@ -10,12 +10,12 @@
   <div id="qunit-fixture"></div>
   <script src="qunit-2.0.1.js"></script>
   <script src="../myna.js"></script>
-  <script src="../grammars/csv.js"></script>
-  <script src="../grammars/json.js"></script>
-  <script src="../grammars/arithmetic.js"></script>
-  <script src="../grammars/markdown.js"></script>
-  <script src="../grammars/template.js"></script>
-  <script src="../grammars/html_reserved_chars.js"></script>
+  <script src="../grammars/grammar_csv.js"></script>
+  <script src="../grammars/grammar_json.js"></script>
+  <script src="../grammars/grammar_arithmetic.js"></script>
+  <script src="../grammars/grammar_markdown.js"></script>
+  <script src="../grammars/grammar_mustache_template.js"></script>
+  <script src="../grammars/grammar_html_reserved_chars.js"></script>
   <script src="rule_tester.js"></script>
   <script src="rule_test_inputs.js"></script>
   <script>
@@ -25,7 +25,7 @@
       CreateArithmeticGrammar(Myna),
       CreateCsvGrammar(Myna),
       CreateMarkdownGrammar(Myna),
-      CreateTemplateGrammar(Myna),
+      CreateMustacheGrammar(Myna),
       CreateHtmlReservedCharsGrammar(Myna),
     ];
 
