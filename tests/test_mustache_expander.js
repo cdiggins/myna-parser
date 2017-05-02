@@ -12,12 +12,19 @@ function testExpand(template, data, expected) {
     console.log(result == expected ? "Passed" : "Failed");
 }
 
+console.log("==========");
 console.log("The Mustache grammar:");
+console.log("==========");
 console.log(myna.grammarToString("mustache"));
 
+console.log("==========");
 console.log("The Mustache AST schema:");
+console.log("==========");
 console.log(myna.astSchemaToString("mustache"));
 
+console.log("==========");
+console.log("Basic expansion tests");
+console.log("==========");
 testExpand("{{a}}", { a:42 }, "42");
 testExpand("{{a}}", null, "");
 testExpand("a b c", null, "a b c");
@@ -29,6 +36,9 @@ testExpand("{{{a}}}", { a:"<>"}, "<>");
 testExpand("{{&a}}", { a:"<>"}, "<>");
 testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  true");
 
+console.log("==========");
+console.log("Example 1");
+console.log("==========");
 {
     let t = [
         "Hello {{name}}", 
@@ -48,6 +58,9 @@ testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  tru
     console.log(expand(t, h));
 }
 
+console.log("==========");
+console.log("Example 3");
+console.log("==========");
 {
     let t = [
         "* {{name}}",
@@ -64,6 +77,9 @@ testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  tru
     console.log(expand(t, h));
 }
 
+console.log("===========");
+console.log("Example 4");
+console.log("===========");
 {
     let t = [
         "Shown.",
@@ -79,6 +95,9 @@ testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  tru
     console.log(expand(t, h));
 }
 
+console.log("==========");
+console.log("Example 5");
+console.log("==========");
 {
     let t = [
         "{{#repo}}",
@@ -97,6 +116,9 @@ testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  tru
     console.log(expand(t, h));
 }
 
+console.log("==========");
+console.log("Example 6");
+console.log("==========");
 {
     let t = [
         "{{#person?}}",
@@ -112,6 +134,9 @@ testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  tru
     console.log(expand(t, h));
 }
 
+console.log("==========");
+console.log("Example 7");
+console.log("==========");
 {
     let t = [
         "{{#repo}}",
@@ -129,6 +154,9 @@ testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  tru
     console.log(expand(t, h));
 }
 
+console.log("==========");
+console.log("Example 8");
+console.log("==========");
 {
     console.log(expand("<h1>Today{{! ignore me }}.</h1>", {}));
 }

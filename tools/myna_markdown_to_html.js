@@ -35,13 +35,15 @@ function markdownAstToHtml(ast, lines) {
     }
 
     // Adds tagged content 
-    function addTag(tag, ast) {
+    function addTag(tag, ast, newLine) {
         lines.push(startTag(tag));
         if (ast instanceof Array)
             addArray(ast); 
         else
             markdownAstToHtml(ast, lines);
         lines.push(endTag(tag));
+        if (newLine)
+            lines.push('\r\n');
         return lines;
     }
 
@@ -64,26 +66,26 @@ function markdownAstToHtml(ast, lines) {
             {
                 let headingLevel = ast.children[0];
                 let restOfLine = ast.children[1];
-                let h = headingLevel.selfText.length;
+                let h = headingLevel.allText.length;
                 switch (h)
                 {
-                    case 1: return addTag("h1", restOfLine); 
-                    case 2: return addTag("h2", restOfLine); 
-                    case 3: return addTag("h3", restOfLine); 
-                    case 4: return addTag("h4", restOfLine); 
-                    case 5: return addTag("h5", restOfLine); 
-                    case 6: return addTag("h6", restOfLine); 
+                    case 1: return addTag("h1", restOfLine, true); 
+                    case 2: return addTag("h2", restOfLine, true); 
+                    case 3: return addTag("h3", restOfLine, true); 
+                    case 4: return addTag("h4", restOfLine, true); 
+                    case 5: return addTag("h5", restOfLine, true); 
+                    case 6: return addTag("h6", restOfLine, true); 
                     default: throw "Heading level must be from 1 to 6"
                 }
             }
         case "paragraph":
-            return addTag("p", ast.children);
+            return addTag("p", ast.children, true);
         case "list":
-            return addTag("ul", ast.children);
+            return addTag("ul", ast.children, true);
         case "unorderedListItem":
-            return addTag("li", ast.children);
+            return addTag("li", ast.children, true);
         case "orderedListItem":
-            return addTag("li", ast.children);
+            return addTag("li", ast.children, true);
         case "bold":
             return addTag("b", ast.children);
         case "italic":
@@ -91,14 +93,14 @@ function markdownAstToHtml(ast, lines) {
         case "code":
             return addTag("code", ast.children);
         case "quote":
-            return addTag("blockquote", ast.children);
+            return addTag("blockquote", ast.children, true);
         case "link":
             return addLink(ast.children[1].allText, ast.children[0]);
         case "image":
             return addImg(ast.children[0]);
         default:
             if (ast.isLeaf)
-                lines.push(ast.selfText);
+                lines.push(ast.allText);
             else 
                 ast.children.forEach(function(c) { markdownAstToHtml(c, lines); });
     }
@@ -109,7 +111,8 @@ function markdownAstToHtml(ast, lines) {
 function markdownToHtml(input) {
     let rule = myna.allRules['markdown.document'];
     let ast = myna.parse(rule, input);
-    return markdownAstToHtml(ast, []);    
+    let lines = markdownAstToHtml(ast, []);    
+    return lines.join("");
 }
 
 // Export the function for use with Node.js

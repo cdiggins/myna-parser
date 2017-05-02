@@ -9,7 +9,7 @@
 <!-- Google fonts -->
 <link rel="stylesheet"href="https://fonts.googleapis.com/css?family=Cabin">
 
-<title>{{title}}</title>
+<title>The Myna Static Blog Generator</title>
 
 <!-- Bootstrap core CSS -->
 <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -20,19 +20,28 @@
 </head>
 <body>
 
-<div>
-{{nav}}
+<div id='prevnext'>
+<a href='undefined'>Introducing the Myna parser</a> | 
 </div>
 
-<h1 id='title'>{{title}}</h1>
-<h2 id='date'>{{date}}</h2>
+<div id='content'>
+<h1>The Myna Static Blog Generator</h1>
+<p>
+In this post I am going to describe the blog generator created using Myna. 
+There are two ways that Myna is used:
+</p>
+<ul>To parse the mustache/ctemplate teamplate files To parse the markdown readme. </ul>
+<p>
+</p>
 
-<div>
-{{content}}
 </div>
 
-<div>
-{{sidebar}}
+<div id='sidebar'>
+
+</div>
+
+<div id='prevnext'>
+<a href='undefined'>Introducing the Myna parser</a> | 
 </div>
 
 <!-- Google analytics -->
@@ -46,8 +55,5 @@
   ga('send', 'pageview');
 
 </script>
-
-
 </body>
-
 </html>

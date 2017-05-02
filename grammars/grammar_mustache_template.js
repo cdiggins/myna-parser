@@ -33,7 +33,7 @@ function CreateMustacheGrammar(myna, start, end) {
         // Main grammar rules. 
         // Only those with 'ast' will generate nodes in the parse tree 
         this.key = m.advanceWhileNot(end).ast;
-        this.restOfLine = m.char(' \t').zeroOrMore.then('\n');
+        this.restOfLine = m.char(' \t').zeroOrMore.then(m.opt('\n'));
         this.startSection = m.seq(start, "#", this.key, end, this.restOfLine);
         this.endSection = m.seq(start, "/", this.key, end);
         this.startInvertedSection = m.seq(start, "^", this.key, end, this.restOfLine);
