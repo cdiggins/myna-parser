@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="An introduction and interactive demo for the Myna text parsing library.">
+<meta name="description" content="An introduction to the Myna text parsing library.">
 <meta name="author" content="Christopher Diggins">
 <!-- <link rel="icon" href="../../favicon.ico"> -->
 
@@ -53,11 +53,12 @@ textarea {
     <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
         <li class="active"><a href="#">Home</a></li>
-        <li><a href="#demo">Demo</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="#contact">Author</a></li>
         <li><a href="https://github.com/cdiggins/myna-parser">GitHub</a></li>
         <li><a href="https://www.npmjs.com/package/myna-parser">NPM</a></li>
-        </ul>
+        </ul>        
+        <select id="rules" onChange="ruleChanged()">        
+        </select>
     </div><!--/.nav-collapse -->
     </div>
 </nav>
@@ -84,7 +85,6 @@ textarea {
 <a name="demo"></a>
 <h2>Introduction to Myna - An Interactive Demo</h2>
 
-
 <h3>Myna Grammars</h3>
 <p>
     A <i>grammar</i> is a set of parsing rules. In Myna any object that has member
@@ -93,22 +93,6 @@ textarea {
     module using <code>Myna.registerGrammar</code>. This will automatically associate 
     a name with each rule and store the grammar and its rules in the Myna module.
 </p>
-
-<p>
-    The following are a set of parsing rules from the various example grammars provided with Myna.
-    Choose one of these to change the active grammar used in the interactive demo.
-</p>
-
-<select id="rules" onChange="ruleChanged()">    
-    <option value='markdown.document'>markdown.document</option>
-    <option value='json.object'>json.object</option>
-    <option value='csv.file'>csv.file</option>
-    <option value='arithmetic.expr'>arithmetic.expr</option>
-</select>
-<br/>
-
-<textarea spellcheck=false id="js-grammar" rows="12">
-</textarea>
 
 <h3>Extended PEG Grammar Representation</h3>
 <p>
@@ -131,13 +115,10 @@ textarea {
     or <i>AST</i> for short. Rules that generate 
     nodes are copies of other rules created using the <code>.ast</code> property.
 </p>
-<select id="inputs" onChange="inputChanged()">
-</select>
-<input id="inputId" type="file" onchange="onChooseInput(event)" />
 
 <div class="row">
     <div class="col-sm-6">
-        <textarea spellcheck=false id="inputText" onChange="updateAst()" rows="12">
+        <textarea spellcheck=false id="inputText" rows="12">
         </textarea>
     </div>
     <div class="col-sm-6">
@@ -147,15 +128,6 @@ textarea {
 </div>
 
 <h3>AST Schema</h3>
-<!--
-<select id="strategy" onChange="selectStrategy()">
-    <option value="matchBeginning">match beginning</option>
-    <option value="matchEntire">match entire</option>
-    <option value="findFirst">find first</option>
-    <option value="findAll">find all</option>
-    <option value="repeat">repeat</option>
-</select>
--->
 <p>
     Only a subset of rules generate nodes in the AST. As a result 
     the tree structure has a similar shape to the grammar, but can be described 
@@ -164,6 +136,16 @@ textarea {
 
 <textarea spellcheck=false id="schema" rows="12">
 </textarea>
+
+<h3>Grammar Source Code</h3>
+
+<p>
+    Here is the source code for the grammar definition for the chosen rule.
+</p>
+
+<textarea spellcheck=false id="js-grammar" rows="40">
+</textarea>
+
 
 <a name="contact"></a>
 <h2>Contact</h2>
@@ -181,37 +163,96 @@ textarea {
 </div>
 <!-- /.container -->
 
-
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-
-<!--
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
--->
-
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="js/ie10-viewport-bug-workaround.js"></script>
 
 <script src="myna.js"></script>
-<script src="grammars/csv.js"></script>
-<script src="grammars/json.js"></script>
-<script src="grammars/arithmetic.js"></script>
-<script src="grammars/markdown.js"></script>
-<script src="examples/arithmetic_evaluator.js"></script>  
-<script src="tests/myna_tester.js"></script>
-<script src="tests/tests.js"></script>
-<script src="tests/test_inputs.js"></script>
-<script>
-let currentRule = undefined;
-let strategy = undefined; 
+<script src="grammars/grammar_csv.js"></script>
+<script src="grammars/grammar_json.js"></script>
+<script src="grammars/grammar_arithmetic.js"></script>
+<script src="grammars/grammar_markdown.js"></script>
+<script src="grammars/grammar_template.js"></script>
 
-function createInputsList() {
-    let elem = document.getElementById("inputs");
-    let items = ["<option value=''>Choose input ...</option>"];
-    for (let key in testInputs) 
-        items.push("<option value='" + key + "'>" + key + "</option>");
-    elem.innerHTML = items.join("\n");
+<script>
+// Create each Grammar.  
+let grammars = [
+    CreateCsvGrammar(Myna),
+    CreateJsonGrammar(Myna),
+    CreateArithmeticGrammar(Myna),
+    CreateMarkdownGrammar(Myna),
+    CreateTemplateGrammar(Myna)
+    ];
+
+// Print a representation of the grammar in the console. 
+for (let g in grammars) {
+    console.log(Myna.grammarToString(g));
+}
+ 
+</script>
+
+<script>
+let strategy = undefined; 
+let rules = [
+    'markdown.document',
+    'json.object',
+    'csv.file',
+    'arithmetic.expr', 
+    'template.document'
+];
+
+var testInputs = {
+
+markdown : 
+'# Biggest Heading\n\
+\n\
+This is a paragraph. \n\
+That is continued on another \n\
+line.\n\
+\n\
+## Another heading but smaller \n\
+\n\
+- unordered list item 1\n\
+- unordered list item 2\n\
+  - nested list item 1\n\
+  - nested list item 2\n\
+- unordered list item 3\n\
+\n\
+Here is a quote:\n\
+> Somebody famous said \n\
+> this\n\
+\n\
+Here is some *very __important__ text*. \n\
+~~I changed my mind about this~~.\n\
+',
+
+arithmetic : '(1 + 2) * 0.3 / 4.5 - (1 + 2 + 3)',
+
+csv : 'Field_A1,field A2,"field A3,has,commas"\nField_B1,field B2,"Field B3 is quoted also\n"',
+
+json : 
+'{\n\
+    "field1":42, \n\
+    "x" : "blabla",\n\
+    "field2": [\n\
+        12, 13, 14, "15", 1.6, {}\n\
+    ],\n\
+    "field 3" : { "a":1, "b":2 },\n\
+    "" : ""\n\
+}',
+
+template : 'This is a mustache template. Regular brackets (e.g. `{ }`) don\'t change anything.\nHowever a {{variable}} is something special\n\
+ as is a {{#section}}section{{/section}}.\n{{!Comments are just ignored.}}.\nWe can include files {{> includeme.js}}.\n\
+ Some variables can also be included without escaping.\nMethod 1 {{{unescaped_var}}} and Method 2 {{&unescaped_var}}.\n\
+ There are also {{^section}}inverted sections{{/section}}.'
+}
+
+function textToOption(text) {
+    return "<option value='" + text + "'>" + text + "</option>"
+}
+
+function createRulesList() { 
+    let elem = document.getElementById("rules");
+    elem.innerHTML = rules.map(textToOption).join("\n");
 }
 
 function getGrammarFileName(grammarName) {
@@ -238,15 +279,20 @@ function selectGrammar(grammarName) {
 }
 
 function setRule(name) {
-    currentRule = Myna.allRules[name];
-    selectGrammar(currentRule.grammarName);
-    updateAst();
-}
-
-function setInput(text) {
+    let currentRule = Myna.allRules[name];
+    let grammarName = currentRule.grammarName;
+    selectGrammar(grammarName);
     let elem = document.getElementById('inputText');
-    elem.value = text;
-    updateAst();
+    elem.value = testInputs[grammarName];
+    let inputElem = document.getElementById('inputText');
+    let outputElem = document.getElementById('outputAst');
+    try {
+        let ast = Myna.parse(currentRule, inputElem.value);
+        outputElem.value = astToString(ast);
+    }
+    catch (e) {
+        outputElem.value = "Error occured: " + e.message;
+    }
 }
 
 function ruleChanged() {
@@ -256,19 +302,14 @@ function ruleChanged() {
         setRule(value);    
 }
 
-function inputChanged() {
-    let select = document.getElementById('inputs'); 
-    let value = select.options[select.selectedIndex].value;
-    if (value) 
-        setInput(testInputs[value]);
-}
-
 function astToString(ast) {
+    if (!ast)
+        return "undefined";
     result = "<" + ast.name + ">\n";
     if (ast.children != null && ast.children.length > 0)
         result += ast.children.map(astToString).join("\n");
     else 
-        result += ast.selfText;    
+        result += ast.allText;    
     result += "</" + ast.name + ">\n";
     return result;
 }
@@ -304,30 +345,11 @@ function onChooseFile(event, onLoadFileHandler) {
     fileRead(input.files[0], onLoadFileHandler);
 }
 
-function updateAst() {
-    let inputElem = document.getElementById('inputText');
-    let outputElem = document.getElementById('outputAst');
-    let ast = Myna.parse(currentRule, inputElem.value);
-    outputElem.value = astToString(ast);
-}
-
-function selectStrategy() {
-    let select = document.getElementById('strategy'); 
-    let value = select.options[select.selectedIndex].value;
-    strategy = value;
-    updateAst();
-}
-
-Myna.registerGrammar("json", JsonGrammar);
-Myna.registerGrammar("arithmetic", ArithmeticGrammar);
-Myna.registerGrammar("csv", CsvGrammar);
-Myna.registerGrammar("markdown", MarkdownGrammar);
-
-createInputsList();
-setRule("markdown.document");
-setInput(testInputs["markdown"]);
+createRulesList();
+setRule("template.document");
 </script>
 
+<!-- Google analytics -->
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
