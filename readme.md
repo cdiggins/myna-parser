@@ -7,11 +7,17 @@
 
 Myna is a lightweight general purpose JavaScript library for syntactic analysis (text parsing) based on the [PEG formalism](http://bford.info/pub/lang/peg). This means that Myna is capable of recognizing any pattern that can be described using a regular-expression or context-free grammar (CFG). Myna is written using [TypeScript 2.0](https://www.typescriptlang.org/) and targets [ECMAScript 5.1](https://www.ecma-international.org/ecma-262/5.1/). 
 
-Unlike several popular syntactic analyzers (e.g. [Jison](http://jison.org/), [PEG.js](https://pegjs.org/), [nearley](http://nearley.js.org/), [ANTLR](http://www.antlr.org/)) Myna is an API, not a code generation tool, which makes it easier for programmers to write, debug, and maintain their parsing algorithms. This makes Myna closest to [Parsimmon](https://github.com/jneen/parsimmon) and [Chevrotain](https://github.com/SAP/chevrotain). Myna has no dependencies, you can just download [myna.js](https://unpkg.com/myna-parser) and start using it immediately.
+Unlike several popular syntactic analyzers (e.g. [Jison](http://jison.org/), [PEG.js](https://pegjs.org/), [nearley](http://nearley.js.org/), [ANTLR](http://www.antlr.org/)) Myna is an API, not a code generation tool, which makes it easier for programmers to write, debug, and maintain their parsing algorithms. This makes Myna closest to [Parsimmon](https://github.com/jneen/parsimmon) and [Chevrotain](https://github.com/SAP/chevrotain). Myna has no dependencies, you can just download myna.js and start using it immediately.
 
 Myna, and the accompanying grammars, are implemented as CommonJS and Node.js compatible JavaScript modules that also "just work" in the browser without the need for an additional module loader. 
 
-# Introduction 
+# Using Myna 
+
+You can download the latest `myna.js` [via GitHub](https://github.com/cdiggins/myna-parser/raw/master/myna.js) or [via Unpkg](https://unpkg.com/myna-parser) directly and just start using it in your project, or you can also install the latest Myna package from npm using:
+
+> npm i myna-parser
+
+# About Myna 
 
 ## How is Myna different from a Regular Expression
 
@@ -36,12 +42,6 @@ Like many developers you are probably trying to evaluate which library is best s
 - [JSParse](https://github.com/doublec/jsparse) (103)
 - [Bennu](https://github.com/mattbierner/bennu) (81)
 - [Packrattle](https://github.com/robey/packrattle) (66)
-
-# Using Myna 
-
-You can download the latest [`myna.js`](https://github.com/cdiggins/myna-parser/raw/master/myna.js) directly and just start using it in your project, or you can also install the latest Myna package from npm using:
-
-> npm i myna-parser
 
 ## Example of Writing Grammars 
 
