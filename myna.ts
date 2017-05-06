@@ -72,7 +72,7 @@ module Myna
         if (!p.nodes || !p.nodes.length)
             return undefined;
         if (p.nodes.length > 1)
-            throw Exceptions.TooManyNodes;
+            throw new Error("parse is returning more than one node");
         return p.nodes[0];        
     }
 
@@ -85,38 +85,7 @@ module Myna
         let result = this.parse(r.ast.zeroOrMore, s);
         return result ? result.children : [];
     }
-    
-    //====================================================================================
-    // Exception values 
-
-    // Possible exception values that can be thrown by the Myna parser   
-    export enum Exceptions 
-    {
-        // Internal error: this is due to a rule object not overriding an abstract function  
-        MissingOverride,
-
-        // Internal error: this is due to an implementation error in how the parse function constructs the AST  
-        InternalStackError,
-
-        // Parser error: thrown when a repeated rule does not advance the input parser location. This is due to an invalid grammar construction.
-        InfiniteLoop,       
         
-        // Grammar construction error: thrown when a rule operator is not given a valid Rule or string. 
-        InvalidRuleType,    
-
-        // Internal error: thrown when an internal clone implementation returns the wrong type.  
-        CloneInvalidType,   
-        
-        // Grammar construction error: thrown when a range rule is given a min or max string that is not exactly one character long
-        RangeRequiresChars,  
-        
-        // Grammar construction error: the same token is included twice in the lookup table. 
-        TokenIncludedTwiceInLookup,
-
-        // Internal error: parsing the rule created multiple nodes
-        TooManyNodes,
-    }
-
     //====================================================================================
     // Internal variables used by the Myna library
 
@@ -146,7 +115,7 @@ module Myna
         if (rule instanceof Rule) return rule;
         if (typeof(rule) === "string") return text(rule);
         if (typeof(rule) === "boolean") return rule ? truePredicate : falsePredicate;
-        throw Exceptions.InvalidRuleType;
+        throw new Error("Invalid rule type: " + rule);
     } 
 
     //===============================================================
@@ -245,7 +214,7 @@ module Myna
         
         // Each rule derived object provides its own implementation of this function.  
         parseImplementation(p:Parser):number { 
-            throw Exceptions.MissingOverride;
+            throw new Error("Missing override for parseImplementation");
         }
 
         // Returns true if this Rule matches the input at the given location and never creates nodes 
@@ -369,14 +338,14 @@ module Myna
         // Returns a copy of this rule with default values for all fields.  
         // Note: Every new rule class must override cloneImplemenation
         cloneImplementation() : Rule {
-            throw Exceptions.MissingOverride;
+            throw new Error("Missing override for cloneImplementation");
         }
 
         // Returns a copy of this rule with all fields copied.  
         get copy() : Rule {
             let r = this.cloneImplementation();
             if (typeof(r) !== typeof(this))
-                throw Exceptions.CloneInvalidType;
+                throw new Error("Error in implementation of cloneImplementation: not returning object of correct type");
             r.name = this.name;
             r.grammarName = this.grammarName;
             r.type = this.type;
@@ -422,7 +391,7 @@ module Myna
             if (this instanceof Choice)
                 return "choice(" + rules.map(r => r.astRuleNameOrDefn).join(",") + ")";
                 
-            throw "Internal error: not a valid AST rule";
+            throw new Error("Internal error: not a valid AST rule");
         }
 
         // Returns a string that is either the name of the AST parse node, or a definition 
@@ -540,7 +509,7 @@ module Myna
                 // For example: myna.truePredicate.zeroOrMore would loop forever 
                 if (this.max == Infinity) 
                     if (result === tmp)
-                        throw Exceptions.InfiniteLoop;
+                        throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
 
                 result = tmp;
             }            
@@ -594,11 +563,8 @@ module Myna
     export function tokensToDictionary(tokens:string[], rule:RuleType)
     {
         let d = {};
-        for (let t of tokens) {
-            if (t in d)
-                throw Exceptions.TokenIncludedTwiceInLookup;                
+        for (let t of tokens) 
             d[t] = RuleTypeToRule(rule);
-        }
         return d;
     }
 
@@ -625,7 +591,7 @@ module Myna
     // Creates a dictionary from a range of tokens, mapping each one to the same rule.
     export function rangeToDictionary(min:string, max:string, rule:RuleType) {
         if (min.length != 1 || max.length != 1)
-            throw Exceptions.RangeRequiresChars;
+            throw new Error("rangeToDictionary requires characters as inputs");
         let minChar = min.charCodeAt(0);
         let maxChar = max.charCodeAt(0);
         let d = {};
@@ -850,9 +816,29 @@ module Myna
     
     export function predicate(fn:(p:Parser)=>boolean) { return new Predicate(fn); }
     export function action(fn:(p:Parser)=>void) { return predicate((p)=> { fn(p); return true; }).setType("action"); }
-    export function err(ex:any) { return action(p=> { ex.location=p; throw(ex); }).setType("err"); }
     export function log(msg:string = "") { return action(p=> { console.log(msg); }).setType("log"); }
-    export function assert(rule:RuleType) { return choice(rule, err({rule:rule,type:"assert"})).setType("assert"); }
+
+    //==================================================================
+    // Assertions and errors 
+
+    export class ParseError extends Error 
+    {
+        constructor(public parser:Parser, public message:string)
+        {
+            super(message);
+        }
+    }
+
+    export function err(message) { 
+        return action(p=> { throw new ParseError(p, message); }).setType("err"); 
+    }
+
+    export function assert(rule:RuleType) { 
+        return choice(rule, action(p => { 
+            // This has to be embedded in a function because the rule might be in a circular definition.  
+            throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule)); 
+        })).setType("assert"); 
+    }
     
     //=======================================================================
     // Guarded sequences. 

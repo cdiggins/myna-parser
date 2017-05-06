@@ -1,19 +1,18 @@
 "use strict";
 
-function EvalArithmetic(expr, logging)
+function EvalArithmetic(exprNode)
 {
-    if (logging) 
-    {
-        console.log('evaluating expression "' + expr.allText + '" which was parsed according to rule "' + expr.rule.toString + '"');
-    }
-
-    switch (expr.rule.name) 
+    switch (exprNode.rule.name) 
     {   
+        case "expr":
+        {
+            return EvalArithmetic(exprNode.children[0]);
+        }
         case "sum": 
         {
-            let v = EvalArithmetic(expr.children[0]);
-            for (let i=1; i < expr.children.length; ++i) {
-                let child = expr.children[i];
+            let v = EvalArithmetic(exprNode.children[0]);
+            for (let i=1; i < exprNode.children.length; ++i) {
+                let child = exprNode.children[i];
                 switch (child.rule.name) {
                     case("addExpr"): v += EvalArithmetic(child); break;
                     case("subExpr"): v -= EvalArithmetic(child); break;
@@ -24,9 +23,9 @@ function EvalArithmetic(expr, logging)
         }
         case "product": 
         {
-            let v = EvalArithmetic(expr.children[0]);
-            for (let i=1; i < expr.children.length; ++i) {
-                let child = expr.children[i];
+            let v = EvalArithmetic(exprNode.children[0]);
+            for (let i=1; i < exprNode.children.length; ++i) {
+                let child = exprNode.children[i];
                 switch (child.rule.name) {
                     case("mulExpr"): v *= EvalArithmetic(child); break;
                     case("divExpr"): v /= EvalArithmetic(child); break;
@@ -37,28 +36,30 @@ function EvalArithmetic(expr, logging)
         }
         case "prefixExpr":  
         {
-            let v = EvalArithmetic(expr.children[expr.children.length-1]);
-            for (let i=expr.children.length-2; i >= 0; --i)
-                if (expr.children[i].allText == "-")
+            let v = EvalArithmetic(exprNode.children[exprNode.children.length-1]);
+            for (let i=exprNode.children.length-2; i >= 0; --i)
+                if (exprNode.children[i].allText == "-")
                     v = -v;
             return v;
         }
-        case "parenExpr" : return EvalArithmetic(expr.children[0]);
-        case "number": return Number(expr.allText);
-        case "addExpr": return EvalArithmetic(expr.children[0]);
-        case "subExpr": return EvalArithmetic(expr.children[0]);
-        case "mulExpr": return EvalArithmetic(expr.children[0]);
-        case "divExpr": return EvalArithmetic(expr.children[0]);
-        default: throw "Unrecognized expression " + expr.rule.name;
+        case "parenExpr" : return EvalArithmetic(exprNode.children[0]);
+        case "number": return Number(exprNode.allText);
+        case "addExpr": return EvalArithmetic(exprNode.children[0]);
+        case "subExpr": return EvalArithmetic(exprNode.children[0]);
+        case "mulExpr": return EvalArithmetic(exprNode.children[0]);
+        case "divExpr": return EvalArithmetic(exprNode.children[0]);
+        default: throw "Unrecognized expression " + exprNode.rule.name;
     }
 }
 
-function ArithmeticEvaluator(rule) 
-{
-    this.rule = rule;
-    this.eval = EvalArithmetic; 
+function CreateEvaluator(myna) {
+    let rule = myna.grammars.arithmetic.expr;
+    return function (expr) {
+        let ast = myna.parse(rule, expr);        
+        return EvalArithmetic(ast);
+    }
 }
 
 // Export the function for use with Node.js
 if (typeof module === "object" && module.exports) 
-    module.exports = EvalArithmetic;
+    module.exports = CreateEvaluator;

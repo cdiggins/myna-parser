@@ -10,7 +10,7 @@ let publishDir = rootDir + "/publish";
 let srcDir = rootDir + "/src";
 
 // Functions 
-
+1
 // Returns all of the files in a directory 
 function getFiles(dir, recursive) {
     let results = []

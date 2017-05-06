@@ -37,7 +37,7 @@ function generateBlogs(inputFolder, outputFolder, templateFile, articlesFile) {
     // We just want the array
     articles = articles.posts;
 
-    // Convert dates from strings into date objects
+    // Convert dates strings into date objects (makes sorting and displaying easier)
     articles.forEach(function(a) { a.date = new Date(a.date); });
 
     // Sort articles by date    
@@ -75,4 +75,3 @@ generateBlogs(
 
 console.log('finished');
 process.exit();
-

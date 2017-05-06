@@ -7,7 +7,7 @@
 let myna = require('../myna');
 
 // Create the template grammar and give it Myna
-let grammar = require('../grammars/grammar_mustache_template')(myna);
+let grammar = require('../grammars/grammar_template')(myna);
 
 // Escape HTML characters into their special representations
 let escapeHtmlChars = require('../tools/myna_escape_html_chars');

@@ -1,6 +1,6 @@
 {
   "name": "myna-parser",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A text parsing (syntactic analysis) library.",
   "main": "myna.js",
   "scripts": {

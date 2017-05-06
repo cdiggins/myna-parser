@@ -81,7 +81,7 @@ var Myna;
         if (!p.nodes || !p.nodes.length)
             return undefined;
         if (p.nodes.length > 1)
-            throw Exceptions.TooManyNodes;
+            throw new Error("parse is returning more than one node");
         return p.nodes[0];
     }
     Myna.parse = parse;
@@ -94,28 +94,6 @@ var Myna;
         return result ? result.children : [];
     }
     Myna.tokenize = tokenize;
-    //====================================================================================
-    // Exception values 
-    // Possible exception values that can be thrown by the Myna parser   
-    (function (Exceptions) {
-        // Internal error: this is due to a rule object not overriding an abstract function  
-        Exceptions[Exceptions["MissingOverride"] = 0] = "MissingOverride";
-        // Internal error: this is due to an implementation error in how the parse function constructs the AST  
-        Exceptions[Exceptions["InternalStackError"] = 1] = "InternalStackError";
-        // Parser error: thrown when a repeated rule does not advance the input parser location. This is due to an invalid grammar construction.
-        Exceptions[Exceptions["InfiniteLoop"] = 2] = "InfiniteLoop";
-        // Grammar construction error: thrown when a rule operator is not given a valid Rule or string. 
-        Exceptions[Exceptions["InvalidRuleType"] = 3] = "InvalidRuleType";
-        // Internal error: thrown when an internal clone implementation returns the wrong type.  
-        Exceptions[Exceptions["CloneInvalidType"] = 4] = "CloneInvalidType";
-        // Grammar construction error: thrown when a range rule is given a min or max string that is not exactly one character long
-        Exceptions[Exceptions["RangeRequiresChars"] = 5] = "RangeRequiresChars";
-        // Grammar construction error: the same token is included twice in the lookup table. 
-        Exceptions[Exceptions["TokenIncludedTwiceInLookup"] = 6] = "TokenIncludedTwiceInLookup";
-        // Internal error: parsing the rule created multiple nodes
-        Exceptions[Exceptions["TooManyNodes"] = 7] = "TooManyNodes";
-    })(Myna.Exceptions || (Myna.Exceptions = {}));
-    var Exceptions = Myna.Exceptions;
     //====================================================================================
     // Internal variables used by the Myna library
     // A lookup table of all grammars registered with the Myna module 
@@ -137,7 +115,7 @@ var Myna;
             return text(rule);
         if (typeof (rule) === "boolean")
             return rule ? Myna.truePredicate : Myna.falsePredicate;
-        throw Exceptions.InvalidRuleType;
+        throw new Error("Invalid rule type: " + rule);
     }
     Myna.RuleTypeToRule = RuleTypeToRule;
     //===============================================================
@@ -257,7 +235,7 @@ var Myna;
         }
         // Each rule derived object provides its own implementation of this function.  
         Rule.prototype.parseImplementation = function (p) {
-            throw Exceptions.MissingOverride;
+            throw new Error("Missing override for parseImplementation");
         };
         // Returns true if this Rule matches the input at the given location and never creates nodes 
         Rule.prototype.match = function (p) {
@@ -372,14 +350,14 @@ var Myna;
         // Returns a copy of this rule with default values for all fields.  
         // Note: Every new rule class must override cloneImplemenation
         Rule.prototype.cloneImplementation = function () {
-            throw Exceptions.MissingOverride;
+            throw new Error("Missing override for cloneImplementation");
         };
         Object.defineProperty(Rule.prototype, "copy", {
             // Returns a copy of this rule with all fields copied.  
             get: function () {
                 var r = this.cloneImplementation();
                 if (typeof (r) !== typeof (this))
-                    throw Exceptions.CloneInvalidType;
+                    throw new Error("Error in implementation of cloneImplementation: not returning object of correct type");
                 r.name = this.name;
                 r.grammarName = this.grammarName;
                 r.type = this.type;
@@ -435,7 +413,7 @@ var Myna;
                     return "seq(" + rules.map(function (r) { return r.astRuleNameOrDefn; }).join(",") + ")";
                 if (this instanceof Choice)
                     return "choice(" + rules.map(function (r) { return r.astRuleNameOrDefn; }).join(",") + ")";
-                throw "Internal error: not a valid AST rule";
+                throw new Error("Internal error: not a valid AST rule");
             },
             enumerable: true,
             configurable: true
@@ -602,7 +580,7 @@ var Myna;
                 // For example: myna.truePredicate.zeroOrMore would loop forever 
                 if (this.max == Infinity)
                     if (result === tmp)
-                        throw Exceptions.InfiniteLoop;
+                        throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
                 result = tmp;
             }
             return result;
@@ -677,8 +655,6 @@ var Myna;
         var d = {};
         for (var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++) {
             var t = tokens_1[_i];
-            if (t in d)
-                throw Exceptions.TokenIncludedTwiceInLookup;
             d[t] = RuleTypeToRule(rule);
         }
         return d;
@@ -723,7 +699,7 @@ var Myna;
     // Creates a dictionary from a range of tokens, mapping each one to the same rule.
     function rangeToDictionary(min, max, rule) {
         if (min.length != 1 || max.length != 1)
-            throw Exceptions.RangeRequiresChars;
+            throw new Error("rangeToDictionary requires characters as inputs");
         var minChar = min.charCodeAt(0);
         var maxChar = max.charCodeAt(0);
         var d = {};
@@ -1028,14 +1004,33 @@ var Myna;
     Myna.predicate = predicate;
     function action(fn) { return predicate(function (p) { fn(p); return true; }).setType("action"); }
     Myna.action = action;
-    function err(ex) { return action(function (p) { ex.location = p; throw (ex); }).setType("err"); }
-    Myna.err = err;
     function log(msg) {
         if (msg === void 0) { msg = ""; }
         return action(function (p) { console.log(msg); }).setType("log");
     }
     Myna.log = log;
-    function assert(rule) { return choice(rule, err({ rule: rule, type: "assert" })).setType("assert"); }
+    //==================================================================
+    // Assertions and errors 
+    var ParseError = (function (_super) {
+        __extends(ParseError, _super);
+        function ParseError(parser, message) {
+            _super.call(this, message);
+            this.parser = parser;
+            this.message = message;
+        }
+        return ParseError;
+    }(Error));
+    Myna.ParseError = ParseError;
+    function err(message) {
+        return action(function (p) { throw new ParseError(p, message); }).setType("err");
+    }
+    Myna.err = err;
+    function assert(rule) {
+        return choice(rule, action(function (p) {
+            // This has to be embedded in a function because the rule might be in a circular definition.  
+            throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule));
+        })).setType("assert");
+    }
     Myna.assert = assert;
     //=======================================================================
     // Guarded sequences. 
