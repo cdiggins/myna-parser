@@ -43,15 +43,15 @@ You can download the latest [`myna.js`](https://github.com/cdiggins/myna-parser/
 
 > npm i myna-parser
 
-## Example Grammars 
+## Example of Writing Grammars 
 
-For examples of how to construct a parser in JavaScript using Myna see the following pages:
+Take a look at the various [sample grammars](https://github.com/cdiggins/myna-parser/tree/master/grammars) shipped with Myna to understand how parser rules 
+can be combined to create a grammar.
 
-- https://github.com/cdiggins/myna-parser/blob/master/grammars/csv.js
-- https://github.com/cdiggins/myna-parser/blob/master/grammars/json.js
-- https://github.com/cdiggins/myna-parser/blob/master/grammars/arithmetic.js
+## Examples of Creating and Using Parsers 
 
-You might also want to take a look at `tests/tests.js` to see how the API and grammars are being tested. 
+Given a Myna grammar there are [several example tools](https://github.com/cdiggins/myna-parser/tree/master/tools) that demonstrate uses of the Myna parser. You
+can also consult the [tests](https://github.com/cdiggins/myna-parser/tree/master/tests).
 
 ## Myna Source Code and Dependencies
 
