@@ -201,8 +201,11 @@ module Myna
         // Internal unique identifier
         id:number = genId();
 
-        // Identifies types of rules.  
+        // Identifies types of rules. Rules can have "types" that are different than the class name
         type:string = "";
+
+        // Used to provide access to the name of the class 
+        className:string = "Rule"
 
         // Indicates whether generated nodes should be added to the abstract syntax tree
         _createAstNode:boolean = false;
@@ -409,6 +412,7 @@ module Myna
         get opt() : Rule { return opt(this); }
         get zeroOrMore() : Rule { return zeroOrMore(this); }
         get oneOrMore() : Rule { return oneOrMore(this); }
+        get at() : Rule { return at(this); }
         get not() : Rule { return not(this); }
         get advance() : Rule { return this.then(advance); }
         get ws() : Rule { return this.then(ws); }
@@ -440,6 +444,7 @@ module Myna
     export class Sequence extends Rule 
     {
         type = "seq";
+        className = "Sequence";
 
         constructor(rules:Rule[]) { super(rules); }
 
@@ -464,6 +469,7 @@ module Myna
     export class Choice extends Rule
     {
         type = "choice";
+        className = "Choice";
 
         constructor(rules:Rule[]) { super(rules); }
 
@@ -491,6 +497,7 @@ module Myna
     export class Quantified extends Rule
     {    
         type = "quantified";
+        className = "Quantified";
 
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
 
@@ -534,6 +541,7 @@ module Myna
     export class Advance extends Rule
     {
         type = "advance";
+        className = "Advance";
         constructor() { super([]); }
         parseImplementation(p:Parser): number { return p.inRange ? p.index+1 : failed; }
         get definition() : string { return "<advance>"; }
@@ -544,6 +552,7 @@ module Myna
     export class Lookup extends Rule
     {
         type = "lookup";
+        className = "Lookup";
         constructor(public lookup:any, public onDefault:Rule) { super([]); }        
         parseImplementation(p:Parser): number {
             if (!p.inRange) return failed;
@@ -571,6 +580,7 @@ module Myna
     // A specialization of the lookup 
     export class CharSet extends Lookup {
         type = "charSet";
+        className = "CharSet";
         constructor(public chars:string) { 
             super(tokensToDictionary(chars.split(""), advance), falsePredicate);
         }
@@ -581,6 +591,7 @@ module Myna
     // A specialization of the lookup 
     export class NegatedCharSet extends Lookup {
         type = "negatedCharSet";
+        className = "NegatedCharSet";
         constructor(public chars:string) { 
             super(tokensToDictionary(chars.split(""), falsePredicate), truePredicate);
         }
@@ -603,6 +614,7 @@ module Myna
     // Advances if the current token is within a range of characters, otherwise returns false
     export class CharRange extends Lookup {
         type = "charRange";
+        className = "CharRange";
         constructor(public min:string, public max:string) { 
             super(rangeToDictionary(min, max, advance), falsePredicate); 
         }
@@ -614,6 +626,7 @@ module Myna
     export class Text extends Rule
     {
         type = "text";
+        className = "Text";
         constructor(public text:string) { super([]); }
         parseImplementation(p:Parser): number {
             if (p.index > p.input.length - this.text.length)
@@ -632,6 +645,7 @@ module Myna
     export class Delay extends Rule 
     {
         type = "delay";
+        className = "Delay";
         constructor(public fn:()=>Rule) { super([]); }        
         parseImplementation(p:Parser): number { return this.fn().parse(p); }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
@@ -644,6 +658,8 @@ module Myna
     // A MatchRule that does not advance the input
     export class MatchRule extends Rule
     {            
+        className = "MatchRule";
+
         // Rules derived from a MatchRule will only provide an override 
         // of the match function, so the parse is ovverriden and defined in terms of match.  
         // The parser state is always restored. 
@@ -667,6 +683,7 @@ module Myna
     export class Not extends MatchRule
     {
         type = "not";
+        className = "Not";
         constructor(rule:Rule) { super([rule]); }
         match(p:Parser):boolean { return !this.firstChild.match(p); }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
@@ -677,6 +694,7 @@ module Myna
     export class At extends MatchRule
     {
         type = "at";
+        className = "At";
         constructor(rule:Rule) { super([rule]); }
         match(p:Parser):boolean { return this.firstChild.match(p); }
         cloneImplementation() : Rule { return new At(this.firstChild); }
@@ -687,6 +705,7 @@ module Myna
     export class Predicate extends MatchRule
     {
         type = "predicate";
+        className = "Predicate";
         constructor(public fn:(p:Parser)=>boolean) { super([]); }
         match(p:Parser):boolean { return this.fn(p); }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
@@ -697,16 +716,29 @@ module Myna
     export class TruePredicate extends MatchRule
     {
         type = "true";
+        className = "TruePredicate";
         constructor() { super([]); }
         match(p:Parser):boolean { return true; }
         cloneImplementation() : Rule { return new TruePredicate(); }        
         get definition() : string { return "<true>"; }
     }
     
+    // Returns false always 
+    export class FalsePredicate extends MatchRule
+    {
+        type = "false";
+        className = "FalsePredicate";
+        constructor() { super([]); }
+        match(p:Parser):boolean { return false; }
+        cloneImplementation() : Rule { return new FalsePredicate(); }        
+        get definition() : string { return "<false>"; }
+    }
+    
     // Returns true if at the end of the input, or false otherwise
     export class AtEndPredicate extends MatchRule
     {
         type = "end";
+        className = "AtEndPredicate";
         constructor() { super([]); }
         match(p:Parser):boolean { return !p.inRange; }
         cloneImplementation() : Rule { return new AtEndPredicate(); }        
@@ -786,7 +818,7 @@ module Myna
     export function atChar(chars:string) { return at(char(chars)); }
 
     // Returns true if none of the characters are present, but does not advance the parser position 
-    export function notAtChar(chars:string) { return not(char(chars)); }
+    export function notAtChar(chars:string) { return new NegatedCharSet(chars); }
 
     // Advances if none of the characters are present.
     export function charExcept(chars:string) { return notAtChar(chars).advance; }    
@@ -886,7 +918,7 @@ module Myna
     // Core grammar rules 
         
     export let truePredicate    = new TruePredicate();
-    export let falsePredicate   = truePredicate.not;
+    export let falsePredicate   = new FalsePredicate();
     export let end              = new AtEndPredicate();
     export let notEnd           = end.not;
     export let advance          = new Advance();   
@@ -945,6 +977,30 @@ module Myna
     // Creates a string representation of a grammar 
     export function grammarToString(grammarName:string) : string {
         return grammarRules(grammarName).map(r => r.fullName + " <- " + r.definition).join('\n');
+    }
+
+    // Given a rule will output the full structure of the rule as a JSON object  
+    // This is useful for debugging rules and rule transformations 
+    export function ruleStructure(rule:Rule) : any {        
+        let r = { class:rule.className };
+        if (rule.name)
+            r['name'] = rule.name;
+        if (rule instanceof Text)
+            return "Text:" + rule.text;
+        if (rule instanceof Lookup) {
+            r['lookup'] = {}; 
+            for (let r2 in rule.lookup)
+                //r['lookup'][r2] = ruleStructure(rule.lookup[r2]);
+                r['lookup'][r2] = rule.lookup[r2].className;
+            r['default'] = ruleStructure(rule.onDefault);
+        }
+        else {
+            if (rule.rules.length == 0)
+                return rule.name ? rule.name : rule.className;
+            else
+                r['rules'] = rule.rules.map(ruleStructure);
+        }
+        return r;
     }
 
     // Creates a string representation of the AST schema generated by parsing the grammar 
