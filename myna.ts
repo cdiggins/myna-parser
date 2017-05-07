@@ -31,16 +31,14 @@ module Myna
             return this.index >= 0 && this.index < this.input.length;
         }
 
-        // Sets the state of the parser to be the same as another. 
-        copyFrom(p:Parser) {
-            this.input = p.input; 
-            this.index = p.index;
-            this.nodes = p.nodes;
-        }
-
         // Returns a string representation of the location. 
         get location() : string {
             return this.index.toString();
+        }
+
+        // Returns a shallow copy of the parser that advances its position
+        advance(n:number=1) : Parser {
+            return new Parser(this.input, this.index+n, this.nodes);
         }
 
         // Returns a string that helps debugging to figure out exactly where we are in the input string 
@@ -68,7 +66,7 @@ module Myna
     export function parse(r : Rule, s : string) : AstNode
     {
         let p = new Parser(s, 0, []);        
-        r.ast.parse(p);  
+        p = r.ast.parse(p);  
         if (!p.nodes || !p.nodes.length)
             return undefined;
         if (p.nodes.length > 1)
@@ -216,84 +214,54 @@ module Myna
         { }
         
         // Each rule derived object provides its own implementation of this function.  
-        parseImplementation(p:Parser):number { 
+        parseImplementation(p:Parser):Parser { 
             throw new Error("Missing override for parseImplementation");
         }
 
         // Returns true if this Rule matches the input at the given location and never creates nodes 
         match(p:Parser):boolean {
-            // Remember the old parser state
-            let oldP = p.clone();
-
-            // Call the derived parse implementation          
-            let result = this.parseImplementation(p);
-
-            // If the parse fails, we back-track the parser
-            if (result == failed) 
-                p.index = oldP.index;                    
-
-            // Any nodes created are always thrown out 
-            p.nodes = oldP.nodes;
-
-            // We return true or false depending on the success of the parse implementation 
-            return result != failed;
+            return this.parseImplementation(p.clone()) != null;
         }        
 
         // If successful returns the end-location of where this Rule matches the input 
         // at the given location, or -1 if failed.
         // Note that PredicateRule overrides this function 
-        parse(p:Parser):number {        
+        parse(p:Parser):Parser {        
+            // Either we add a node to the parse tree, or do a regular parse.
+            if (!this._createAstNode)
+                return this.parseImplementation(p);
+
+            // Create a new AST node 
+            let node = new AstNode(this, p.input, p.index);
+
             // Remember the old parser state
             let oldP = p.clone();
             
-            // Either we add a node to the parse tree, or do a regular parse.
-            if (!this._createAstNode)
-            {
-                let result = this.parseImplementation(p);
+            // Create a new "node list" for the parser.
+            // This is a new list of child nodes. It will be modified.
+            p.nodes = [];
 
-                // Update the parser index
-                if (result !== failed)
-                    p.index = result;
-                else
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
+            // Call the implementation of the parse function 
+            let result = this.parseImplementation(p);
 
-                return result;
-            }
-            else
-            {                 
-                // Create a new AST node 
-                let node = new AstNode(this, p.input, p.index);
+            // If the parse failed, we return null
+            if (!result) 
+                return null;
 
-                // Create a new "node list" for the parser.
-                // This is a new list of child nodes.
-                p.nodes = [];
+            // The current nodes children is the parser node list 
+            node.children = result.nodes;
+            
+            // Restore the parser's node list to what it was 
+            result.nodes = oldP.nodes;
+            
+            // Add the node to the parser's node list 
+            result.nodes.push(node);
 
-                // Call the implementation of the parse function 
-                let result = this.parseImplementation(p);
+            // Set the node's end index
+            node.end = result.index;
 
-                // Check if the parse succeeded 
-                if (result !== failed) 
-                {                    
-                    // The current nodes children is the parser node list 
-                    node.children = p.nodes;
-                    // Restore the parser's node list to what it was 
-                    p.nodes = oldP.nodes;
-                    // Add the node to the parser's node list 
-                    p.nodes.push(node);
-                    // Set the node
-                    node.end = result;
-                    // Update the parser index
-                    p.index = result;
-                }
-                else 
-                {
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
-                }
-
-                return result;
-            }                                          
+            // return the parser
+            return result;
         }
 
         // Defines the type of rules. Used for defining new rule types as combinators.
@@ -448,11 +416,12 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(p:Parser): number {
-            for (let r of this.rules) 
-                if (r.parse(p) == failed)
-                    return failed;
-            return p.index;
+        parseImplementation(p:Parser): Parser {
+            for (let r of this.rules) {
+                p = r.parse(p);
+                if (!p) return null;
+            }
+            return p;
         }
 
         get definition() : string {
@@ -473,13 +442,13 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(p:Parser): number {
+        parseImplementation(p:Parser): Parser {
             for (let r of this.rules) {
                 let result = r.parse(p);
-                if (result !== failed) 
+                if (result) 
                     return result;
             }
-            return failed;
+            return null;
         }        
 
         get definition() : string {
@@ -501,21 +470,21 @@ module Myna
 
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
 
-        parseImplementation(p:Parser): number {
-            let result = p.index;
+        parseImplementation(p:Parser): Parser {
+            let result = p;
             for (let i=0; i < this.max; ++i) {
-                let tmp = this.firstChild.parse(p);
+                let tmp = this.firstChild.parse(result);
 
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
-                if (tmp === failed) 
-                    return i >= this.min ? result : failed;
+                if (tmp == null) 
+                    return i >= this.min ? result : null;
 
                 // Check for progress, to assure we aren't hitting an infinite loop  
                 // Without this it is possible to accidentally put a zeroOrMore with a predicate.
                 // For example: myna.truePredicate.zeroOrMore would loop forever 
                 if (this.max == Infinity) 
-                    if (result === tmp)
+                    if (result.index === tmp.index)
                         throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
 
                 result = tmp;
@@ -543,7 +512,7 @@ module Myna
         type = "advance";
         className = "Advance";
         constructor() { super([]); }
-        parseImplementation(p:Parser): number { return p.inRange ? p.index+1 : failed; }
+        parseImplementation(p:Parser): Parser { return p.inRange ? p.advance() : null; }
         get definition() : string { return "<advance>"; }
         cloneImplementation() : Rule { return new Advance(); }                
     }
@@ -554,8 +523,8 @@ module Myna
         type = "lookup";
         className = "Lookup";
         constructor(public lookup:any, public onDefault:Rule) { super([]); }        
-        parseImplementation(p:Parser): number {
-            if (!p.inRange) return failed;
+        parseImplementation(p:Parser): Parser {
+            if (!p.inRange) return null;
             let tkn = p.input[p.index];
             let r = this.lookup[tkn];
             if (r !== undefined) 
@@ -628,13 +597,13 @@ module Myna
         type = "text";
         className = "Text";
         constructor(public text:string) { super([]); }
-        parseImplementation(p:Parser): number {
+        parseImplementation(p:Parser): Parser {
             if (p.index > p.input.length - this.text.length)
-                return failed;
+                return null;
             for (let i=0; i < this.text.length; ++i) 
                 if (p.input[p.index+i] !== this.text[i])
-                    return failed;
-            return p.index + this.text.length;
+                    return null;
+            return p.advance(this.text.length);
         }
         get definition() : string { return '"' + escapeChars(this.text) + '"' };
         cloneImplementation() : Rule { return new Text(this.text); }        
@@ -647,7 +616,7 @@ module Myna
         type = "delay";
         className = "Delay";
         constructor(public fn:()=>Rule) { super([]); }        
-        parseImplementation(p:Parser): number { return this.fn().parse(p); }
+        parseImplementation(p:Parser): Parser { return this.fn().parse(p); }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "delay(" + this.fn() + ")"; }    
     } 
@@ -663,7 +632,7 @@ module Myna
         // Rules derived from a MatchRule will only provide an override 
         // of the match function, so the parse is ovverriden and defined in terms of match.  
         // The parser state is always restored. 
-        parseImplementation(p:Parser):number 
+        parseImplementation(p:Parser):Parser 
         {
             // Remember the old parser state
             let oldP = p.clone();
@@ -671,11 +640,8 @@ module Myna
             // The result of calling the derived parseImplementation
             let result = this.match(p);
 
-            // Restore the old parser state 
-            p.copyFrom(oldP);
-
-            // Returns the position of the parser, or failed
-            return result ? p.index : failed;
+            // Returns the position of the parser, or null
+            return result ? oldP : null;
         } 
     }
 
@@ -949,7 +915,7 @@ module Myna
     export let word             = letter.then(wordChar.zeroOrMore);    
         
     //===============================================================
-        // Grammar functions 
+    // Grammar functions 
     
     // The following are helper functions for grammar objects. A grammar is a loosely defined concept.
     // It is any JavaScript object where one or more member fields are instances of the Rule class.    

@@ -23,7 +23,7 @@ var Myna;
         }
         // Creates a copy of the parser, including a shallow copy of the nodes. 
         Parser.prototype.clone = function () {
-            return new Parser(this.input, this.index, this.nodes); //.slice());
+            return new Parser(this.input, this.index, this.nodes.slice());
         };
         Object.defineProperty(Parser.prototype, "inRange", {
             // Returns true if the index is within the input range. 
@@ -33,12 +33,6 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        // Sets the state of the parser to be the same as another. 
-        Parser.prototype.copyFrom = function (p) {
-            this.input = p.input;
-            this.index = p.index;
-            this.nodes = p.nodes;
-        };
         Object.defineProperty(Parser.prototype, "location", {
             // Returns a string representation of the location. 
             get: function () {
@@ -47,6 +41,11 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        // Returns a shallow copy of the parser that advances its position
+        Parser.prototype.advance = function (n) {
+            if (n === void 0) { n = 1; }
+            return new Parser(this.input, this.index + n, this.nodes);
+        };
         Object.defineProperty(Parser.prototype, "debugContext", {
             // Returns a string that helps debugging to figure out exactly where we are in the input string 
             get: function () {
@@ -77,7 +76,7 @@ var Myna;
     // by parsing the rule. 
     function parse(r, s) {
         var p = new Parser(s, 0, []);
-        r.ast.parse(p);
+        p = r.ast.parse(p);
         if (!p.nodes || !p.nodes.length)
             return undefined;
         if (p.nodes.length > 1)
@@ -241,62 +240,37 @@ var Myna;
         };
         // Returns true if this Rule matches the input at the given location and never creates nodes 
         Rule.prototype.match = function (p) {
-            // Remember the old parser state
-            var oldP = p.clone();
-            // Call the derived parse implementation          
-            var result = this.parseImplementation(p);
-            // If the parse fails, we back-track the parser
-            if (result == failed)
-                p.index = oldP.index;
-            // Any nodes created are always thrown out 
-            p.nodes = oldP.nodes;
-            // We return true or false depending on the success of the parse implementation 
-            return result != failed;
+            return this.parseImplementation(p.clone()) != null;
         };
         // If successful returns the end-location of where this Rule matches the input 
         // at the given location, or -1 if failed.
         // Note that PredicateRule overrides this function 
         Rule.prototype.parse = function (p) {
+            // Either we add a node to the parse tree, or do a regular parse.
+            if (!this._createAstNode)
+                return this.parseImplementation(p);
+            // Create a new AST node 
+            var node = new AstNode(this, p.input, p.index);
             // Remember the old parser state
             var oldP = p.clone();
-            // Either we add a node to the parse tree, or do a regular parse.
-            if (!this._createAstNode) {
-                var result = this.parseImplementation(p);
-                // Update the parser index
-                if (result !== failed)
-                    p.index = result;
-                else
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
-                return result;
-            }
-            else {
-                // Create a new AST node 
-                var node = new AstNode(this, p.input, p.index);
-                // Create a new "node list" for the parser.
-                // This is a new list of child nodes.
-                p.nodes = [];
-                // Call the implementation of the parse function 
-                var result = this.parseImplementation(p);
-                // Check if the parse succeeded 
-                if (result !== failed) {
-                    // The current nodes children is the parser node list 
-                    node.children = p.nodes;
-                    // Restore the parser's node list to what it was 
-                    p.nodes = oldP.nodes;
-                    // Add the node to the parser's node list 
-                    p.nodes.push(node);
-                    // Set the node
-                    node.end = result;
-                    // Update the parser index
-                    p.index = result;
-                }
-                else {
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
-                }
-                return result;
-            }
+            // Create a new "node list" for the parser.
+            // This is a new list of child nodes. It will be modified.
+            p.nodes = [];
+            // Call the implementation of the parse function 
+            var result = this.parseImplementation(p);
+            // If the parse failed, we return null
+            if (!result)
+                return null;
+            // The current nodes children is the parser node list 
+            node.children = result.nodes;
+            // Restore the parser's node list to what it was 
+            result.nodes = oldP.nodes;
+            // Add the node to the parser's node list 
+            result.nodes.push(node);
+            // Set the node's end index
+            node.end = result.index;
+            // return the parser
+            return result;
         };
         // Defines the type of rules. Used for defining new rule types as combinators.
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
@@ -514,10 +488,11 @@ var Myna;
         Sequence.prototype.parseImplementation = function (p) {
             for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
                 var r = _a[_i];
-                if (r.parse(p) == failed)
-                    return failed;
+                p = r.parse(p);
+                if (!p)
+                    return null;
             }
-            return p.index;
+            return p;
         };
         Object.defineProperty(Sequence.prototype, "definition", {
             get: function () {
@@ -545,10 +520,10 @@ var Myna;
             for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
                 var r = _a[_i];
                 var result = r.parse(p);
-                if (result !== failed)
+                if (result)
                     return result;
             }
-            return failed;
+            return null;
         };
         Object.defineProperty(Choice.prototype, "definition", {
             get: function () {
@@ -578,18 +553,18 @@ var Myna;
             this.className = "Quantified";
         }
         Quantified.prototype.parseImplementation = function (p) {
-            var result = p.index;
+            var result = p;
             for (var i = 0; i < this.max; ++i) {
-                var tmp = this.firstChild.parse(p);
+                var tmp = this.firstChild.parse(result);
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
-                if (tmp === failed)
-                    return i >= this.min ? result : failed;
+                if (tmp == null)
+                    return i >= this.min ? result : null;
                 // Check for progress, to assure we aren't hitting an infinite loop  
                 // Without this it is possible to accidentally put a zeroOrMore with a predicate.
                 // For example: myna.truePredicate.zeroOrMore would loop forever 
                 if (this.max == Infinity)
-                    if (result === tmp)
+                    if (result.index === tmp.index)
                         throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
                 result = tmp;
             }
@@ -621,7 +596,7 @@ var Myna;
             this.type = "advance";
             this.className = "Advance";
         }
-        Advance.prototype.parseImplementation = function (p) { return p.inRange ? p.index + 1 : failed; };
+        Advance.prototype.parseImplementation = function (p) { return p.inRange ? p.advance() : null; };
         Object.defineProperty(Advance.prototype, "definition", {
             get: function () { return "<advance>"; },
             enumerable: true,
@@ -643,7 +618,7 @@ var Myna;
         }
         Lookup.prototype.parseImplementation = function (p) {
             if (!p.inRange)
-                return failed;
+                return null;
             var tkn = p.input[p.index];
             var r = this.lookup[tkn];
             if (r !== undefined)
@@ -753,11 +728,11 @@ var Myna;
         }
         Text.prototype.parseImplementation = function (p) {
             if (p.index > p.input.length - this.text.length)
-                return failed;
+                return null;
             for (var i = 0; i < this.text.length; ++i)
                 if (p.input[p.index + i] !== this.text[i])
-                    return failed;
-            return p.index + this.text.length;
+                    return null;
+            return p.advance(this.text.length);
         };
         Object.defineProperty(Text.prototype, "definition", {
             get: function () { return '"' + escapeChars(this.text) + '"'; },
@@ -806,10 +781,8 @@ var Myna;
             var oldP = p.clone();
             // The result of calling the derived parseImplementation
             var result = this.match(p);
-            // Restore the old parser state 
-            p.copyFrom(oldP);
-            // Returns the position of the parser, or failed
-            return result ? p.index : failed;
+            // Returns the position of the parser, or null
+            return result ? oldP : null;
         };
         return MatchRule;
     }(Rule));

@@ -1,5 +1,11 @@
 'use strict';
 
+/*
+    * I need to add memoization, I think this is going to have a huge impact. 
+    * To do this, I need to change to "parsers" from "numbers" as results of parsers
+    * I notice that "CharSet" could be more efficiently implemented than using "Lookup". Similar, BUT, I need 
+*/
+
 let m = require('../myna');
 let jg = require('../grammars/grammar_json')(m);
 let fs = require('fs');
