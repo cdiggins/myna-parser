@@ -278,7 +278,7 @@ function timeIt(fn) {
     let end = process.hrtime();
     let precision = 3; // 3 decimal places
     let elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
-    console.log(process.hrtime(start)[0] + " s, " + elapsed.toFixed(precision) + " ms"); 
+    console.log(process.hrtime(start)[0] + " s " + elapsed.toFixed(precision) + " ms"); 
 }
 
 function timeParse(rule, input) {
@@ -290,7 +290,7 @@ function timeParse(rule, input) {
 
 let o = jg.array;
 let o2 = optimizeRule(o.copy);
-
+/*
 {
     let rs = m.ruleStructure(o); 
     let txt = JSON.stringify(rs, null, 2);
@@ -304,14 +304,14 @@ let o2 = optimizeRule(o.copy);
     fs.writeFileSync("e:\\tmp\\myna_opt.json", txt);
 }
 
-let ast = m.parse(o, input);
-let ast2 = m.parse(o2, input);
+//let ast = m.parse(o, input);
+//let ast2 = m.parse(o2, input);
 
 // TODO: compre the two ASTs. I need a function for converting an AST to a string. 
-
+*/
 timeParse(o, input);
 timeParse(o2, input);
-
+timeIt(function() { JSON.parse(input); });
 
 // console.log(r);
 process.exit();

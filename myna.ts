@@ -12,20 +12,39 @@
 
 module Myna
 {   
+    // A special immutable class used internally for creating AstNodes 
+    class NodeBldr
+    {
+        constructor(
+            public rule:Rule = null, 
+            public begin:Parser = null,
+            public end:Parser = null,
+            public nodes:NodeBldr = null)
+        { }
+
+        // Adds a new AstNode to the NodeBldr 
+        addNode(rule:Rule, begin:Parser, end:Parser):NodeBldr {
+            return new NodeBldr(rule, begin, end, this);
+        }
+
+        // Creates an AstNode from the NodeBldr 
+        toAst() : AstNode {
+            // TODO: create the child arrays and stuff
+            return new AstNode(this.rule, this.begin.input, this.begin.index, this.end.index);
+        }
+    }
+
     // This stores the state of the parser and is passed to the parse and match functions.
+    // Parsers may share a memoization table. 
     export class Parser
     {        
         constructor(
             public input:string, 
             public index:number,
-            public nodes:AstNode[])
+            public nodes:NodeBldr,
+            public memoize:any)
         { }
-
-        // Creates a copy of the parser, including a shallow copy of the nodes. 
-        clone() : Parser {
-            return new Parser(this.input, this.index, this.nodes.slice());
-        }
-
+        
         // Returns true if the index is within the input range. 
         get inRange() : boolean {
             return this.index >= 0 && this.index < this.input.length;
@@ -38,7 +57,7 @@ module Myna
 
         // Returns a shallow copy of the parser that advances its position
         advance(n:number=1) : Parser {
-            return new Parser(this.input, this.index+n, this.nodes);
+            return new Parser(this.input, this.index+n, this.nodes, this.memoize);
         }
 
         // Returns a string that helps debugging to figure out exactly where we are in the input string 
@@ -50,7 +69,18 @@ module Myna
             let end = this.index + contextWidth;
             if (end >= this.input.length) end = this.input.length - 1;
             let postfix = this.input.slice(this.index, end);
-            return prefix + " >>> " + this.input[this.index] + " <<< " + postfix;
+            return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
+        }
+
+        // Returns a new parser that adds a node to the internal parse tree
+        addNode(rule:Rule, start:Parser): Parser {
+            if (!rule._createAstNode)
+                return this;
+            return new Parser(
+                this.input, 
+                this.index, 
+                this.nodes.addNode(rule, start, this), 
+                this.memoize);
         }
     }
 
@@ -58,20 +88,16 @@ module Myna
     // the beginning of the input string. 
     export function match(r:Rule, s:string) : boolean 
     {
-        return r.match(new Parser(s, 0, []));        
+        return r.match(new Parser(s, 0, new NodeBldr(), {}));        
     }
 
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     export function parse(r : Rule, s : string) : AstNode
     {
-        let p = new Parser(s, 0, []);        
+        let p = new Parser(s, 0, new NodeBldr(), {});        
         p = r.ast.parse(p);  
-        if (!p.nodes || !p.nodes.length)
-            return undefined;
-        if (p.nodes.length > 1)
-            throw new Error("parse is returning more than one node");
-        return p.nodes[0];        
+        return p ? p.nodes.toAst() : null;
     }
 
     // Returns an array of nodes created by parsing the given rule repeatedly until 
@@ -124,7 +150,8 @@ module Myna
     // generated node will also be added to the constructed parse tree.   
     export class AstNode
     {
-        // The list of child nodes in the parse tree. This is not allocated unless used, to minimize memory consumption 
+        // The list of child nodes in the parse tree. 
+        // This is not allocated unless used, to minimize memory consumption 
         children: AstNode[] = null;
 
         // Constructs a new node associated with the given rule.  
@@ -220,48 +247,14 @@ module Myna
 
         // Returns true if this Rule matches the input at the given location and never creates nodes 
         match(p:Parser):boolean {
-            return this.parseImplementation(p.clone()) != null;
+            return this.parseImplementation(p) != null;
         }        
 
         // If successful returns the end-location of where this Rule matches the input 
-        // at the given location, or -1 if failed.
-        // Note that PredicateRule overrides this function 
-        parse(p:Parser):Parser {        
-            // Either we add a node to the parse tree, or do a regular parse.
-            if (!this._createAstNode)
-                return this.parseImplementation(p);
-
-            // Create a new AST node 
-            let node = new AstNode(this, p.input, p.index);
-
-            // Remember the old parser state
-            let oldP = p.clone();
-            
-            // Create a new "node list" for the parser.
-            // This is a new list of child nodes. It will be modified.
-            p.nodes = [];
-
-            // Call the implementation of the parse function 
+        // Most classes do not override this function, except for MatchRule
+        parse(p:Parser):Parser {                    
             let result = this.parseImplementation(p);
-
-            // If the parse failed, we return null
-            if (!result) 
-                return null;
-
-            // The current nodes children is the parser node list 
-            node.children = result.nodes;
-            
-            // Restore the parser's node list to what it was 
-            result.nodes = oldP.nodes;
-            
-            // Add the node to the parser's node list 
-            result.nodes.push(node);
-
-            // Set the node's end index
-            node.end = result.index;
-
-            // return the parser
-            return result;
+            return result ? result.addNode(this, p) : null;
         }
 
         // Defines the type of rules. Used for defining new rule types as combinators.
@@ -284,7 +277,7 @@ module Myna
             return this.type + "(" + this.rules.map((r) => r.toString()).join(", ") + ")";
         }
 
-        // Returns the name of trhe rule preceded by the grammar name and a "."
+        // Returns the name of the rule preceded by the grammar name and a "."
         get fullName() : string {
             return this.grammarName + "." + this.name
         }
@@ -547,46 +540,43 @@ module Myna
     }
 
     // A specialization of the lookup 
-    export class CharSet extends Lookup {
+    export class CharSet extends Rule {
         type = "charSet";
         className = "CharSet";
+        lookup = {};
         constructor(public chars:string) { 
-            super(tokensToDictionary(chars.split(""), advance), falsePredicate);
+            super([]);
+            for (let c of chars.split(""))
+                this.lookup[c] = true;
         }
+        parseImplementation(p:Parser): Parser {
+            if (!p.inRange) return null;
+            let tkn = p.input[p.index];
+            return tkn in this.lookup ? p.advance() : null;
+        }           
         get definition() : string { return "[" + escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new CharSet(this.chars); }        
     }
 
     // A specialization of the lookup 
-    export class NegatedCharSet extends Lookup {
-        type = "negatedCharSet";
-        className = "NegatedCharSet";
-        constructor(public chars:string) { 
-            super(tokensToDictionary(chars.split(""), falsePredicate), truePredicate);
-        }
-        get definition() : string { return "[^" +  escapeChars(this.chars) + "]"};
-        cloneImplementation() : Rule { return new NegatedCharSet(this.chars); }        
-    }
-
-    // Creates a dictionary from a range of tokens, mapping each one to the same rule.
-    export function rangeToDictionary(min:string, max:string, rule:RuleType) {
-        if (min.length != 1 || max.length != 1)
-            throw new Error("rangeToDictionary requires characters as inputs");
-        let minChar = min.charCodeAt(0);
-        let maxChar = max.charCodeAt(0);
-        let d = {};
-        for (let x=minChar; x <= maxChar; ++x)
-            d[String.fromCharCode(x)] = rule;
-        return d;
-    }
-
     // Advances if the current token is within a range of characters, otherwise returns false
-    export class CharRange extends Lookup {
+    export class CharRange extends Rule {
         type = "charRange";
         className = "CharRange";
+        minCode : number;
+        maxCode : number;
         constructor(public min:string, public max:string) { 
-            super(rangeToDictionary(min, max, advance), falsePredicate); 
+            super([]);
+            if (min.length != 1 || max.length != 1)
+                throw new Error("rangeToDictionary requires characters as inputs");
+            this.minCode = min.charCodeAt(0);
+            this.maxCode = max.charCodeAt(0);
         }
+        parseImplementation(p:Parser): Parser {
+            if (!p.inRange) return null;
+            let tknVal = p.input[p.index].charCodeAt(0);
+            return (tknVal >= this.minCode && tknVal <= this.maxCode) ? p.advance() : null;
+        }           
         get definition() : string { return "[" + this.min + ".." + this.max + "]"};
         cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
     }
@@ -634,14 +624,7 @@ module Myna
         // The parser state is always restored. 
         parseImplementation(p:Parser):Parser 
         {
-            // Remember the old parser state
-            let oldP = p.clone();
-            
-            // The result of calling the derived parseImplementation
-            let result = this.match(p);
-
-            // Returns the position of the parser, or null
-            return result ? oldP : null;
+            return this.match(p) ? p : null;
         } 
     }
 
@@ -710,6 +693,27 @@ module Myna
         cloneImplementation() : Rule { return new AtEndPredicate(); }        
         get definition() : string { return "<end>"; }
     }
+
+    // Returns true if the character is not in the character set, false otherwise
+    export class NegatedCharSet extends MatchRule {
+        type = "negatedCharSet";
+        className = "NegatedCharSet";
+        lookup = {};
+        constructor(public chars:string) { 
+            super([]);
+            for (let c of chars.split(""))
+                this.lookup[c] = true;
+        }
+        match(p:Parser): boolean {
+            if (!p.inRange) return false;
+            let tkn = p.input[p.index];
+            let r = this.lookup[tkn];
+            return !(tkn in this.lookup);
+        }           
+        get definition() : string { return "[^" +  escapeChars(this.chars) + "]"};
+        cloneImplementation() : Rule { return new NegatedCharSet(this.chars); }        
+    }
+    
     
     //===============================================================
     // Rule creation function
