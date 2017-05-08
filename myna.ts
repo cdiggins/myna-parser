@@ -71,24 +71,17 @@ module Myna
             let postfix = this.input.slice(this.index, end);
             return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
         }
-
-        // Returns a new parser that adds a node to the internal parse tree
-        addNode(rule:Rule, start:Parser): Parser {
-            if (!rule._createAstNode)
-                return this;
-            return new Parser(
-                this.input, 
-                this.index, 
-                this.nodes.addNode(rule, start, this), 
-                this.memoize);
-        }
     }
 
-    // Return true or false depending on whether the rule matches 
-    // the beginning of the input string. 
-    export function match(r:Rule, s:string) : boolean 
-    {
-        return r.match(new Parser(s, 0, new NodeBldr(), {}));        
+    // The internal parse function 
+    function impl(rule:Rule, start:Parser, end:Parser):Parser {
+        if (end == null) return null;
+        if (!rule._createAstNode) return end;
+        return new Parser(
+            end.input, 
+            end.index, 
+            end.nodes.addNode(rule, start, this), 
+            end.memoize);
     }
 
     // Returns the root node of the abstract syntax tree created 
@@ -140,7 +133,7 @@ module Myna
         if (typeof(rule) === "string") return text(rule);
         if (typeof(rule) === "boolean") return rule ? truePredicate : falsePredicate;
         throw new Error("Invalid rule type: " + rule);
-    } 
+    }     
 
     //===============================================================
     // AstNode class 
@@ -240,21 +233,9 @@ module Myna
             public rules:Rule[]) 
         { }
         
-        // Each rule derived object provides its own implementation of this function.  
-        parseImplementation(p:Parser):Parser { 
-            throw new Error("Missing override for parseImplementation");
-        }
-
-        // Returns true if this Rule matches the input at the given location and never creates nodes 
-        match(p:Parser):boolean {
-            return this.parseImplementation(p) != null;
-        }        
-
         // If successful returns the end-location of where this Rule matches the input 
-        // Most classes do not override this function, except for MatchRule
         parse(p:Parser):Parser {                    
-            let result = this.parseImplementation(p);
-            return result ? result.addNode(this, p) : null;
+            throw new Error("Missing override for parse");
         }
 
         // Defines the type of rules. Used for defining new rule types as combinators.
@@ -409,12 +390,13 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(p:Parser): Parser {
+        parse(p:Parser): Parser {
+            let result = p;
             for (let r of this.rules) {
-                p = r.parse(p);
-                if (!p) return null;
+                result = r.parse(result);
+                if (!result) return null;
             }
-            return p;
+            return impl(this, p, result);
         }
 
         get definition() : string {
@@ -435,11 +417,11 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parseImplementation(p:Parser): Parser {
+        parse(p:Parser): Parser {
             for (let r of this.rules) {
                 let result = r.parse(p);
                 if (result) 
-                    return result;
+                    return impl(this, p, result);
             }
             return null;
         }        
@@ -463,7 +445,7 @@ module Myna
 
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
 
-        parseImplementation(p:Parser): Parser {
+        parse(p:Parser): Parser {
             let result = p;
             for (let i=0; i < this.max; ++i) {
                 let tmp = this.firstChild.parse(result);
@@ -471,7 +453,7 @@ module Myna
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
                 if (tmp == null) 
-                    return i >= this.min ? result : null;
+                    return impl(this, p, i >= this.min ? result : null);
 
                 // Check for progress, to assure we aren't hitting an infinite loop  
                 // Without this it is possible to accidentally put a zeroOrMore with a predicate.
@@ -482,7 +464,7 @@ module Myna
 
                 result = tmp;
             }            
-            return result;
+            return impl(this,p,result);
         }
 
         // Used for creating a human readable definition of the grammar.
@@ -500,12 +482,13 @@ module Myna
     }
 
     // Advances the parser by one token unless at the end
+    // Never creates a node.
     export class Advance extends Rule
     {
         type = "advance";
         className = "Advance";
         constructor() { super([]); }
-        parseImplementation(p:Parser): Parser { return p.inRange ? p.advance() : null; }
+        parse(p:Parser): Parser { return p.inRange ? p.advance() : null; }
         get definition() : string { return "<advance>"; }
         cloneImplementation() : Rule { return new Advance(); }                
     }
@@ -516,13 +499,13 @@ module Myna
         type = "lookup";
         className = "Lookup";
         constructor(public lookup:any, public onDefault:Rule) { super([]); }        
-        parseImplementation(p:Parser): Parser {
+        parse(p:Parser): Parser {
             if (!p.inRange) return null;
             let tkn = p.input[p.index];
             let r = this.lookup[tkn];
             if (r !== undefined) 
-                return r.parse(p);
-            return this.onDefault.parse(p);
+                return impl(this, p, r.parse(p));
+            return impl(this, p, this.onDefault.parse(p));
         }           
         get definition() : string {
             return '{' + Object.keys(this.lookup).map(k => '"' + escapeChars(k)  + '" :' + this.lookup[k].toString()).join(',') + '}';
@@ -549,10 +532,10 @@ module Myna
             for (let c of chars.split(""))
                 this.lookup[c] = true;
         }
-        parseImplementation(p:Parser): Parser {
+        parse(p:Parser): Parser {
             if (!p.inRange) return null;
             let tkn = p.input[p.index];
-            return tkn in this.lookup ? p.advance() : null;
+            return tkn in this.lookup ? impl(this, p, p.advance()) : null;
         }           
         get definition() : string { return "[" + escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new CharSet(this.chars); }        
@@ -572,10 +555,10 @@ module Myna
             this.minCode = min.charCodeAt(0);
             this.maxCode = max.charCodeAt(0);
         }
-        parseImplementation(p:Parser): Parser {
+        parse(p:Parser): Parser {
             if (!p.inRange) return null;
             let tknVal = p.input[p.index].charCodeAt(0);
-            return (tknVal >= this.minCode && tknVal <= this.maxCode) ? p.advance() : null;
+            return (tknVal >= this.minCode && tknVal <= this.maxCode) ? impl(this, p, p.advance()) : null;
         }           
         get definition() : string { return "[" + this.min + ".." + this.max + "]"};
         cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
@@ -587,13 +570,13 @@ module Myna
         type = "text";
         className = "Text";
         constructor(public text:string) { super([]); }
-        parseImplementation(p:Parser): Parser {
+        parse(p:Parser): Parser {
             if (p.index > p.input.length - this.text.length)
                 return null;
             for (let i=0; i < this.text.length; ++i) 
                 if (p.input[p.index+i] !== this.text[i])
                     return null;
-            return p.advance(this.text.length);
+            return impl(this, p, p.advance(this.text.length));
         }
         get definition() : string { return '"' + escapeChars(this.text) + '"' };
         cloneImplementation() : Rule { return new Text(this.text); }        
@@ -606,96 +589,82 @@ module Myna
         type = "delay";
         className = "Delay";
         constructor(public fn:()=>Rule) { super([]); }        
-        parseImplementation(p:Parser): Parser { return this.fn().parse(p); }
+        parse(p:Parser): Parser { return impl(this, p, this.fn().parse(p)); }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "delay(" + this.fn() + ")"; }    
     } 
 
     //=======================================
-    // Zero length rules 
-
-    // A MatchRule that does not advance the input
-    export class MatchRule extends Rule
-    {            
-        className = "MatchRule";
-
-        // Rules derived from a MatchRule will only provide an override 
-        // of the match function, so the parse is ovverriden and defined in terms of match.  
-        // The parser state is always restored. 
-        parseImplementation(p:Parser):Parser 
-        {
-            return this.match(p) ? p : null;
-        } 
-    }
+    // Zero length rules: they don't create nodes 
 
     // Returns true only if the child rule fails to match.
-    export class Not extends MatchRule
+    export class Not extends Rule
     {
         type = "not";
         className = "Not";
         constructor(rule:Rule) { super([rule]); }
-        match(p:Parser):boolean { return !this.firstChild.match(p); }
+        parse(p:Parser):Parser { return !this.firstChild.parse(p) ? p : null; }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
         get definition() : string { return "!" + this.firstChild.toString(); }
     }   
 
     // Returns true only if the child rule matches, but does not advance the parser
-    export class At extends MatchRule
+    export class At extends Rule
     {
         type = "at";
         className = "At";
         constructor(rule:Rule) { super([rule]); }
-        match(p:Parser):boolean { return this.firstChild.match(p); }
+        parse(p:Parser):Parser { return this.firstChild.parse(p) ? p : null; }
         cloneImplementation() : Rule { return new At(this.firstChild); }
         get definition() : string { return "&" + this.firstChild.toString(); }
     }   
 
     // Uses a function to return true or not based on the behavior of the predicate rule
-    export class Predicate extends MatchRule
+    export class Predicate extends Rule
     {
         type = "predicate";
         className = "Predicate";
         constructor(public fn:(p:Parser)=>boolean) { super([]); }
-        match(p:Parser):boolean { return this.fn(p); }
+        parse(p:Parser):Parser { return this.fn(p) ? p : null; }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
         get definition() : string { return "<predicate>"; }
     }
     
     // Returns true always 
-    export class TruePredicate extends MatchRule
+    export class TruePredicate extends Rule
     {
         type = "true";
         className = "TruePredicate";
         constructor() { super([]); }
-        match(p:Parser):boolean { return true; }
+        parse(p:Parser):Parser { return p; }
         cloneImplementation() : Rule { return new TruePredicate(); }        
         get definition() : string { return "<true>"; }
     }
     
     // Returns false always 
-    export class FalsePredicate extends MatchRule
+    export class FalsePredicate extends Rule
     {
         type = "false";
         className = "FalsePredicate";
         constructor() { super([]); }
-        match(p:Parser):boolean { return false; }
+        parse(p:Parser):Parser { return null; }
         cloneImplementation() : Rule { return new FalsePredicate(); }        
         get definition() : string { return "<false>"; }
     }
     
     // Returns true if at the end of the input, or false otherwise
-    export class AtEndPredicate extends MatchRule
+    export class AtEndPredicate extends Rule
     {
         type = "end";
         className = "AtEndPredicate";
         constructor() { super([]); }
-        match(p:Parser):boolean { return !p.inRange; }
+        parse(p:Parser):Parser { return !p.inRange ? p : null; }
         cloneImplementation() : Rule { return new AtEndPredicate(); }        
         get definition() : string { return "<end>"; }
     }
 
     // Returns true if the character is not in the character set, false otherwise
-    export class NegatedCharSet extends MatchRule {
+    export class NegatedCharSet extends Rule {
         type = "negatedCharSet";
         className = "NegatedCharSet";
         lookup = {};
@@ -704,16 +673,15 @@ module Myna
             for (let c of chars.split(""))
                 this.lookup[c] = true;
         }
-        match(p:Parser): boolean {
-            if (!p.inRange) return false;
+        parse(p:Parser):Parser { 
+            if (!p.inRange) return null;
             let tkn = p.input[p.index];
             let r = this.lookup[tkn];
-            return !(tkn in this.lookup);
+            return !(tkn in this.lookup) ? p : null;
         }           
         get definition() : string { return "[^" +  escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new NegatedCharSet(this.chars); }        
-    }
-    
+    }    
     
     //===============================================================
     // Rule creation function
@@ -854,7 +822,7 @@ module Myna
     
     //========================================================================    
     // Common sequences 
-    
+
     export function doubleQuoted(rule:RuleType) { return seq("\"", rule, "\"").setType("doubleQuoted"); }
     export function singleQuoted(rule:RuleType) { return seq("'", rule, "'").setType("singleQuoted"); }
     export function parenthesized(rule:RuleType) { return seq("(", ws, rule, ws, ")").setType("parenthesized"); }

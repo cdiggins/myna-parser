@@ -84,21 +84,17 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        // Returns a new parser that adds a node to the internal parse tree
-        Parser.prototype.addNode = function (rule, start) {
-            if (!rule._createAstNode)
-                return this;
-            return new Parser(this.input, this.index, this.nodes.addNode(rule, start, this), this.memoize);
-        };
         return Parser;
     }());
     Myna.Parser = Parser;
-    // Return true or false depending on whether the rule matches 
-    // the beginning of the input string. 
-    function match(r, s) {
-        return r.match(new Parser(s, 0, new NodeBldr(), {}));
+    // The internal parse function 
+    function impl(rule, start, end) {
+        if (end == null)
+            return null;
+        if (!rule._createAstNode)
+            return end;
+        return new Parser(end.input, end.index, end.nodes.addNode(rule, start, this), end.memoize);
     }
-    Myna.match = match;
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     function parse(r, s) {
@@ -258,19 +254,9 @@ var Myna;
             // Indicates whether generated nodes should be added to the abstract syntax tree
             this._createAstNode = false;
         }
-        // Each rule derived object provides its own implementation of this function.  
-        Rule.prototype.parseImplementation = function (p) {
-            throw new Error("Missing override for parseImplementation");
-        };
-        // Returns true if this Rule matches the input at the given location and never creates nodes 
-        Rule.prototype.match = function (p) {
-            return this.parseImplementation(p) != null;
-        };
         // If successful returns the end-location of where this Rule matches the input 
-        // Most classes do not override this function, except for MatchRule
         Rule.prototype.parse = function (p) {
-            var result = this.parseImplementation(p);
-            return result ? result.addNode(this, p) : null;
+            throw new Error("Missing override for parse");
         };
         // Defines the type of rules. Used for defining new rule types as combinators.
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
@@ -485,14 +471,15 @@ var Myna;
             this.type = "seq";
             this.className = "Sequence";
         }
-        Sequence.prototype.parseImplementation = function (p) {
+        Sequence.prototype.parse = function (p) {
+            var result = p;
             for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
                 var r = _a[_i];
-                p = r.parse(p);
-                if (!p)
+                result = r.parse(result);
+                if (!result)
                     return null;
             }
-            return p;
+            return impl(this, p, result);
         };
         Object.defineProperty(Sequence.prototype, "definition", {
             get: function () {
@@ -516,12 +503,12 @@ var Myna;
             this.type = "choice";
             this.className = "Choice";
         }
-        Choice.prototype.parseImplementation = function (p) {
+        Choice.prototype.parse = function (p) {
             for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
                 var r = _a[_i];
                 var result = r.parse(p);
                 if (result)
-                    return result;
+                    return impl(this, p, result);
             }
             return null;
         };
@@ -552,14 +539,14 @@ var Myna;
             this.type = "quantified";
             this.className = "Quantified";
         }
-        Quantified.prototype.parseImplementation = function (p) {
+        Quantified.prototype.parse = function (p) {
             var result = p;
             for (var i = 0; i < this.max; ++i) {
                 var tmp = this.firstChild.parse(result);
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
                 if (tmp == null)
-                    return i >= this.min ? result : null;
+                    return impl(this, p, i >= this.min ? result : null);
                 // Check for progress, to assure we aren't hitting an infinite loop  
                 // Without this it is possible to accidentally put a zeroOrMore with a predicate.
                 // For example: myna.truePredicate.zeroOrMore would loop forever 
@@ -568,7 +555,7 @@ var Myna;
                         throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
                 result = tmp;
             }
-            return result;
+            return impl(this, p, result);
         };
         Object.defineProperty(Quantified.prototype, "definition", {
             // Used for creating a human readable definition of the grammar.
@@ -589,6 +576,7 @@ var Myna;
     }(Rule));
     Myna.Quantified = Quantified;
     // Advances the parser by one token unless at the end
+    // Never creates a node.
     var Advance = (function (_super) {
         __extends(Advance, _super);
         function Advance() {
@@ -596,7 +584,7 @@ var Myna;
             this.type = "advance";
             this.className = "Advance";
         }
-        Advance.prototype.parseImplementation = function (p) { return p.inRange ? p.advance() : null; };
+        Advance.prototype.parse = function (p) { return p.inRange ? p.advance() : null; };
         Object.defineProperty(Advance.prototype, "definition", {
             get: function () { return "<advance>"; },
             enumerable: true,
@@ -616,14 +604,14 @@ var Myna;
             this.type = "lookup";
             this.className = "Lookup";
         }
-        Lookup.prototype.parseImplementation = function (p) {
+        Lookup.prototype.parse = function (p) {
             if (!p.inRange)
                 return null;
             var tkn = p.input[p.index];
             var r = this.lookup[tkn];
             if (r !== undefined)
-                return r.parse(p);
-            return this.onDefault.parse(p);
+                return impl(this, p, r.parse(p));
+            return impl(this, p, this.onDefault.parse(p));
         };
         Object.defineProperty(Lookup.prototype, "definition", {
             get: function () {
@@ -661,11 +649,11 @@ var Myna;
                 this.lookup[c] = true;
             }
         }
-        CharSet.prototype.parseImplementation = function (p) {
+        CharSet.prototype.parse = function (p) {
             if (!p.inRange)
                 return null;
             var tkn = p.input[p.index];
-            return tkn in this.lookup ? p.advance() : null;
+            return tkn in this.lookup ? impl(this, p, p.advance()) : null;
         };
         Object.defineProperty(CharSet.prototype, "definition", {
             get: function () { return "[" + escapeChars(this.chars) + "]"; },
@@ -692,11 +680,11 @@ var Myna;
             this.minCode = min.charCodeAt(0);
             this.maxCode = max.charCodeAt(0);
         }
-        CharRange.prototype.parseImplementation = function (p) {
+        CharRange.prototype.parse = function (p) {
             if (!p.inRange)
                 return null;
             var tknVal = p.input[p.index].charCodeAt(0);
-            return (tknVal >= this.minCode && tknVal <= this.maxCode) ? p.advance() : null;
+            return (tknVal >= this.minCode && tknVal <= this.maxCode) ? impl(this, p, p.advance()) : null;
         };
         Object.defineProperty(CharRange.prototype, "definition", {
             get: function () { return "[" + this.min + ".." + this.max + "]"; },
@@ -717,13 +705,13 @@ var Myna;
             this.type = "text";
             this.className = "Text";
         }
-        Text.prototype.parseImplementation = function (p) {
+        Text.prototype.parse = function (p) {
             if (p.index > p.input.length - this.text.length)
                 return null;
             for (var i = 0; i < this.text.length; ++i)
                 if (p.input[p.index + i] !== this.text[i])
                     return null;
-            return p.advance(this.text.length);
+            return impl(this, p, p.advance(this.text.length));
         };
         Object.defineProperty(Text.prototype, "definition", {
             get: function () { return '"' + escapeChars(this.text) + '"'; },
@@ -745,7 +733,7 @@ var Myna;
             this.type = "delay";
             this.className = "Delay";
         }
-        Delay.prototype.parseImplementation = function (p) { return this.fn().parse(p); };
+        Delay.prototype.parse = function (p) { return impl(this, p, this.fn().parse(p)); };
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
             get: function () { return "delay(" + this.fn() + ")"; },
@@ -756,23 +744,7 @@ var Myna;
     }(Rule));
     Myna.Delay = Delay;
     //=======================================
-    // Zero length rules 
-    // A MatchRule that does not advance the input
-    var MatchRule = (function (_super) {
-        __extends(MatchRule, _super);
-        function MatchRule() {
-            _super.apply(this, arguments);
-            this.className = "MatchRule";
-        }
-        // Rules derived from a MatchRule will only provide an override 
-        // of the match function, so the parse is ovverriden and defined in terms of match.  
-        // The parser state is always restored. 
-        MatchRule.prototype.parseImplementation = function (p) {
-            return this.match(p) ? p : null;
-        };
-        return MatchRule;
-    }(Rule));
-    Myna.MatchRule = MatchRule;
+    // Zero length rules: they don't create nodes 
     // Returns true only if the child rule fails to match.
     var Not = (function (_super) {
         __extends(Not, _super);
@@ -781,7 +753,7 @@ var Myna;
             this.type = "not";
             this.className = "Not";
         }
-        Not.prototype.match = function (p) { return !this.firstChild.match(p); };
+        Not.prototype.parse = function (p) { return !this.firstChild.parse(p) ? p : null; };
         Not.prototype.cloneImplementation = function () { return new Not(this.firstChild); };
         Object.defineProperty(Not.prototype, "definition", {
             get: function () { return "!" + this.firstChild.toString(); },
@@ -789,7 +761,7 @@ var Myna;
             configurable: true
         });
         return Not;
-    }(MatchRule));
+    }(Rule));
     Myna.Not = Not;
     // Returns true only if the child rule matches, but does not advance the parser
     var At = (function (_super) {
@@ -799,7 +771,7 @@ var Myna;
             this.type = "at";
             this.className = "At";
         }
-        At.prototype.match = function (p) { return this.firstChild.match(p); };
+        At.prototype.parse = function (p) { return this.firstChild.parse(p) ? p : null; };
         At.prototype.cloneImplementation = function () { return new At(this.firstChild); };
         Object.defineProperty(At.prototype, "definition", {
             get: function () { return "&" + this.firstChild.toString(); },
@@ -807,7 +779,7 @@ var Myna;
             configurable: true
         });
         return At;
-    }(MatchRule));
+    }(Rule));
     Myna.At = At;
     // Uses a function to return true or not based on the behavior of the predicate rule
     var Predicate = (function (_super) {
@@ -818,7 +790,7 @@ var Myna;
             this.type = "predicate";
             this.className = "Predicate";
         }
-        Predicate.prototype.match = function (p) { return this.fn(p); };
+        Predicate.prototype.parse = function (p) { return this.fn(p) ? p : null; };
         Predicate.prototype.cloneImplementation = function () { return new Predicate(this.fn); };
         Object.defineProperty(Predicate.prototype, "definition", {
             get: function () { return "<predicate>"; },
@@ -826,7 +798,7 @@ var Myna;
             configurable: true
         });
         return Predicate;
-    }(MatchRule));
+    }(Rule));
     Myna.Predicate = Predicate;
     // Returns true always 
     var TruePredicate = (function (_super) {
@@ -836,7 +808,7 @@ var Myna;
             this.type = "true";
             this.className = "TruePredicate";
         }
-        TruePredicate.prototype.match = function (p) { return true; };
+        TruePredicate.prototype.parse = function (p) { return p; };
         TruePredicate.prototype.cloneImplementation = function () { return new TruePredicate(); };
         Object.defineProperty(TruePredicate.prototype, "definition", {
             get: function () { return "<true>"; },
@@ -844,7 +816,7 @@ var Myna;
             configurable: true
         });
         return TruePredicate;
-    }(MatchRule));
+    }(Rule));
     Myna.TruePredicate = TruePredicate;
     // Returns false always 
     var FalsePredicate = (function (_super) {
@@ -854,7 +826,7 @@ var Myna;
             this.type = "false";
             this.className = "FalsePredicate";
         }
-        FalsePredicate.prototype.match = function (p) { return false; };
+        FalsePredicate.prototype.parse = function (p) { return null; };
         FalsePredicate.prototype.cloneImplementation = function () { return new FalsePredicate(); };
         Object.defineProperty(FalsePredicate.prototype, "definition", {
             get: function () { return "<false>"; },
@@ -862,7 +834,7 @@ var Myna;
             configurable: true
         });
         return FalsePredicate;
-    }(MatchRule));
+    }(Rule));
     Myna.FalsePredicate = FalsePredicate;
     // Returns true if at the end of the input, or false otherwise
     var AtEndPredicate = (function (_super) {
@@ -872,7 +844,7 @@ var Myna;
             this.type = "end";
             this.className = "AtEndPredicate";
         }
-        AtEndPredicate.prototype.match = function (p) { return !p.inRange; };
+        AtEndPredicate.prototype.parse = function (p) { return !p.inRange ? p : null; };
         AtEndPredicate.prototype.cloneImplementation = function () { return new AtEndPredicate(); };
         Object.defineProperty(AtEndPredicate.prototype, "definition", {
             get: function () { return "<end>"; },
@@ -880,7 +852,7 @@ var Myna;
             configurable: true
         });
         return AtEndPredicate;
-    }(MatchRule));
+    }(Rule));
     Myna.AtEndPredicate = AtEndPredicate;
     // Returns true if the character is not in the character set, false otherwise
     var NegatedCharSet = (function (_super) {
@@ -896,12 +868,12 @@ var Myna;
                 this.lookup[c] = true;
             }
         }
-        NegatedCharSet.prototype.match = function (p) {
+        NegatedCharSet.prototype.parse = function (p) {
             if (!p.inRange)
-                return false;
+                return null;
             var tkn = p.input[p.index];
             var r = this.lookup[tkn];
-            return !(tkn in this.lookup);
+            return !(tkn in this.lookup) ? p : null;
         };
         Object.defineProperty(NegatedCharSet.prototype, "definition", {
             get: function () { return "[^" + escapeChars(this.chars) + "]"; },
@@ -911,7 +883,7 @@ var Myna;
         ;
         NegatedCharSet.prototype.cloneImplementation = function () { return new NegatedCharSet(this.chars); };
         return NegatedCharSet;
-    }(MatchRule));
+    }(Rule));
     Myna.NegatedCharSet = NegatedCharSet;
     //===============================================================
     // Rule creation function
