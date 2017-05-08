@@ -1076,52 +1076,19 @@ var Myna;
         return seq(condition, seq.apply(void 0, rules.map(function (r) { return assert(r); }))).setType("guardedSeq");
     }
     Myna.guardedSeq = guardedSeq;
-    // Common guarded sequences 
-    function doubleQuoted(rule) { return guardedSeq("\"", rule, "\"").setType("doubleQuoted"); }
+    //========================================================================    
+    // Common sequences 
+    function doubleQuoted(rule) { return seq("\"", rule, "\"").setType("doubleQuoted"); }
     Myna.doubleQuoted = doubleQuoted;
-    function singleQuoted(rule) { return guardedSeq("'", rule, "'").setType("singleQuoted"); }
+    function singleQuoted(rule) { return seq("'", rule, "'").setType("singleQuoted"); }
     Myna.singleQuoted = singleQuoted;
-    // Create an array rule by injecting another rule in between each pairs
-    function join(sep) {
-        var xs = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            xs[_i - 1] = arguments[_i];
-        }
-        var r = [];
-        for (var i = 0; i < xs.length; ++i) {
-            if (i > 0)
-                r.push(sep);
-            r.push(xs[i]);
-        }
-        return r;
-    }
-    Myna.join = join;
-    // Given a list of rules, maps the text to keywords 
-    function keywordMap() {
-        var rules = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i - 0] = arguments[_i];
-        }
-        return rules.map(function (r) { return typeof r == "string" ? keyword(r) : r; });
-    }
-    Myna.keywordMap = keywordMap;
-    // Add whitespace matching rule in between each other rule. 
-    function seqWs() {
-        var rules = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i - 0] = arguments[_i];
-        }
-        return seq.apply(void 0, join.apply(void 0, [Myna.ws].concat(rules)));
-    }
-    Myna.seqWs = seqWs;
-    // Common guarded sequences: with internal whitespace
-    function parenthesized(rule) { return guardedSeq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
+    function parenthesized(rule) { return seq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
     Myna.parenthesized = parenthesized;
-    function braced(rule) { return guardedSeq("{", Myna.ws, rule, Myna.ws, "}").setType("braced"); }
+    function braced(rule) { return seq("{", Myna.ws, rule, Myna.ws, "}").setType("braced"); }
     Myna.braced = braced;
-    function bracketed(rule) { return guardedSeq("[", Myna.ws, rule, Myna.ws, "]").setType("bracketed"); }
+    function bracketed(rule) { return seq("[", Myna.ws, rule, Myna.ws, "]").setType("bracketed"); }
     Myna.bracketed = bracketed;
-    function tagged(rule) { return guardedSeq("<", Myna.ws, rule, Myna.ws, ">").setType("tagged"); }
+    function tagged(rule) { return seq("<", Myna.ws, rule, Myna.ws, ">").setType("tagged"); }
     Myna.tagged = tagged;
     // A complete identifier, with no other letters or numbers
     function keyword(text) { return seq(text, not(Myna.identifierNext)).setType("keyword"); }

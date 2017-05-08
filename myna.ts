@@ -852,33 +852,15 @@ module Myna
         return seq(condition, seq(...rules.map((r) => assert(r)))).setType("guardedSeq"); 
     }
     
-    // Common guarded sequences 
-
-    export function doubleQuoted(rule:RuleType) { return guardedSeq("\"", rule, "\"").setType("doubleQuoted"); }
-    export function singleQuoted(rule:RuleType) { return guardedSeq("'", rule, "'").setType("singleQuoted"); }
-
-    // Create an array rule by injecting another rule in between each pairs
-    export function join(sep:RuleType, ...xs:RuleType[]) : RuleType[] {
-        let r=[];
-        for (var i=0; i < xs.length; ++i) {
-            if (i > 0) r.push(sep);
-            r.push(xs[i]);
-        } 
-        return r;
-    }
-
-    // Given a list of rules, maps the text to keywords 
-    export function keywordMap(...rules:RuleType[]) { return rules.map((r) => typeof r == "string" ? keyword(r) : r); } 
-
-    // Add whitespace matching rule in between each other rule. 
-    export function seqWs(...rules:RuleType[]) { return seq(...join(ws, ...rules)); } 
-
-    // Common guarded sequences: with internal whitespace
+    //========================================================================    
+    // Common sequences 
     
-    export function parenthesized(rule:RuleType) { return guardedSeq("(", ws, rule, ws, ")").setType("parenthesized"); }
-    export function braced(rule:RuleType) { return guardedSeq("{", ws, rule, ws, "}").setType("braced"); }
-    export function bracketed(rule:RuleType) { return guardedSeq("[", ws, rule, ws, "]").setType("bracketed"); }
-    export function tagged(rule:RuleType) { return guardedSeq("<", ws, rule, ws, ">").setType("tagged"); }
+    export function doubleQuoted(rule:RuleType) { return seq("\"", rule, "\"").setType("doubleQuoted"); }
+    export function singleQuoted(rule:RuleType) { return seq("'", rule, "'").setType("singleQuoted"); }
+    export function parenthesized(rule:RuleType) { return seq("(", ws, rule, ws, ")").setType("parenthesized"); }
+    export function braced(rule:RuleType) { return seq("{", ws, rule, ws, "}").setType("braced"); }
+    export function bracketed(rule:RuleType) { return seq("[", ws, rule, ws, "]").setType("bracketed"); }
+    export function tagged(rule:RuleType) { return seq("<", ws, rule, ws, ">").setType("tagged"); }
          
     // A complete identifier, with no other letters or numbers
     export function keyword(text:string) { return seq(text, not(identifierNext)).setType("keyword"); }
