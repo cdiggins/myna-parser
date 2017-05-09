@@ -33,18 +33,18 @@ var Myna;
         // Creates an AstNode from the NodeBldr 
         NodeBldr.prototype.toAst = function () {
             // TODO: create the child arrays and stuff
-            return new AstNode(this.rule, this.begin.input, this.begin.index, this.end.index);
+            return this.begin && this.end
+                ? new AstNode(this.rule, this.begin.input, this.begin.index, this.end.index)
+                : null;
         };
         return NodeBldr;
     }());
     // This stores the state of the parser and is passed to the parse and match functions.
-    // Parsers may share a memoization table. 
     var Parser = (function () {
-        function Parser(input, index, nodes, memoize) {
+        function Parser(input, index, nodes) {
             this.input = input;
             this.index = index;
             this.nodes = nodes;
-            this.memoize = memoize;
         }
         Object.defineProperty(Parser.prototype, "inRange", {
             // Returns true if the index is within the input range. 
@@ -65,7 +65,7 @@ var Myna;
         // Returns a shallow copy of the parser that advances its position
         Parser.prototype.advance = function (n) {
             if (n === void 0) { n = 1; }
-            return new Parser(this.input, this.index + n, this.nodes, this.memoize);
+            return new Parser(this.input, this.index + n, this.nodes);
         };
         Object.defineProperty(Parser.prototype, "debugContext", {
             // Returns a string that helps debugging to figure out exactly where we are in the input string 
@@ -93,12 +93,12 @@ var Myna;
             return null;
         if (!rule._createAstNode)
             return end;
-        return new Parser(end.input, end.index, end.nodes.addNode(rule, start, this), end.memoize);
+        return new Parser(end.input, end.index, end.nodes.addNode(rule, start, this));
     }
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     function parse(r, s) {
-        var p = new Parser(s, 0, new NodeBldr(), {});
+        var p = new Parser(s, 0, new NodeBldr());
         p = r.ast.parse(p);
         return p ? p.nodes.toAst() : null;
     }
@@ -546,13 +546,12 @@ var Myna;
                 // If parsing the rule fails, we return the last result, or failed 
                 // if the minimum number of matches is not met. 
                 if (tmp == null)
-                    return impl(this, p, i >= this.min ? result : null);
+                    return i >= this.min ? impl(this, p, result) : null;
                 // Check for progress, to assure we aren't hitting an infinite loop  
                 // Without this it is possible to accidentally put a zeroOrMore with a predicate.
                 // For example: myna.truePredicate.zeroOrMore would loop forever 
-                if (this.max == Infinity)
-                    if (result.index === tmp.index)
-                        throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
+                if (this.max === Infinity && result.index === tmp.index)
+                    throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
                 result = tmp;
             }
             return impl(this, p, result);

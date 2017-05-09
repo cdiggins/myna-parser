@@ -24,29 +24,6 @@ function CreateJsonGrammar(myna)
         let _this = this; 
         this.value = m.delay(function() { 
             return m.choice(_this.string, _this.number, _this.object, _this.array, _this.bool, _this.null); 
-            /* TODO: DID NOT SPEED ANYTHING UP!! 
-            return new m.Lookup(
-                {
-                    '"':_this.string, 
-                    '[':_this.array,
-                    '{':_this.object,
-                    't':_this.bool,
-                    'f':_this.bool,
-                    'n':_this.null,
-                    '+':_this.number,
-                    '-':_this.number,
-                    '0':_this.number,
-                    '1':_this.number,
-                    '2':_this.number,
-                    '3':_this.number,
-                    '4':_this.number,
-                    '5':_this.number,
-                    '6':_this.number,
-                    '7':_this.number,
-                    '8':_this.number,
-                    '9':_this.number
-                }, m.falsePredicate);
-                */
         }).ast;
 
         this.string         = m.doubleQuoted(this.quoteChar.zeroOrMore).ast;
