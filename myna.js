@@ -91,17 +91,6 @@ var Myna;
         return ParseState;
     }());
     Myna.ParseState = ParseState;
-    // Creates a parser that may add nodes if required 
-    function createParser(rule, fxn) {
-        if (!rule._createAstNode)
-            return fxn;
-        return function (p) {
-            var result = fxn(p);
-            if (result == null)
-                return null;
-            return result.addNode(rule, p);
-        };
-    }
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     function parse(r, s) {
@@ -260,11 +249,14 @@ var Myna;
             this.className = "Rule";
             // Indicates whether generated nodes should be added to the abstract syntax tree
             this._createAstNode = false;
+            // A parser function, computed in a rule's constructor
+            this.parser = null;
         }
-        // If successful returns the end-location of where this Rule matches the input 
+        // Returns the parser function associated with the rule;
         Rule.prototype.getParser = function () {
-            throw new Error("Missing override for parse");
+            return this.parser;
         };
+        ;
         // Defines the type of rules. Used for defining new rule types as combinators.
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
         Rule.prototype.setType = function (typeName) {
@@ -342,6 +334,13 @@ var Myna;
             get: function () {
                 var r = this.copy;
                 r._createAstNode = true;
+                var parser = r.parser;
+                r.parser = function (p) {
+                    var result = parser(p);
+                    if (result == null)
+                        return null;
+                    return result.addNode(r, p);
+                };
                 return r;
             },
             enumerable: true,
@@ -477,18 +476,16 @@ var Myna;
             _super.call(this, rules);
             this.type = "seq";
             this.className = "Sequence";
-        }
-        Sequence.prototype.getParser = function () {
             var parsers = this.rules.map(function (r) { return r.getParser(); });
-            return createParser(this, function (p) {
+            this.parser = function (p) {
                 for (var _i = 0, parsers_1 = parsers; _i < parsers_1.length; _i++) {
                     var parser = parsers_1[_i];
                     if (!(p = parser(p)))
                         return null;
                 }
                 return p;
-            });
-        };
+            };
+        }
         Object.defineProperty(Sequence.prototype, "definition", {
             get: function () {
                 var result = this.rules.map(function (r) { return r.toString(); }).join(" ");
@@ -510,10 +507,8 @@ var Myna;
             _super.call(this, rules);
             this.type = "choice";
             this.className = "Choice";
-        }
-        Choice.prototype.getParser = function () {
             var parsers = this.rules.map(function (p) { return p.getParser(); });
-            return createParser(this, function (p) {
+            this.parser = function (p) {
                 var tmp = null;
                 for (var _i = 0, parsers_2 = parsers; _i < parsers_2.length; _i++) {
                     var parser = parsers_2[_i];
@@ -521,8 +516,8 @@ var Myna;
                         return tmp;
                 }
                 return null;
-            });
-        };
+            };
+        }
         Object.defineProperty(Choice.prototype, "definition", {
             get: function () {
                 var result = this.rules.map(function (r) { return r.toString(); }).join(" / ");
@@ -549,12 +544,8 @@ var Myna;
             this.max = max;
             this.type = "quantified";
             this.className = "Quantified";
-        }
-        Quantified.prototype.getParser = function () {
             var pChild = this.firstChild.getParser();
-            var min = this.min;
-            var max = this.max;
-            return createParser(this, function (p) {
+            this.parser = function (p) {
                 var result = p;
                 for (var i = 0; i < max; ++i) {
                     var tmp = pChild(result);
@@ -570,8 +561,8 @@ var Myna;
                     result = tmp;
                 }
                 return result;
-            });
-        };
+            };
+        }
         Object.defineProperty(Quantified.prototype, "definition", {
             // Used for creating a human readable definition of the grammar.
             get: function () {
@@ -598,8 +589,8 @@ var Myna;
             _super.call(this, []);
             this.type = "advance";
             this.className = "Advance";
+            this.parser = function (p) { return p.inRange ? p.advance() : null; };
         }
-        Advance.prototype.getParser = function () { return createParser(this, function (p) { return p.inRange ? p.advance() : null; }); };
         Object.defineProperty(Advance.prototype, "definition", {
             get: function () { return "<advance>"; },
             enumerable: true,
@@ -609,7 +600,8 @@ var Myna;
         return Advance;
     }(Rule));
     Myna.Advance = Advance;
-    // Uses a lookup table to find the next rule to parse next from the current token 
+    // Uses a character lookup table to find the next rule to parse next from the current token 
+    // Character lookups must be ASCII characters having a character code in the range of [0..255]
     var Lookup = (function (_super) {
         __extends(Lookup, _super);
         function Lookup(lookup, onDefault) {
@@ -618,24 +610,26 @@ var Myna;
             this.onDefault = onDefault;
             this.type = "lookup";
             this.className = "Lookup";
-        }
-        Lookup.prototype.getParser = function () {
-            var onDefault = this.onDefault.getParser();
-            var lookup = this.lookup;
-            // Resolve all the parser functions.
+            var table = [];
+            var defaultParser = this.onDefault.getParser();
+            for (var i = 0; i < 255; ++i)
+                table[i] = defaultParser;
             for (var k in lookup) {
-                lookup[k] = lookup[k].parse();
+                if (k.length != 1)
+                    throw new Error("A lookup table has to have exactly one element");
+                var val = k.charCodeAt(0);
+                table[val] = lookup[k].getParser();
             }
-            return createParser(this, function (p) {
+            this.parser = function (p) {
                 if (!p.inRange)
                     return null;
-                var tkn = p.input[p.index];
-                var r = lookup[tkn];
-                if (r !== undefined)
-                    return r.parse(p);
-                return onDefault(p);
-            });
-        };
+                var tkn = p.input.charCodeAt(p.index);
+                var parser = table[tkn];
+                if (parser)
+                    return parser(p);
+                return defaultParser(p);
+            };
+        }
         Object.defineProperty(Lookup.prototype, "definition", {
             get: function () {
                 var _this = this;
@@ -648,44 +642,15 @@ var Myna;
         return Lookup;
     }(Rule));
     Myna.Lookup = Lookup;
-    // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
-    function tokensToDictionary(tokens, rule) {
-        var d = {};
-        for (var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++) {
-            var t = tokens_1[_i];
-            d[t] = RuleTypeToRule(rule);
-        }
-        return d;
-    }
-    Myna.tokensToDictionary = tokensToDictionary;
     // A specialization of the lookup 
     var CharSet = (function (_super) {
         __extends(CharSet, _super);
         function CharSet(chars) {
-            _super.call(this, []);
+            _super.call(this, charsToDictionary(chars, Myna.advance), Myna.falsePredicate);
             this.chars = chars;
             this.type = "charSet";
             this.className = "CharSet";
-            this.lookup = [];
-            for (var i = 0; i < 256; ++i)
-                this.lookup.push(false);
-            for (var i = 0; i < chars.length; ++i) {
-                // TODO: support unicode lookup 
-                var val = chars.charCodeAt(i);
-                if (val >= 256)
-                    throw new Error("Cannot create CharSet with characters out of the range of 256");
-                this.lookup[val] = true;
-            }
         }
-        CharSet.prototype.getParser = function () {
-            var lookup = this.lookup;
-            return createParser(this, function (p) {
-                if (!p.inRange)
-                    return null;
-                var tkn = p.input.charCodeAt(p.index);
-                return (tkn < 256) && lookup[tkn] ? p.advance() : null;
-            });
-        };
         Object.defineProperty(CharSet.prototype, "definition", {
             get: function () { return "[" + escapeChars(this.chars) + "]"; },
             enumerable: true,
@@ -694,31 +659,19 @@ var Myna;
         ;
         CharSet.prototype.cloneImplementation = function () { return new CharSet(this.chars); };
         return CharSet;
-    }(Rule));
+    }(Lookup));
     Myna.CharSet = CharSet;
     // A specialization of the lookup 
     // Advances if the current token is within a range of characters, otherwise returns false
     var CharRange = (function (_super) {
         __extends(CharRange, _super);
         function CharRange(min, max) {
-            _super.call(this, []);
+            _super.call(this, charRangeToDictionary(min, max, Myna.advance), Myna.falsePredicate);
             this.min = min;
             this.max = max;
             this.type = "charRange";
             this.className = "CharRange";
-            if (min.length != 1 || max.length != 1)
-                throw new Error("rangeToDictionary requires characters as inputs");
         }
-        CharRange.prototype.getParser = function () {
-            var minCode = this.min.charCodeAt(0);
-            var maxCode = this.max.charCodeAt(0);
-            return createParser(this, function (p) {
-                if (!p.inRange)
-                    return null;
-                var tknVal = p.input.charCodeAt(p.index);
-                return (tknVal >= minCode && tknVal <= maxCode) ? p.advance() : null;
-            });
-        };
         Object.defineProperty(CharRange.prototype, "definition", {
             get: function () { return "[" + this.min + ".." + this.max + "]"; },
             enumerable: true,
@@ -727,7 +680,7 @@ var Myna;
         ;
         CharRange.prototype.cloneImplementation = function () { return new CharRange(this.min, this.max); };
         return CharRange;
-    }(Rule));
+    }(Lookup));
     Myna.CharRange = CharRange;
     // Used to match a string in the input string 
     var Text = (function (_super) {
@@ -737,25 +690,21 @@ var Myna;
             this.text = text;
             this.type = "text";
             this.className = "Text";
-        }
-        Text.prototype.getParser = function () {
-            var text = this.text;
             var length = text.length;
-            return createParser(this, function (p) {
+            this.parser = function (p) {
                 if (p.index > p.input.length - length)
                     return null;
                 for (var i = 0; i < length; ++i)
                     if (p.input.charCodeAt(p.index + i) !== text.charCodeAt(i))
                         return null;
                 return p.advance(length);
-            });
-        };
+            };
+        }
         Object.defineProperty(Text.prototype, "definition", {
             get: function () { return '"' + escapeChars(this.text) + '"'; },
             enumerable: true,
             configurable: true
         });
-        ;
         Text.prototype.cloneImplementation = function () { return new Text(this.text); };
         return Text;
     }(Rule));
@@ -769,14 +718,10 @@ var Myna;
             this.fn = fn;
             this.type = "delay";
             this.className = "Delay";
-        }
-        Delay.prototype.getParser = function () {
-            var fn = this.fn;
+            // TODO: store fn().getParser() in a temp variable
             var tmp = null;
-            return createParser(this, function (p) {
-                return (tmp ? tmp : tmp = fn().getParser())(p);
-            });
-        };
+            this.parser = function (p) { return (tmp ? tmp : tmp = fn().getParser())(p); };
+        }
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
             get: function () { return "delay(" + this.fn() + ")"; },
@@ -795,11 +740,9 @@ var Myna;
             _super.call(this, [rule]);
             this.type = "not";
             this.className = "Not";
+            var child = rule.getParser();
+            this.parser = function (p) { return child(p) ? null : p; };
         }
-        Not.prototype.getParser = function () {
-            var child = this.firstChild.getParser();
-            return createParser(this, function (p) { return child(p) ? null : p; });
-        };
         Not.prototype.cloneImplementation = function () { return new Not(this.firstChild); };
         Object.defineProperty(Not.prototype, "definition", {
             get: function () { return "!" + this.firstChild.toString(); },
@@ -816,11 +759,9 @@ var Myna;
             _super.call(this, [rule]);
             this.type = "at";
             this.className = "At";
+            var child = rule.getParser();
+            this.parser = function (p) { return child(p) ? p : null; };
         }
-        At.prototype.getParser = function () {
-            var child = this.firstChild.getParser();
-            return createParser(this, function (p) { return child(p) ? p : null; });
-        };
         At.prototype.cloneImplementation = function () { return new At(this.firstChild); };
         Object.defineProperty(At.prototype, "definition", {
             get: function () { return "&" + this.firstChild.toString(); },
@@ -838,11 +779,8 @@ var Myna;
             this.fn = fn;
             this.type = "predicate";
             this.className = "Predicate";
+            this.parser = function (p) { return fn(p) ? p : null; };
         }
-        Predicate.prototype.getParser = function () {
-            var fn = this.fn;
-            return createParser(this, function (p) { return fn(p) ? p : null; });
-        };
         Predicate.prototype.cloneImplementation = function () { return new Predicate(this.fn); };
         Object.defineProperty(Predicate.prototype, "definition", {
             get: function () { return "<predicate>"; },
@@ -859,10 +797,8 @@ var Myna;
             _super.call(this, []);
             this.type = "true";
             this.className = "TruePredicate";
+            this.parser = function (p) { return p; };
         }
-        TruePredicate.prototype.getParser = function () {
-            return createParser(this, function (p) { return p; });
-        };
         TruePredicate.prototype.cloneImplementation = function () { return new TruePredicate(); };
         Object.defineProperty(TruePredicate.prototype, "definition", {
             get: function () { return "<true>"; },
@@ -879,10 +815,8 @@ var Myna;
             _super.call(this, []);
             this.type = "false";
             this.className = "FalsePredicate";
+            this.parser = function (p) { return null; };
         }
-        FalsePredicate.prototype.getParser = function () {
-            return createParser(this, function (p) { return null; });
-        };
         FalsePredicate.prototype.cloneImplementation = function () { return new FalsePredicate(); };
         Object.defineProperty(FalsePredicate.prototype, "definition", {
             get: function () { return "<false>"; },
@@ -899,10 +833,8 @@ var Myna;
             _super.call(this, []);
             this.type = "end";
             this.className = "AtEndPredicate";
+            this.parser = function (p) { return !p.inRange ? p : null; };
         }
-        AtEndPredicate.prototype.getParser = function () {
-            return createParser(this, function (p) { return !p.inRange ? p : null; });
-        };
         AtEndPredicate.prototype.cloneImplementation = function () { return new AtEndPredicate(); };
         Object.defineProperty(AtEndPredicate.prototype, "definition", {
             get: function () { return "<end>"; },
@@ -916,30 +848,11 @@ var Myna;
     var NegatedCharSet = (function (_super) {
         __extends(NegatedCharSet, _super);
         function NegatedCharSet(chars) {
-            _super.call(this, []);
+            _super.call(this, charsToDictionary(chars, Myna.falsePredicate), Myna.truePredicate);
             this.chars = chars;
             this.type = "negatedCharSet";
             this.className = "NegatedCharSet";
-            this.lookup = [];
-            for (var i = 0; i < 256; ++i)
-                this.lookup.push(false);
-            for (var i = 0; i < chars.length; ++i) {
-                // TODO: support unicode lookup 
-                var val = chars.charCodeAt(i);
-                if (val >= 256)
-                    throw new Error("Cannot create NegatedCharSet with characters out of the range of 256");
-                this.lookup[val] = true;
-            }
         }
-        NegatedCharSet.prototype.getParser = function () {
-            var lookup = this.lookup;
-            return createParser(this, function (p) {
-                if (!p.inRange)
-                    return null;
-                var tkn = p.input.charCodeAt(p.index);
-                return (tkn < 256) && lookup[tkn] ? null : p;
-            });
-        };
         Object.defineProperty(NegatedCharSet.prototype, "definition", {
             get: function () { return "[^" + escapeChars(this.chars) + "]"; },
             enumerable: true,
@@ -948,8 +861,28 @@ var Myna;
         ;
         NegatedCharSet.prototype.cloneImplementation = function () { return new NegatedCharSet(this.chars); };
         return NegatedCharSet;
-    }(Rule));
+    }(Lookup));
     Myna.NegatedCharSet = NegatedCharSet;
+    // Returns true if the character is not in the character set, false otherwise
+    var NegatedCharRange = (function (_super) {
+        __extends(NegatedCharRange, _super);
+        function NegatedCharRange(min, max) {
+            _super.call(this, charRangeToDictionary(min, max, Myna.falsePredicate), Myna.truePredicate);
+            this.min = min;
+            this.max = max;
+            this.type = "negatedCharRange";
+            this.className = "NegatedCharRange";
+        }
+        Object.defineProperty(NegatedCharRange.prototype, "definition", {
+            get: function () { return "[^" + this.min + ".." + this.max + "]"; },
+            enumerable: true,
+            configurable: true
+        });
+        ;
+        NegatedCharRange.prototype.cloneImplementation = function () { return new CharRange(this.min, this.max); };
+        return NegatedCharRange;
+    }(Lookup));
+    Myna.NegatedCharRange = NegatedCharRange;
     //===============================================================
     // Rule creation function
     // Create a rule that matches the text 
@@ -1025,9 +958,9 @@ var Myna;
     Myna.at = at;
     ;
     // Looks up the rule to parse based on whether the token in the array of not.      
-    function lookup(tokens, rule, onDefault) {
+    function lookup(table, onDefault) {
         if (onDefault === void 0) { onDefault = false; }
-        return new Lookup(tokensToDictionary(tokens, rule), RuleTypeToRule(onDefault));
+        return new Lookup(table, RuleTypeToRule(onDefault));
     }
     Myna.lookup = lookup;
     //===============================================================    
@@ -1047,9 +980,9 @@ var Myna;
     // Advances if one of the characters are present, or returns false
     function range(min, max) { return new CharRange(min, max); }
     Myna.range = range;
-    // Advance if on of the characters are not in the range
-    function exceptRange(min, max) { return range(min, max).not.then(Myna.advance); }
-    Myna.exceptRange = exceptRange;
+    // Returns true if on of the characters are not in the range, but does not advance the parser position
+    function notRange(min, max) { return new NegatedCharRange(min, max); }
+    Myna.notRange = notRange;
     //===============================================================    
     // Advanced rule operators 
     function delimited(rule, delimiter) { return opt(seq(rule, zeroOrMore(seq(delimiter, rule)))).setType("delimitedList"); }
@@ -1167,6 +1100,7 @@ var Myna;
     Myna.newLine = choice(Myna.crlf, "\n");
     Myna.space = text(" ");
     Myna.tab = text("\t");
+    // TODO: figure out how to support unicode characters.
     //export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
     Myna.ws = char(" \t\r\n").zeroOrMore;
     Myna.wordChar = Myna.letter.or(char("-'"));
@@ -1246,11 +1180,33 @@ var Myna;
     Myna.registerGrammar = registerGrammar;
     //===========================================================================
     // Utility functions
+    // Replaces characters with the JSON escaped version
     function escapeChars(text) {
         var r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
     }
     Myna.escapeChars = escapeChars;
+    // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
+    function charsToDictionary(chars, rule) {
+        var d = {};
+        var tokens = chars.split("");
+        for (var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++) {
+            var t = tokens_1[_i];
+            d[t] = RuleTypeToRule(rule);
+        }
+        return d;
+    }
+    // Creates a dictionary from a range of tokens, mapping each one to the same rule.     
+    function charRangeToDictionary(min, max, rule) {
+        if (min.length != 1 || max.length != 1)
+            throw new Error("rangeToDictionary requires characters as inputs");
+        var d = {};
+        var a = min.charCodeAt(0);
+        var b = max.charCodeAt(0);
+        for (var i = a; i <= b; ++i)
+            d[String.fromCharCode(i)] = RuleTypeToRule(rule);
+        return d;
+    }
     //===========================================================================
     // Initialization
     // The entire module is a grammar because it is an object that exposes rules as properties

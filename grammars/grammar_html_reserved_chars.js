@@ -9,9 +9,9 @@ function CreateHtmlReservedCharsGrammar(myna)
     let g = new function() 
     {
         let escapeChars = '&<>"\'';        
-        this.specialChar = m.advance.ast;
+        this.specialChar = m.char(escapeChars).ast;
         this.plainText = m.charExcept(escapeChars).oneOrMore.ast;
-        this.text = m.lookup(escapeChars, this.specialChar, this.plainText).zeroOrMore;
+        this.text = m.choice(this.specialChar, this.plainText).zeroOrMore;
     }
 
     // Register the grammar with m.

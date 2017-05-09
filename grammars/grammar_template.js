@@ -47,13 +47,7 @@ function CreateTemplateGrammar(myna, start, end) {
         this.invertedSection = m.seq(this.startInvertedSection, this.sectionContent, this.endSection).ast;
         this.plainText = m.advanceWhileNot("{{").ast;
 
-        // Mmanually optimize the grammar here by using a lookup. Every type of special rule 
-        // starts with the first char of the delimiter, otherwise we are just advancing through the text.  
-        let startChar = start[0];
-        this.content = 
-            m.lookup(startChar, 
-                m.choice(this.invertedSection, this.section, this.comment, this.partial, this.var),
-            this.plainText).zeroOrMore;
+        this.content = m.choice(this.invertedSection, this.section, this.comment, this.partial, this.var, this.plainText).zeroOrMore;
 
         this.document = this.content.ast;
     }

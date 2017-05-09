@@ -117,7 +117,7 @@ function optimizeRule(r)
         for (let i=0; i < r.rules.length; ++i) {
             let r2 = optimizeRule(r.rules[i]);
             if (r2 == undefined)
-                throw new Error("wtf");
+                throw new Error("Whoops!");
 
             // Heuristic: Choice flattening
             // (a\(b\c)) => (a\b\c)

@@ -78,16 +78,6 @@ module Myna
         }
     }
 
-    // Creates a parser that may add nodes if required 
-    function createParser(rule:Rule, fxn:(Parser) => ParseState) : (Parser) => ParseState {
-        if (!rule._createAstNode) return fxn;
-        return (p:ParseState):ParseState => {
-            let result = fxn(p);
-            if (result == null) return null;
-            return result.addNode(rule, p); 
-        }        
-    }
-
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     export function parse(r : Rule, s : string) : AstNode
@@ -232,15 +222,18 @@ module Myna
         // Indicates whether generated nodes should be added to the abstract syntax tree
         _createAstNode:boolean = false;
 
+        // A parser function, computed in a rule's constructor
+        parser : (ParseState)=>ParseState = null;
+
         // Note: child-rules are exposed as a public field
         constructor(
             public rules:Rule[]) 
         { }
         
-        // If successful returns the end-location of where this Rule matches the input 
-        getParser():(p:ParseState)=>ParseState {                    
-            throw new Error("Missing override for parse");
-        }
+        // Returns the parser function associated with the rule;
+        getParser() : (ParseState)=>ParseState {                    
+            return this.parser;
+        };
 
         // Defines the type of rules. Used for defining new rule types as combinators.
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
@@ -307,6 +300,12 @@ module Myna
         get ast() : Rule {
             let r = this.copy;
             r._createAstNode = true;
+            let parser = r.parser;
+            r.parser = p => {
+                let result = parser(p);
+                if (result == null) return null;
+                return result.addNode(r, p); 
+            }
             return r;
         }
 
@@ -392,16 +391,15 @@ module Myna
         type = "seq";
         className = "Sequence";
 
-        constructor(rules:Rule[]) { super(rules); }
-
-        getParser() : (p:ParseState)=>ParseState {
+        constructor(rules:Rule[]) { 
+            super(rules); 
             let parsers = this.rules.map(r => r.getParser());
-            return createParser(this, (p:ParseState):ParseState=> {
+            this.parser =  p => {
                 for (let parser of parsers) 
                     if (!(p = parser(p))) 
                         return null;
                 return p;
-            });
+            };
         }
 
         get definition() : string {
@@ -420,17 +418,16 @@ module Myna
         type = "choice";
         className = "Choice";
 
-        constructor(rules:Rule[]) { super(rules); }
-
-        getParser() : (p:ParseState)=>ParseState {
+        constructor(rules:Rule[]) { 
+            super(rules);
             let parsers = this.rules.map(p => p.getParser());
-            return createParser(this, (p:ParseState):ParseState=> {
+            this.parser = p => {
                 let tmp = null;
                 for (let parser of parsers) 
                     if (tmp = parser(p)) 
                         return tmp;
                 return null;
-            });
+            };
         }
 
         get definition() : string {
@@ -450,13 +447,10 @@ module Myna
         type = "quantified";
         className = "Quantified";
        
-        constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
-
-        getParser() : (p:ParseState)=> ParseState {
+        constructor(rule:Rule, public min:number=0, public max:number=Infinity) { 
+            super([rule]); 
             let pChild = this.firstChild.getParser();
-            let min = this.min;
-            let max = this.max;
-            return createParser(this, (p:ParseState) => {
+            this.parser = p => {
                 let result = p;
                 for (let i=0; i < max; ++i) {
                     let tmp = pChild(result);
@@ -475,7 +469,7 @@ module Myna
                     result = tmp;
                 }            
                 return result;
-            });
+            };
         }
 
         // Used for creating a human readable definition of the grammar.
@@ -498,33 +492,37 @@ module Myna
     {
         type = "advance";
         className = "Advance";
-        constructor() { super([]); }
-        getParser() : (p:ParseState) => ParseState { return createParser(this, (p:ParseState) => p.inRange ? p.advance() : null); }
+        constructor() { super([]); this.parser = p => p.inRange ? p.advance() : null; }
         get definition() : string { return "<advance>"; }
         cloneImplementation() : Rule { return new Advance(); }                
     }
 
-    // Uses a lookup table to find the next rule to parse next from the current token 
+    // Uses a character lookup table to find the next rule to parse next from the current token 
+    // Character lookups must be ASCII characters having a character code in the range of [0..255]
     export class Lookup extends Rule
     {
         type = "lookup";
         className = "Lookup";
-        constructor(public lookup:any, public onDefault:Rule) { super([]); }        
-        getParser() : (p:ParseState) => ParseState {
-            let onDefault = this.onDefault.getParser();
-            let lookup = this.lookup;
-            // Resolve all the parser functions.
+        constructor(public lookup:any, public onDefault:Rule) { 
+            super([]); 
+            let table = [];
+            let defaultParser = this.onDefault.getParser();
+            for (let i=0;i<255;++i)
+                table[i] = defaultParser;
             for (let k in lookup) {
-                lookup[k] = lookup[k].parse();
+                if (k.length != 1)
+                    throw new Error("A lookup table has to have exactly one element");
+                let val = k.charCodeAt(0);
+                table[val] = lookup[k].getParser();
             }
-            return createParser(this, (p:ParseState) =>{
+            this.parser = p =>{
                 if (!p.inRange) return null;
-                let tkn = p.input[p.index];
-                let r = lookup[tkn];
-                if (r !== undefined) 
-                    return r.parse(p);
-                return onDefault(p);
-            });
+                let tkn = p.input.charCodeAt(p.index);
+                let parser = table[tkn];
+                if (parser) 
+                    return parser(p);
+                return defaultParser(p);
+            };
         }           
         get definition() : string {
             return '{' + Object.keys(this.lookup).map(k => '"' + escapeChars(k)  + '" :' + this.lookup[k].toString()).join(',') + '}';
@@ -532,64 +530,21 @@ module Myna
         cloneImplementation() : Rule { return new Lookup(this.lookup, this.onDefault); }
     }
 
-    // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
-    export function tokensToDictionary(tokens:string[], rule:RuleType)
-    {
-        let d = {};
-        for (let t of tokens) 
-            d[t] = RuleTypeToRule(rule);
-        return d;
-    }
-
     // A specialization of the lookup 
-    export class CharSet extends Rule {
+    export class CharSet extends Lookup {
         type = "charSet";
         className = "CharSet";
-        lookup = [];
-        constructor(public chars:string) { 
-            super([]);
-            for (let i=0; i<256; ++i)
-                this.lookup.push(false);
-            for (let i=0; i < chars.length; ++i)
-            {
-                // TODO: support unicode lookup 
-                let val = chars.charCodeAt(i);
-                if (val >= 256)
-                    throw new Error("Cannot create CharSet with characters out of the range of 256");
-                this.lookup[val] = true;
-            }
-        }
-        getParser() : (p:ParseState) => ParseState {
-            let lookup = this.lookup;
-            return createParser(this, (p:ParseState) => {
-                if (!p.inRange) return null;
-                let tkn = p.input.charCodeAt(p.index);
-                return (tkn < 256) && lookup[tkn] ? p.advance() : null;
-            });
-        }           
+        constructor(public chars:string) {  super(charsToDictionary(chars, advance), falsePredicate); }
         get definition() : string { return "[" + escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new CharSet(this.chars); }        
     }
 
     // A specialization of the lookup 
     // Advances if the current token is within a range of characters, otherwise returns false
-    export class CharRange extends Rule {
+    export class CharRange extends Lookup {
         type = "charRange";
         className = "CharRange";
-        constructor(public min:string, public max:string) { 
-            super([]);
-            if (min.length != 1 || max.length != 1)
-                throw new Error("rangeToDictionary requires characters as inputs");
-        }
-        getParser() : (p:ParseState) => ParseState {
-            let minCode = this.min.charCodeAt(0);
-            let maxCode = this.max.charCodeAt(0);
-            return createParser(this, (p:ParseState) => {
-                if (!p.inRange) return null;
-                let tknVal = p.input.charCodeAt(p.index);
-                return (tknVal >= minCode && tknVal <= maxCode) ? p.advance() : null;
-            });
-        }           
+        constructor(public min:string, public max:string) {  super(charRangeToDictionary(min, max, advance), falsePredicate); }
         get definition() : string { return "[" + this.min + ".." + this.max + "]"};
         cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
     }
@@ -599,20 +554,19 @@ module Myna
     {
         type = "text";
         className = "Text";
-        constructor(public text:string) { super([]); }
-        getParser() : (p:ParseState) => ParseState {
-            let text = this.text;
+        constructor(public text:string) { 
+            super([]); 
             let length = text.length;
-            return createParser(this, (p:ParseState) => {
+            this.parser = p => {
                 if (p.index > p.input.length - length)
                     return null;
                 for (let i=0; i < length; ++i) 
                     if (p.input.charCodeAt(p.index+i) !== text.charCodeAt(i))
                         return null;
                 return p.advance(length);
-            });
+            };
         }           
-        get definition() : string { return '"' + escapeChars(this.text) + '"' };
+        get definition() : string { return '"' + escapeChars(this.text) + '"' }
         cloneImplementation() : Rule { return new Text(this.text); }        
     }
 
@@ -622,12 +576,10 @@ module Myna
     {
         type = "delay";
         className = "Delay";
-        constructor(public fn:()=>Rule) { super([]); }        
-        getParser() : (p:ParseState) => ParseState { 
-            let fn = this.fn;
+        constructor(public fn:()=>Rule) { 
+            super([]); 
             let tmp = null;
-            return createParser(this, (p:ParseState):ParseState => 
-                (tmp ? tmp : tmp = fn().getParser())(p));
+            this.parser = p => (tmp ? tmp : tmp = fn().getParser())(p);
         }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "delay(" + this.fn() + ")"; }    
@@ -641,10 +593,10 @@ module Myna
     {
         type = "not";
         className = "Not";
-        constructor(rule:Rule) { super([rule]); }
-        getParser() : (p:ParseState) => ParseState { 
-            let child = this.firstChild.getParser(); 
-            return createParser(this, (p:ParseState) => child(p) ? null : p);
+        constructor(rule:Rule) { 
+            super([rule]); 
+            let child = rule.getParser(); 
+            this.parser = p => child(p) ? null : p;
         }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
         get definition() : string { return "!" + this.firstChild.toString(); }
@@ -655,10 +607,10 @@ module Myna
     {
         type = "at";
         className = "At";
-        constructor(rule:Rule) { super([rule]); }
-        getParser() : (p:ParseState) => ParseState { 
-            let child = this.firstChild.getParser(); 
-            return createParser(this, (p:ParseState) => child(p) ? p : null);
+        constructor(rule:Rule) { 
+            super([rule]); 
+            let child = rule.getParser(); 
+            this.parser = p => child(p) ? p : null;
         }
         cloneImplementation() : Rule { return new At(this.firstChild); }
         get definition() : string { return "&" + this.firstChild.toString(); }
@@ -669,10 +621,9 @@ module Myna
     {
         type = "predicate";
         className = "Predicate";
-        constructor(public fn:(p:ParseState)=>boolean) { super([]); }
-        getParser() : (p:ParseState) => ParseState { 
-            let fn = this.fn;
-            return createParser(this, (p:ParseState) => fn(p) ? p : null);
+        constructor(public fn:(p:ParseState)=>boolean) {
+            super([]); 
+            this.parser = p => fn(p) ? p : null;
         }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
         get definition() : string { return "<predicate>"; }
@@ -683,10 +634,7 @@ module Myna
     {
         type = "true";
         className = "TruePredicate";
-        constructor() { super([]); }
-        getParser() : (p:ParseState) => ParseState { 
-            return createParser(this, (p:ParseState) => p);
-        }
+        constructor() { super([]); this.parser = p => p; }
         cloneImplementation() : Rule { return new TruePredicate(); }        
         get definition() : string { return "<true>"; }
     }
@@ -696,10 +644,7 @@ module Myna
     {
         type = "false";
         className = "FalsePredicate";
-        constructor() { super([]); }
-        getParser() : (p:ParseState) => ParseState { 
-            return createParser(this, (p:ParseState) => null);
-        }
+        constructor() { super([]); this.parser = p => null; }
         cloneImplementation() : Rule { return new FalsePredicate(); }        
         get definition() : string { return "<false>"; }
     }
@@ -709,42 +654,27 @@ module Myna
     {
         type = "end";
         className = "AtEndPredicate";
-        constructor() { super([]); }
-        getParser() : (p:ParseState) => ParseState { 
-            return createParser(this, (p:ParseState) => !p.inRange ? p : null);
-        }
+        constructor() { super([]); this.parser = p => !p.inRange ? p : null; }
         cloneImplementation() : Rule { return new AtEndPredicate(); }        
         get definition() : string { return "<end>"; }
     }
 
     // Returns true if the character is not in the character set, false otherwise
-    export class NegatedCharSet extends Rule {
+    export class NegatedCharSet extends Lookup {
         type = "negatedCharSet";
         className = "NegatedCharSet";
-        lookup = [];
-        constructor(public chars:string) { 
-            super([]);
-            for (let i=0; i<256; ++i)
-                this.lookup.push(false);
-            for (let i=0; i < chars.length; ++i)
-            {
-                // TODO: support unicode lookup 
-                let val = chars.charCodeAt(i);
-                if (val >= 256)
-                    throw new Error("Cannot create NegatedCharSet with characters out of the range of 256");
-                this.lookup[val] = true;
-            }
-        }
-        getParser() : (p:ParseState) => ParseState { 
-            let lookup = this.lookup;
-            return createParser(this, (p:ParseState) => {
-                if (!p.inRange) return null;
-                let tkn = p.input.charCodeAt(p.index);
-                return (tkn < 256) && lookup[tkn] ? null : p;
-            });
-        }
+        constructor(public chars:string) { super(charsToDictionary(chars, falsePredicate), truePredicate); }
         get definition() : string { return "[^" +  escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new NegatedCharSet(this.chars); }        
+    }    
+    
+    // Returns true if the character is not in the character set, false otherwise
+    export class NegatedCharRange extends Lookup {
+        type = "negatedCharRange";
+        className = "NegatedCharRange";
+        constructor(public min:string, public max:string) {  super(charRangeToDictionary(min, max, falsePredicate), truePredicate); }
+        get definition() : string { return "[^" + this.min + ".." + this.max + "]"};
+        cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
     }    
     
     //===============================================================
@@ -809,8 +739,8 @@ module Myna
     };
 
     // Looks up the rule to parse based on whether the token in the array of not.      
-    export function lookup(tokens:string[], rule:RuleType, onDefault:RuleType=false) {
-        return new Lookup(tokensToDictionary(tokens, rule), RuleTypeToRule(onDefault));
+    export function lookup(table:any, onDefault:RuleType=false) {
+        return new Lookup(table, RuleTypeToRule(onDefault));
     }
 
     //===============================================================    
@@ -831,8 +761,8 @@ module Myna
     // Advances if one of the characters are present, or returns false
     export function range(min:string, max:string) { return new CharRange(min, max); }
 
-    // Advance if on of the characters are not in the range
-    export function exceptRange(min:string, max:string) { return range(min, max).not.then(advance); }
+    // Returns true if on of the characters are not in the range, but does not advance the parser position
+    export function notRange(min:string, max:string) { return new NegatedCharRange(min, max); }
 
     //===============================================================    
     // Advanced rule operators 
@@ -928,6 +858,7 @@ module Myna
     export let newLine          = choice(crlf, "\n");          
     export let space            = text(" ");
     export let tab              = text("\t");    
+    // TODO: figure out how to support unicode characters.
     //export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
     export let ws               = char(" \t\r\n").zeroOrMore;    
     export let wordChar         = letter.or(char("-'"));
@@ -1012,9 +943,33 @@ module Myna
     //===========================================================================
     // Utility functions
 
+    // Replaces characters with the JSON escaped version
     export function escapeChars(text:string) {
         let r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
+    }
+
+    // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
+    function charsToDictionary(chars:string, rule:RuleType)
+    {
+        let d = {};
+        let tokens = chars.split("");
+        for (let t of tokens) 
+            d[t] = RuleTypeToRule(rule);
+        return d;
+    }
+
+    // Creates a dictionary from a range of tokens, mapping each one to the same rule.     
+    function charRangeToDictionary(min:string, max:string, rule:RuleType)
+    {
+        if (min.length != 1 || max.length != 1)
+            throw new Error("rangeToDictionary requires characters as inputs");
+        let d = {};
+        let a = min.charCodeAt(0);
+        let b = max.charCodeAt(0);
+        for (let i=a; i <= b; ++i)  
+            d[String.fromCharCode(i)] = RuleTypeToRule(rule);
+        return d;
     }
 
     //===========================================================================
