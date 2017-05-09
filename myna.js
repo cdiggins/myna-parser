@@ -40,13 +40,13 @@ var Myna;
         return NodeBldr;
     }());
     // This stores the state of the parser and is passed to the parse and match functions.
-    var Parser = (function () {
-        function Parser(input, index, nodes) {
+    var ParseState = (function () {
+        function ParseState(input, index, nodes) {
             this.input = input;
             this.index = index;
             this.nodes = nodes;
         }
-        Object.defineProperty(Parser.prototype, "inRange", {
+        Object.defineProperty(ParseState.prototype, "inRange", {
             // Returns true if the index is within the input range. 
             get: function () {
                 return this.index >= 0 && this.index < this.input.length;
@@ -54,7 +54,7 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Parser.prototype, "location", {
+        Object.defineProperty(ParseState.prototype, "location", {
             // Returns a string representation of the location. 
             get: function () {
                 return this.index.toString();
@@ -63,11 +63,15 @@ var Myna;
             configurable: true
         });
         // Returns a shallow copy of the parser that advances its position
-        Parser.prototype.advance = function (n) {
+        ParseState.prototype.advance = function (n) {
             if (n === void 0) { n = 1; }
-            return new Parser(this.input, this.index + n, this.nodes);
+            return new ParseState(this.input, this.index + n, this.nodes);
         };
-        Object.defineProperty(Parser.prototype, "debugContext", {
+        // Creates a new ParseState with a node added to it.
+        ParseState.prototype.addNode = function (rule, begin) {
+            return new ParseState(this.input, this.index, this.nodes.addNode(rule, begin, this));
+        };
+        Object.defineProperty(ParseState.prototype, "debugContext", {
             // Returns a string that helps debugging to figure out exactly where we are in the input string 
             get: function () {
                 var contextWidth = 5;
@@ -84,22 +88,25 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        return Parser;
+        return ParseState;
     }());
-    Myna.Parser = Parser;
-    // The internal parse function 
-    function impl(rule, start, end) {
-        if (end == null)
-            return null;
+    Myna.ParseState = ParseState;
+    // Creates a parser that may add nodes if required 
+    function createParser(rule, fxn) {
         if (!rule._createAstNode)
-            return end;
-        return new Parser(end.input, end.index, end.nodes.addNode(rule, start, this));
+            return fxn;
+        return function (p) {
+            var result = fxn(p);
+            if (result == null)
+                return null;
+            return result.addNode(rule, p);
+        };
     }
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     function parse(r, s) {
-        var p = new Parser(s, 0, new NodeBldr());
-        p = r.ast.parse(p);
+        var p = new ParseState(s, 0, new NodeBldr());
+        p = r.ast.getParser()(p);
         return p ? p.nodes.toAst() : null;
     }
     Myna.parse = parse;
@@ -255,7 +262,7 @@ var Myna;
             this._createAstNode = false;
         }
         // If successful returns the end-location of where this Rule matches the input 
-        Rule.prototype.parse = function (p) {
+        Rule.prototype.getParser = function () {
             throw new Error("Missing override for parse");
         };
         // Defines the type of rules. Used for defining new rule types as combinators.
@@ -471,15 +478,16 @@ var Myna;
             this.type = "seq";
             this.className = "Sequence";
         }
-        Sequence.prototype.parse = function (p) {
-            var result = p;
-            for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
-                var r = _a[_i];
-                result = r.parse(result);
-                if (!result)
-                    return null;
-            }
-            return impl(this, p, result);
+        Sequence.prototype.getParser = function () {
+            var parsers = this.rules.map(function (r) { return r.getParser(); });
+            return createParser(this, function (p) {
+                for (var _i = 0, parsers_1 = parsers; _i < parsers_1.length; _i++) {
+                    var parser = parsers_1[_i];
+                    if (!(p = parser(p)))
+                        return null;
+                }
+                return p;
+            });
         };
         Object.defineProperty(Sequence.prototype, "definition", {
             get: function () {
@@ -503,14 +511,17 @@ var Myna;
             this.type = "choice";
             this.className = "Choice";
         }
-        Choice.prototype.parse = function (p) {
-            for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
-                var r = _a[_i];
-                var result = r.parse(p);
-                if (result)
-                    return impl(this, p, result);
-            }
-            return null;
+        Choice.prototype.getParser = function () {
+            var parsers = this.rules.map(function (p) { return p.getParser(); });
+            return createParser(this, function (p) {
+                var tmp = null;
+                for (var _i = 0, parsers_2 = parsers; _i < parsers_2.length; _i++) {
+                    var parser = parsers_2[_i];
+                    if (tmp = parser(p))
+                        return tmp;
+                }
+                return null;
+            });
         };
         Object.defineProperty(Choice.prototype, "definition", {
             get: function () {
@@ -539,22 +550,27 @@ var Myna;
             this.type = "quantified";
             this.className = "Quantified";
         }
-        Quantified.prototype.parse = function (p) {
-            var result = p;
-            for (var i = 0; i < this.max; ++i) {
-                var tmp = this.firstChild.parse(result);
-                // If parsing the rule fails, we return the last result, or failed 
-                // if the minimum number of matches is not met. 
-                if (tmp == null)
-                    return i >= this.min ? impl(this, p, result) : null;
-                // Check for progress, to assure we aren't hitting an infinite loop  
-                // Without this it is possible to accidentally put a zeroOrMore with a predicate.
-                // For example: myna.truePredicate.zeroOrMore would loop forever 
-                if (this.max === Infinity && result.index === tmp.index)
-                    throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
-                result = tmp;
-            }
-            return impl(this, p, result);
+        Quantified.prototype.getParser = function () {
+            var pChild = this.firstChild.getParser();
+            var min = this.min;
+            var max = this.max;
+            return createParser(this, function (p) {
+                var result = p;
+                for (var i = 0; i < max; ++i) {
+                    var tmp = pChild(result);
+                    // If parsing the rule fails, we return the last result, or failed 
+                    // if the minimum number of matches is not met. 
+                    if (tmp == null)
+                        return i >= min ? result : null;
+                    // Check for progress, to assure we aren't hitting an infinite loop  
+                    // Without this it is possible to accidentally put a zeroOrMore with a predicate.
+                    // For example: myna.truePredicate.zeroOrMore would loop forever 
+                    if (max === Infinity && result.index === tmp.index)
+                        throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
+                    result = tmp;
+                }
+                return result;
+            });
         };
         Object.defineProperty(Quantified.prototype, "definition", {
             // Used for creating a human readable definition of the grammar.
@@ -583,7 +599,7 @@ var Myna;
             this.type = "advance";
             this.className = "Advance";
         }
-        Advance.prototype.parse = function (p) { return p.inRange ? p.advance() : null; };
+        Advance.prototype.getParser = function () { return createParser(this, function (p) { return p.inRange ? p.advance() : null; }); };
         Object.defineProperty(Advance.prototype, "definition", {
             get: function () { return "<advance>"; },
             enumerable: true,
@@ -603,14 +619,22 @@ var Myna;
             this.type = "lookup";
             this.className = "Lookup";
         }
-        Lookup.prototype.parse = function (p) {
-            if (!p.inRange)
-                return null;
-            var tkn = p.input[p.index];
-            var r = this.lookup[tkn];
-            if (r !== undefined)
-                return impl(this, p, r.parse(p));
-            return impl(this, p, this.onDefault.parse(p));
+        Lookup.prototype.getParser = function () {
+            var onDefault = this.onDefault.getParser();
+            var lookup = this.lookup;
+            // Resolve all the parser functions.
+            for (var k in lookup) {
+                lookup[k] = lookup[k].parse();
+            }
+            return createParser(this, function (p) {
+                if (!p.inRange)
+                    return null;
+                var tkn = p.input[p.index];
+                var r = lookup[tkn];
+                if (r !== undefined)
+                    return r.parse(p);
+                return onDefault(p);
+            });
         };
         Object.defineProperty(Lookup.prototype, "definition", {
             get: function () {
@@ -642,17 +666,25 @@ var Myna;
             this.chars = chars;
             this.type = "charSet";
             this.className = "CharSet";
-            this.lookup = {};
-            for (var _i = 0, _a = chars.split(""); _i < _a.length; _i++) {
-                var c = _a[_i];
-                this.lookup[c] = true;
+            this.lookup = [];
+            for (var i = 0; i < 256; ++i)
+                this.lookup.push(false);
+            for (var i = 0; i < chars.length; ++i) {
+                // TODO: support unicode lookup 
+                var val = chars.charCodeAt(i);
+                if (val >= 256)
+                    throw new Error("Cannot create CharSet with characters out of the range of 256");
+                this.lookup[val] = true;
             }
         }
-        CharSet.prototype.parse = function (p) {
-            if (!p.inRange)
-                return null;
-            var tkn = p.input[p.index];
-            return tkn in this.lookup ? impl(this, p, p.advance()) : null;
+        CharSet.prototype.getParser = function () {
+            var lookup = this.lookup;
+            return createParser(this, function (p) {
+                if (!p.inRange)
+                    return null;
+                var tkn = p.input.charCodeAt(p.index);
+                return (tkn < 256) && lookup[tkn] ? p.advance() : null;
+            });
         };
         Object.defineProperty(CharSet.prototype, "definition", {
             get: function () { return "[" + escapeChars(this.chars) + "]"; },
@@ -676,14 +708,16 @@ var Myna;
             this.className = "CharRange";
             if (min.length != 1 || max.length != 1)
                 throw new Error("rangeToDictionary requires characters as inputs");
-            this.minCode = min.charCodeAt(0);
-            this.maxCode = max.charCodeAt(0);
         }
-        CharRange.prototype.parse = function (p) {
-            if (!p.inRange)
-                return null;
-            var tknVal = p.input[p.index].charCodeAt(0);
-            return (tknVal >= this.minCode && tknVal <= this.maxCode) ? impl(this, p, p.advance()) : null;
+        CharRange.prototype.getParser = function () {
+            var minCode = this.min.charCodeAt(0);
+            var maxCode = this.max.charCodeAt(0);
+            return createParser(this, function (p) {
+                if (!p.inRange)
+                    return null;
+                var tknVal = p.input.charCodeAt(p.index);
+                return (tknVal >= minCode && tknVal <= maxCode) ? p.advance() : null;
+            });
         };
         Object.defineProperty(CharRange.prototype, "definition", {
             get: function () { return "[" + this.min + ".." + this.max + "]"; },
@@ -704,13 +738,17 @@ var Myna;
             this.type = "text";
             this.className = "Text";
         }
-        Text.prototype.parse = function (p) {
-            if (p.index > p.input.length - this.text.length)
-                return null;
-            for (var i = 0; i < this.text.length; ++i)
-                if (p.input[p.index + i] !== this.text[i])
+        Text.prototype.getParser = function () {
+            var text = this.text;
+            var length = text.length;
+            return createParser(this, function (p) {
+                if (p.index > p.input.length - length)
                     return null;
-            return impl(this, p, p.advance(this.text.length));
+                for (var i = 0; i < length; ++i)
+                    if (p.input.charCodeAt(p.index + i) !== text.charCodeAt(i))
+                        return null;
+                return p.advance(length);
+            });
         };
         Object.defineProperty(Text.prototype, "definition", {
             get: function () { return '"' + escapeChars(this.text) + '"'; },
@@ -732,7 +770,13 @@ var Myna;
             this.type = "delay";
             this.className = "Delay";
         }
-        Delay.prototype.parse = function (p) { return impl(this, p, this.fn().parse(p)); };
+        Delay.prototype.getParser = function () {
+            var fn = this.fn;
+            var tmp = null;
+            return createParser(this, function (p) {
+                return (tmp ? tmp : tmp = fn().getParser())(p);
+            });
+        };
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
             get: function () { return "delay(" + this.fn() + ")"; },
@@ -752,7 +796,10 @@ var Myna;
             this.type = "not";
             this.className = "Not";
         }
-        Not.prototype.parse = function (p) { return !this.firstChild.parse(p) ? p : null; };
+        Not.prototype.getParser = function () {
+            var child = this.firstChild.getParser();
+            return createParser(this, function (p) { return child(p) ? null : p; });
+        };
         Not.prototype.cloneImplementation = function () { return new Not(this.firstChild); };
         Object.defineProperty(Not.prototype, "definition", {
             get: function () { return "!" + this.firstChild.toString(); },
@@ -770,7 +817,10 @@ var Myna;
             this.type = "at";
             this.className = "At";
         }
-        At.prototype.parse = function (p) { return this.firstChild.parse(p) ? p : null; };
+        At.prototype.getParser = function () {
+            var child = this.firstChild.getParser();
+            return createParser(this, function (p) { return child(p) ? p : null; });
+        };
         At.prototype.cloneImplementation = function () { return new At(this.firstChild); };
         Object.defineProperty(At.prototype, "definition", {
             get: function () { return "&" + this.firstChild.toString(); },
@@ -789,7 +839,10 @@ var Myna;
             this.type = "predicate";
             this.className = "Predicate";
         }
-        Predicate.prototype.parse = function (p) { return this.fn(p) ? p : null; };
+        Predicate.prototype.getParser = function () {
+            var fn = this.fn;
+            return createParser(this, function (p) { return fn(p) ? p : null; });
+        };
         Predicate.prototype.cloneImplementation = function () { return new Predicate(this.fn); };
         Object.defineProperty(Predicate.prototype, "definition", {
             get: function () { return "<predicate>"; },
@@ -807,7 +860,9 @@ var Myna;
             this.type = "true";
             this.className = "TruePredicate";
         }
-        TruePredicate.prototype.parse = function (p) { return p; };
+        TruePredicate.prototype.getParser = function () {
+            return createParser(this, function (p) { return p; });
+        };
         TruePredicate.prototype.cloneImplementation = function () { return new TruePredicate(); };
         Object.defineProperty(TruePredicate.prototype, "definition", {
             get: function () { return "<true>"; },
@@ -825,7 +880,9 @@ var Myna;
             this.type = "false";
             this.className = "FalsePredicate";
         }
-        FalsePredicate.prototype.parse = function (p) { return null; };
+        FalsePredicate.prototype.getParser = function () {
+            return createParser(this, function (p) { return null; });
+        };
         FalsePredicate.prototype.cloneImplementation = function () { return new FalsePredicate(); };
         Object.defineProperty(FalsePredicate.prototype, "definition", {
             get: function () { return "<false>"; },
@@ -843,7 +900,9 @@ var Myna;
             this.type = "end";
             this.className = "AtEndPredicate";
         }
-        AtEndPredicate.prototype.parse = function (p) { return !p.inRange ? p : null; };
+        AtEndPredicate.prototype.getParser = function () {
+            return createParser(this, function (p) { return !p.inRange ? p : null; });
+        };
         AtEndPredicate.prototype.cloneImplementation = function () { return new AtEndPredicate(); };
         Object.defineProperty(AtEndPredicate.prototype, "definition", {
             get: function () { return "<end>"; },
@@ -861,18 +920,25 @@ var Myna;
             this.chars = chars;
             this.type = "negatedCharSet";
             this.className = "NegatedCharSet";
-            this.lookup = {};
-            for (var _i = 0, _a = chars.split(""); _i < _a.length; _i++) {
-                var c = _a[_i];
-                this.lookup[c] = true;
+            this.lookup = [];
+            for (var i = 0; i < 256; ++i)
+                this.lookup.push(false);
+            for (var i = 0; i < chars.length; ++i) {
+                // TODO: support unicode lookup 
+                var val = chars.charCodeAt(i);
+                if (val >= 256)
+                    throw new Error("Cannot create NegatedCharSet with characters out of the range of 256");
+                this.lookup[val] = true;
             }
         }
-        NegatedCharSet.prototype.parse = function (p) {
-            if (!p.inRange)
-                return null;
-            var tkn = p.input[p.index];
-            var r = this.lookup[tkn];
-            return !(tkn in this.lookup) ? p : null;
+        NegatedCharSet.prototype.getParser = function () {
+            var lookup = this.lookup;
+            return createParser(this, function (p) {
+                if (!p.inRange)
+                    return null;
+                var tkn = p.input.charCodeAt(p.index);
+                return (tkn < 256) && lookup[tkn] ? null : p;
+            });
         };
         Object.defineProperty(NegatedCharSet.prototype, "definition", {
             get: function () { return "[^" + escapeChars(this.chars) + "]"; },
@@ -1101,7 +1167,8 @@ var Myna;
     Myna.newLine = choice(Myna.crlf, "\n");
     Myna.space = text(" ");
     Myna.tab = text("\t");
-    Myna.ws = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;
+    //export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
+    Myna.ws = char(" \t\r\n").zeroOrMore;
     Myna.wordChar = Myna.letter.or(char("-'"));
     Myna.word = Myna.letter.then(Myna.wordChar.zeroOrMore);
     //===============================================================

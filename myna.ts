@@ -17,13 +17,13 @@ module Myna
     {
         constructor(
             public rule:Rule = null, 
-            public begin:Parser = null,
-            public end:Parser = null,
+            public begin:ParseState = null,
+            public end:ParseState = null,
             public nodes:NodeBldr = null)
         { }
 
         // Adds a new AstNode to the NodeBldr 
-        addNode(rule:Rule, begin:Parser, end:Parser):NodeBldr {
+        addNode(rule:Rule, begin:ParseState, end:ParseState):NodeBldr {
             return new NodeBldr(rule, begin, end, this);
         }
 
@@ -37,7 +37,7 @@ module Myna
     }
 
     // This stores the state of the parser and is passed to the parse and match functions.
-    export class Parser
+    export class ParseState
     {        
         constructor(
             public input:string, 
@@ -56,8 +56,13 @@ module Myna
         }
 
         // Returns a shallow copy of the parser that advances its position
-        advance(n:number=1) : Parser {
-            return new Parser(this.input, this.index+n, this.nodes);
+        advance(n:number=1) : ParseState {
+            return new ParseState(this.input, this.index+n, this.nodes);
+        }
+
+        // Creates a new ParseState with a node added to it.
+        addNode(rule:Rule, begin:ParseState):ParseState {
+            return new ParseState(this.input, this.index, this.nodes.addNode(rule, begin, this));
         }
 
         // Returns a string that helps debugging to figure out exactly where we are in the input string 
@@ -73,22 +78,22 @@ module Myna
         }
     }
 
-    // The internal parse function 
-    function impl(rule:Rule, start:Parser, end:Parser):Parser {
-        if (end == null) return null;
-        if (!rule._createAstNode) return end;
-        return new Parser(
-            end.input, 
-            end.index, 
-            end.nodes.addNode(rule, start, this)); 
+    // Creates a parser that may add nodes if required 
+    function createParser(rule:Rule, fxn:(Parser) => ParseState) : (Parser) => ParseState {
+        if (!rule._createAstNode) return fxn;
+        return (p:ParseState):ParseState => {
+            let result = fxn(p);
+            if (result == null) return null;
+            return result.addNode(rule, p); 
+        }        
     }
 
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     export function parse(r : Rule, s : string) : AstNode
     {
-        let p = new Parser(s, 0, new NodeBldr());        
-        p = r.ast.parse(p);  
+        let p = new ParseState(s, 0, new NodeBldr());        
+        p = r.ast.getParser()(p);  
         return p ? p.nodes.toAst() : null;
     }
 
@@ -233,7 +238,7 @@ module Myna
         { }
         
         // If successful returns the end-location of where this Rule matches the input 
-        parse(p:Parser):Parser {                    
+        getParser():(p:ParseState)=>ParseState {                    
             throw new Error("Missing override for parse");
         }
 
@@ -389,13 +394,14 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parse(p:Parser): Parser {
-            let result = p;
-            for (let r of this.rules) {
-                result = r.parse(result);
-                if (!result) return null;
-            }
-            return impl(this, p, result);
+        getParser() : (p:ParseState)=>ParseState {
+            let parsers = this.rules.map(r => r.getParser());
+            return createParser(this, (p:ParseState):ParseState=> {
+                for (let parser of parsers) 
+                    if (!(p = parser(p))) 
+                        return null;
+                return p;
+            });
         }
 
         get definition() : string {
@@ -416,14 +422,16 @@ module Myna
 
         constructor(rules:Rule[]) { super(rules); }
 
-        parse(p:Parser): Parser {
-            for (let r of this.rules) {
-                let result = r.parse(p);
-                if (result) 
-                    return impl(this, p, result);
-            }
-            return null;
-        }        
+        getParser() : (p:ParseState)=>ParseState {
+            let parsers = this.rules.map(p => p.getParser());
+            return createParser(this, (p:ParseState):ParseState=> {
+                let tmp = null;
+                for (let parser of parsers) 
+                    if (tmp = parser(p)) 
+                        return tmp;
+                return null;
+            });
+        }
 
         get definition() : string {
             let result = this.rules.map((r) => r.toString()).join(" / ");
@@ -444,25 +452,30 @@ module Myna
        
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
 
-        parse(p:Parser): Parser {
-            let result = p;
-            for (let i=0; i < this.max; ++i) {
-                let tmp = this.firstChild.parse(result);
+        getParser() : (p:ParseState)=> ParseState {
+            let pChild = this.firstChild.getParser();
+            let min = this.min;
+            let max = this.max;
+            return createParser(this, (p:ParseState) => {
+                let result = p;
+                for (let i=0; i < max; ++i) {
+                    let tmp = pChild(result);
 
-                // If parsing the rule fails, we return the last result, or failed 
-                // if the minimum number of matches is not met. 
-                if (tmp == null) 
-                    return i >= this.min ? impl(this, p, result) : null;
+                    // If parsing the rule fails, we return the last result, or failed 
+                    // if the minimum number of matches is not met. 
+                    if (tmp == null) 
+                        return i >= min ? result : null;
 
-                // Check for progress, to assure we aren't hitting an infinite loop  
-                // Without this it is possible to accidentally put a zeroOrMore with a predicate.
-                // For example: myna.truePredicate.zeroOrMore would loop forever 
-                if (this.max === Infinity && result.index === tmp.index)
-                    throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
+                    // Check for progress, to assure we aren't hitting an infinite loop  
+                    // Without this it is possible to accidentally put a zeroOrMore with a predicate.
+                    // For example: myna.truePredicate.zeroOrMore would loop forever 
+                    if (max === Infinity && result.index === tmp.index)
+                        throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
 
-                result = tmp;
-            }            
-            return impl(this,p,result);
+                    result = tmp;
+                }            
+                return result;
+            });
         }
 
         // Used for creating a human readable definition of the grammar.
@@ -486,7 +499,7 @@ module Myna
         type = "advance";
         className = "Advance";
         constructor() { super([]); }
-        parse(p:Parser): Parser { return p.inRange ? p.advance() : null; }
+        getParser() : (p:ParseState) => ParseState { return createParser(this, (p:ParseState) => p.inRange ? p.advance() : null); }
         get definition() : string { return "<advance>"; }
         cloneImplementation() : Rule { return new Advance(); }                
     }
@@ -497,13 +510,21 @@ module Myna
         type = "lookup";
         className = "Lookup";
         constructor(public lookup:any, public onDefault:Rule) { super([]); }        
-        parse(p:Parser): Parser {
-            if (!p.inRange) return null;
-            let tkn = p.input[p.index];
-            let r = this.lookup[tkn];
-            if (r !== undefined) 
-                return impl(this, p, r.parse(p));
-            return impl(this, p, this.onDefault.parse(p));
+        getParser() : (p:ParseState) => ParseState {
+            let onDefault = this.onDefault.getParser();
+            let lookup = this.lookup;
+            // Resolve all the parser functions.
+            for (let k in lookup) {
+                lookup[k] = lookup[k].parse();
+            }
+            return createParser(this, (p:ParseState) =>{
+                if (!p.inRange) return null;
+                let tkn = p.input[p.index];
+                let r = lookup[tkn];
+                if (r !== undefined) 
+                    return r.parse(p);
+                return onDefault(p);
+            });
         }           
         get definition() : string {
             return '{' + Object.keys(this.lookup).map(k => '"' + escapeChars(k)  + '" :' + this.lookup[k].toString()).join(',') + '}';
@@ -524,16 +545,27 @@ module Myna
     export class CharSet extends Rule {
         type = "charSet";
         className = "CharSet";
-        lookup = {};
+        lookup = [];
         constructor(public chars:string) { 
             super([]);
-            for (let c of chars.split(""))
-                this.lookup[c] = true;
+            for (let i=0; i<256; ++i)
+                this.lookup.push(false);
+            for (let i=0; i < chars.length; ++i)
+            {
+                // TODO: support unicode lookup 
+                let val = chars.charCodeAt(i);
+                if (val >= 256)
+                    throw new Error("Cannot create CharSet with characters out of the range of 256");
+                this.lookup[val] = true;
+            }
         }
-        parse(p:Parser): Parser {
-            if (!p.inRange) return null;
-            let tkn = p.input[p.index];
-            return tkn in this.lookup ? impl(this, p, p.advance()) : null;
+        getParser() : (p:ParseState) => ParseState {
+            let lookup = this.lookup;
+            return createParser(this, (p:ParseState) => {
+                if (!p.inRange) return null;
+                let tkn = p.input.charCodeAt(p.index);
+                return (tkn < 256) && lookup[tkn] ? p.advance() : null;
+            });
         }           
         get definition() : string { return "[" + escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new CharSet(this.chars); }        
@@ -544,19 +576,19 @@ module Myna
     export class CharRange extends Rule {
         type = "charRange";
         className = "CharRange";
-        minCode : number;
-        maxCode : number;
         constructor(public min:string, public max:string) { 
             super([]);
             if (min.length != 1 || max.length != 1)
                 throw new Error("rangeToDictionary requires characters as inputs");
-            this.minCode = min.charCodeAt(0);
-            this.maxCode = max.charCodeAt(0);
         }
-        parse(p:Parser): Parser {
-            if (!p.inRange) return null;
-            let tknVal = p.input[p.index].charCodeAt(0);
-            return (tknVal >= this.minCode && tknVal <= this.maxCode) ? impl(this, p, p.advance()) : null;
+        getParser() : (p:ParseState) => ParseState {
+            let minCode = this.min.charCodeAt(0);
+            let maxCode = this.max.charCodeAt(0);
+            return createParser(this, (p:ParseState) => {
+                if (!p.inRange) return null;
+                let tknVal = p.input.charCodeAt(p.index);
+                return (tknVal >= minCode && tknVal <= maxCode) ? p.advance() : null;
+            });
         }           
         get definition() : string { return "[" + this.min + ".." + this.max + "]"};
         cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
@@ -568,14 +600,18 @@ module Myna
         type = "text";
         className = "Text";
         constructor(public text:string) { super([]); }
-        parse(p:Parser): Parser {
-            if (p.index > p.input.length - this.text.length)
-                return null;
-            for (let i=0; i < this.text.length; ++i) 
-                if (p.input[p.index+i] !== this.text[i])
+        getParser() : (p:ParseState) => ParseState {
+            let text = this.text;
+            let length = text.length;
+            return createParser(this, (p:ParseState) => {
+                if (p.index > p.input.length - length)
                     return null;
-            return impl(this, p, p.advance(this.text.length));
-        }
+                for (let i=0; i < length; ++i) 
+                    if (p.input.charCodeAt(p.index+i) !== text.charCodeAt(i))
+                        return null;
+                return p.advance(length);
+            });
+        }           
         get definition() : string { return '"' + escapeChars(this.text) + '"' };
         cloneImplementation() : Rule { return new Text(this.text); }        
     }
@@ -587,7 +623,12 @@ module Myna
         type = "delay";
         className = "Delay";
         constructor(public fn:()=>Rule) { super([]); }        
-        parse(p:Parser): Parser { return impl(this, p, this.fn().parse(p)); }
+        getParser() : (p:ParseState) => ParseState { 
+            let fn = this.fn;
+            let tmp = null;
+            return createParser(this, (p:ParseState):ParseState => 
+                (tmp ? tmp : tmp = fn().getParser())(p));
+        }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "delay(" + this.fn() + ")"; }    
     } 
@@ -601,7 +642,10 @@ module Myna
         type = "not";
         className = "Not";
         constructor(rule:Rule) { super([rule]); }
-        parse(p:Parser):Parser { return !this.firstChild.parse(p) ? p : null; }
+        getParser() : (p:ParseState) => ParseState { 
+            let child = this.firstChild.getParser(); 
+            return createParser(this, (p:ParseState) => child(p) ? null : p);
+        }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
         get definition() : string { return "!" + this.firstChild.toString(); }
     }   
@@ -612,7 +656,10 @@ module Myna
         type = "at";
         className = "At";
         constructor(rule:Rule) { super([rule]); }
-        parse(p:Parser):Parser { return this.firstChild.parse(p) ? p : null; }
+        getParser() : (p:ParseState) => ParseState { 
+            let child = this.firstChild.getParser(); 
+            return createParser(this, (p:ParseState) => child(p) ? p : null);
+        }
         cloneImplementation() : Rule { return new At(this.firstChild); }
         get definition() : string { return "&" + this.firstChild.toString(); }
     }   
@@ -622,8 +669,11 @@ module Myna
     {
         type = "predicate";
         className = "Predicate";
-        constructor(public fn:(p:Parser)=>boolean) { super([]); }
-        parse(p:Parser):Parser { return this.fn(p) ? p : null; }
+        constructor(public fn:(p:ParseState)=>boolean) { super([]); }
+        getParser() : (p:ParseState) => ParseState { 
+            let fn = this.fn;
+            return createParser(this, (p:ParseState) => fn(p) ? p : null);
+        }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
         get definition() : string { return "<predicate>"; }
     }
@@ -634,7 +684,9 @@ module Myna
         type = "true";
         className = "TruePredicate";
         constructor() { super([]); }
-        parse(p:Parser):Parser { return p; }
+        getParser() : (p:ParseState) => ParseState { 
+            return createParser(this, (p:ParseState) => p);
+        }
         cloneImplementation() : Rule { return new TruePredicate(); }        
         get definition() : string { return "<true>"; }
     }
@@ -645,7 +697,9 @@ module Myna
         type = "false";
         className = "FalsePredicate";
         constructor() { super([]); }
-        parse(p:Parser):Parser { return null; }
+        getParser() : (p:ParseState) => ParseState { 
+            return createParser(this, (p:ParseState) => null);
+        }
         cloneImplementation() : Rule { return new FalsePredicate(); }        
         get definition() : string { return "<false>"; }
     }
@@ -656,7 +710,9 @@ module Myna
         type = "end";
         className = "AtEndPredicate";
         constructor() { super([]); }
-        parse(p:Parser):Parser { return !p.inRange ? p : null; }
+        getParser() : (p:ParseState) => ParseState { 
+            return createParser(this, (p:ParseState) => !p.inRange ? p : null);
+        }
         cloneImplementation() : Rule { return new AtEndPredicate(); }        
         get definition() : string { return "<end>"; }
     }
@@ -665,18 +721,28 @@ module Myna
     export class NegatedCharSet extends Rule {
         type = "negatedCharSet";
         className = "NegatedCharSet";
-        lookup = {};
+        lookup = [];
         constructor(public chars:string) { 
             super([]);
-            for (let c of chars.split(""))
-                this.lookup[c] = true;
+            for (let i=0; i<256; ++i)
+                this.lookup.push(false);
+            for (let i=0; i < chars.length; ++i)
+            {
+                // TODO: support unicode lookup 
+                let val = chars.charCodeAt(i);
+                if (val >= 256)
+                    throw new Error("Cannot create NegatedCharSet with characters out of the range of 256");
+                this.lookup[val] = true;
+            }
         }
-        parse(p:Parser):Parser { 
-            if (!p.inRange) return null;
-            let tkn = p.input[p.index];
-            let r = this.lookup[tkn];
-            return !(tkn in this.lookup) ? p : null;
-        }           
+        getParser() : (p:ParseState) => ParseState { 
+            let lookup = this.lookup;
+            return createParser(this, (p:ParseState) => {
+                if (!p.inRange) return null;
+                let tkn = p.input.charCodeAt(p.index);
+                return (tkn < 256) && lookup[tkn] ? null : p;
+            });
+        }
         get definition() : string { return "[^" +  escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new NegatedCharSet(this.chars); }        
     }    
@@ -782,8 +848,8 @@ module Myna
     //===============================================================    
     // Predicates and actions  
     
-    export function predicate(fn:(p:Parser)=>boolean) { return new Predicate(fn); }
-    export function action(fn:(p:Parser)=>void) { return predicate((p)=> { fn(p); return true; }).setType("action"); }
+    export function predicate(fn:(p:ParseState)=>boolean) { return new Predicate(fn); }
+    export function action(fn:(p:ParseState)=>void) { return predicate((p)=> { fn(p); return true; }).setType("action"); }
     export function log(msg:string = "") { return action(p=> { console.log(msg); }).setType("log"); }
 
     //==================================================================
@@ -791,7 +857,7 @@ module Myna
 
     export class ParseError extends Error 
     {
-        constructor(public parser:Parser, public message:string)
+        constructor(public parser:ParseState, public message:string)
         {
             super(message);
         }
@@ -862,7 +928,8 @@ module Myna
     export let newLine          = choice(crlf, "\n");          
     export let space            = text(" ");
     export let tab              = text("\t");    
-    export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
+    //export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
+    export let ws               = char(" \t\r\n").zeroOrMore;    
     export let wordChar         = letter.or(char("-'"));
     export let word             = letter.then(wordChar.zeroOrMore);    
         
