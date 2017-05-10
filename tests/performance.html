@@ -9,7 +9,7 @@
         var rule = grammar.array;
         var input = json_sample1k;
         function test() {
-    
+            for (let i=0; i < 10; ++i)
              var ast = Myna.parse(rule, input);
             //console.log(ast.allText);
         }
