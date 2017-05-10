@@ -83,7 +83,7 @@ module Myna
     export function parse(r : Rule, s : string) : AstNode
     {
         let p = new ParseState(s, 0, new NodeBldr());        
-        p = r.ast.getParser()(p);  
+        p = r.ast.parser(p);  
         return p ? p.nodes.toAst() : null;
     }
 
@@ -229,11 +229,6 @@ module Myna
         constructor(
             public rules:Rule[]) 
         { }
-        
-        // Returns the parser function associated with the rule;
-        getParser() : (ParseState)=>ParseState {                    
-            return this.parser;
-        };
 
         // Defines the type of rules. Used for defining new rule types as combinators.
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
@@ -393,10 +388,11 @@ module Myna
 
         constructor(rules:Rule[]) { 
             super(rules); 
-            let parsers = this.rules.map(r => r.getParser());
-            this.parser =  p => {
-                for (let parser of parsers) 
-                    if (!(p = parser(p))) 
+            let parsers = this.rules.map(r => r.parser);
+            let len = parsers.length;
+            this.parser = p => {
+                for (var i = 0; i < len; ++i) 
+                    if (!(p = parsers[i](p))) 
                         return null;
                 return p;
             };
@@ -420,11 +416,12 @@ module Myna
 
         constructor(rules:Rule[]) { 
             super(rules);
-            let parsers = this.rules.map(p => p.getParser());
+            let parsers = this.rules.map(p => p.parser);
+            let len = parsers.length;
             this.parser = p => {
                 let tmp = null;
-                for (let parser of parsers) 
-                    if (tmp = parser(p)) 
+                for (var i = 0; i < len; ++i) 
+                    if (tmp = parsers[i](p)) 
                         return tmp;
                 return null;
             };
@@ -449,7 +446,7 @@ module Myna
        
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { 
             super([rule]); 
-            let pChild = this.firstChild.getParser();
+            let pChild = this.firstChild.parser;
             this.parser = p => {
                 let result = p;
                 for (let i=0; i < max; ++i) {
@@ -506,16 +503,16 @@ module Myna
         constructor(public lookup:any, public onDefault:Rule) { 
             super([]); 
             let table = [];
-            let defaultParser = this.onDefault.getParser();
+            let defaultParser = this.onDefault.parser;
             for (let i=0;i<255;++i)
                 table[i] = defaultParser;
             for (let k in lookup) {
                 if (k.length != 1)
                     throw new Error("A lookup table has to have exactly one element");
                 let val = k.charCodeAt(0);
-                table[val] = lookup[k].getParser();
+                table[val] = lookup[k].parser;
             }
-            this.parser = p =>{
+            this.parser = p => {
                 if (!p.inRange) return null;
                 let tkn = p.input.charCodeAt(p.index);
                 let parser = table[tkn];
@@ -534,7 +531,7 @@ module Myna
     export class CharSet extends Lookup {
         type = "charSet";
         className = "CharSet";
-        constructor(public chars:string) {  super(charsToDictionary(chars, advance), falsePredicate); }
+        constructor(public chars:string) { super(charsToDictionary(chars, advance), falsePredicate); }
         get definition() : string { return "[" + escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new CharSet(this.chars); }        
     }
@@ -544,7 +541,7 @@ module Myna
     export class CharRange extends Lookup {
         type = "charRange";
         className = "CharRange";
-        constructor(public min:string, public max:string) {  super(charRangeToDictionary(min, max, advance), falsePredicate); }
+        constructor(public min:string, public max:string) { super(charRangeToDictionary(min, max, advance), falsePredicate); }
         get definition() : string { return "[" + this.min + ".." + this.max + "]"};
         cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
     }
@@ -570,6 +567,24 @@ module Myna
         cloneImplementation() : Rule { return new Text(this.text); }        
     }
 
+    // Used to match a single character in the input string 
+    export class Char extends Rule
+    {
+        type = "char";
+        className = "Char";
+        constructor(public text:string) { 
+            super([]); 
+            if (text.length != 1) 
+                throw new Error("Expected a single character");
+            let code = text.charCodeAt(0);
+            this.parser = p => {
+                return p.input.charCodeAt(p.index) == code ? p.advance() : null;
+            };
+        }           
+        get definition() : string { return '"' + escapeChars(this.text) + '"' }
+        cloneImplementation() : Rule { return new Text(this.text); }        
+    }
+
     // Creates a rule that is defined from a function that generates the rule. 
     // This allows two rules to have a cyclic relation. 
     export class Delay extends Rule 
@@ -579,7 +594,7 @@ module Myna
         constructor(public fn:()=>Rule) { 
             super([]); 
             let tmp = null;
-            this.parser = p => (tmp ? tmp : tmp = fn().getParser())(p);
+            this.parser = p => (tmp ? tmp : tmp = fn().parser)(p);
         }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "delay(" + this.fn() + ")"; }    
@@ -595,7 +610,7 @@ module Myna
         className = "Not";
         constructor(rule:Rule) { 
             super([rule]); 
-            let child = rule.getParser(); 
+            let child = rule.parser; 
             this.parser = p => child(p) ? null : p;
         }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
@@ -609,7 +624,7 @@ module Myna
         className = "At";
         constructor(rule:Rule) { 
             super([rule]); 
-            let child = rule.getParser(); 
+            let child = rule.parser; 
             this.parser = p => child(p) ? p : null;
         }
         cloneImplementation() : Rule { return new At(this.firstChild); }
@@ -756,7 +771,7 @@ module Myna
     export function charExcept(chars:string) { return notAtChar(chars).advance; }    
 
     // Returns true if one of the characters are present, and advances the parser position
-    export function char(chars:string) { return new CharSet(chars); }    
+    export function char(chars:string) { return chars.length == 1 ? new Char(chars) : new CharSet(chars); }    
 
     // Advances if one of the characters are present, or returns false
     export function range(min:string, max:string) { return new CharRange(min, max); }

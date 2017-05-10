@@ -95,7 +95,7 @@ var Myna;
     // by parsing the rule. 
     function parse(r, s) {
         var p = new ParseState(s, 0, new NodeBldr());
-        p = r.ast.getParser()(p);
+        p = r.ast.parser(p);
         return p ? p.nodes.toAst() : null;
     }
     Myna.parse = parse;
@@ -252,11 +252,6 @@ var Myna;
             // A parser function, computed in a rule's constructor
             this.parser = null;
         }
-        // Returns the parser function associated with the rule;
-        Rule.prototype.getParser = function () {
-            return this.parser;
-        };
-        ;
         // Defines the type of rules. Used for defining new rule types as combinators.
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
         Rule.prototype.setType = function (typeName) {
@@ -476,13 +471,12 @@ var Myna;
             _super.call(this, rules);
             this.type = "seq";
             this.className = "Sequence";
-            var parsers = this.rules.map(function (r) { return r.getParser(); });
+            var parsers = this.rules.map(function (r) { return r.parser; });
+            var len = parsers.length;
             this.parser = function (p) {
-                for (var _i = 0, parsers_1 = parsers; _i < parsers_1.length; _i++) {
-                    var parser = parsers_1[_i];
-                    if (!(p = parser(p)))
+                for (var i = 0; i < len; ++i)
+                    if (!(p = parsers[i](p)))
                         return null;
-                }
                 return p;
             };
         }
@@ -507,14 +501,13 @@ var Myna;
             _super.call(this, rules);
             this.type = "choice";
             this.className = "Choice";
-            var parsers = this.rules.map(function (p) { return p.getParser(); });
+            var parsers = this.rules.map(function (p) { return p.parser; });
+            var len = parsers.length;
             this.parser = function (p) {
                 var tmp = null;
-                for (var _i = 0, parsers_2 = parsers; _i < parsers_2.length; _i++) {
-                    var parser = parsers_2[_i];
-                    if (tmp = parser(p))
+                for (var i = 0; i < len; ++i)
+                    if (tmp = parsers[i](p))
                         return tmp;
-                }
                 return null;
             };
         }
@@ -544,7 +537,7 @@ var Myna;
             this.max = max;
             this.type = "quantified";
             this.className = "Quantified";
-            var pChild = this.firstChild.getParser();
+            var pChild = this.firstChild.parser;
             this.parser = function (p) {
                 var result = p;
                 for (var i = 0; i < max; ++i) {
@@ -611,14 +604,14 @@ var Myna;
             this.type = "lookup";
             this.className = "Lookup";
             var table = [];
-            var defaultParser = this.onDefault.getParser();
+            var defaultParser = this.onDefault.parser;
             for (var i = 0; i < 255; ++i)
                 table[i] = defaultParser;
             for (var k in lookup) {
                 if (k.length != 1)
                     throw new Error("A lookup table has to have exactly one element");
                 var val = k.charCodeAt(0);
-                table[val] = lookup[k].getParser();
+                table[val] = lookup[k].parser;
             }
             this.parser = function (p) {
                 if (!p.inRange)
@@ -709,6 +702,30 @@ var Myna;
         return Text;
     }(Rule));
     Myna.Text = Text;
+    // Used to match a single character in the input string 
+    var Char = (function (_super) {
+        __extends(Char, _super);
+        function Char(text) {
+            _super.call(this, []);
+            this.text = text;
+            this.type = "char";
+            this.className = "Char";
+            if (text.length != 1)
+                throw new Error("Expected a single character");
+            var code = text.charCodeAt(0);
+            this.parser = function (p) {
+                return p.input.charCodeAt(p.index) == code ? p.advance() : null;
+            };
+        }
+        Object.defineProperty(Char.prototype, "definition", {
+            get: function () { return '"' + escapeChars(this.text) + '"'; },
+            enumerable: true,
+            configurable: true
+        });
+        Char.prototype.cloneImplementation = function () { return new Text(this.text); };
+        return Char;
+    }(Rule));
+    Myna.Char = Char;
     // Creates a rule that is defined from a function that generates the rule. 
     // This allows two rules to have a cyclic relation. 
     var Delay = (function (_super) {
@@ -718,9 +735,8 @@ var Myna;
             this.fn = fn;
             this.type = "delay";
             this.className = "Delay";
-            // TODO: store fn().getParser() in a temp variable
             var tmp = null;
-            this.parser = function (p) { return (tmp ? tmp : tmp = fn().getParser())(p); };
+            this.parser = function (p) { return (tmp ? tmp : tmp = fn().parser)(p); };
         }
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
@@ -740,7 +756,7 @@ var Myna;
             _super.call(this, [rule]);
             this.type = "not";
             this.className = "Not";
-            var child = rule.getParser();
+            var child = rule.parser;
             this.parser = function (p) { return child(p) ? null : p; };
         }
         Not.prototype.cloneImplementation = function () { return new Not(this.firstChild); };
@@ -759,7 +775,7 @@ var Myna;
             _super.call(this, [rule]);
             this.type = "at";
             this.className = "At";
-            var child = rule.getParser();
+            var child = rule.parser;
             this.parser = function (p) { return child(p) ? p : null; };
         }
         At.prototype.cloneImplementation = function () { return new At(this.firstChild); };
@@ -975,7 +991,7 @@ var Myna;
     function charExcept(chars) { return notAtChar(chars).advance; }
     Myna.charExcept = charExcept;
     // Returns true if one of the characters are present, and advances the parser position
-    function char(chars) { return new CharSet(chars); }
+    function char(chars) { return chars.length == 1 ? new Char(chars) : new CharSet(chars); }
     Myna.char = char;
     // Advances if one of the characters are present, or returns false
     function range(min, max) { return new CharRange(min, max); }

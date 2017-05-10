@@ -32,20 +32,23 @@ function mergeLookups(r1, r2) {
     return new m.Lookup(lookup, onDefault);
 }
 
-function all(array, fxn) {
-    for (let x of array)
-        if (!fxn(x))
-            return false;
-    return true;
-}
-
 function convertToLookup(r) {
     if (r instanceof m.Lookup)
         return r;
     if (r instanceof m.Text) 
-        return m.char(r.text[0], r.text.slice(1));
+    {
+        let firstChar = r.text[0];
+        let tailText = r.text.length > 1 ? m.text(r.text.slice(1)) : m.advance;
+        let table = {};
+        table[firstChar] = tailText;
+        return m.Lookup(
+            table,
+            m.falsePredicate);
+    }
     if (r instanceof m.Sequence) {
         let result = convertToLookup(r.rules[0]);
+        if (!result)
+            return null;
         let tail = new m.Sequence(r.rules.slice(1));
         for (let k in result.lookup)
             result.lookup[k] = optimizeRule(result.lookup[k].then(tail));
@@ -53,23 +56,6 @@ function convertToLookup(r) {
         return result;
     }
     return null;
-}
-
-// Tries to convert all rules (assumed to be the child rules of a choice rule)
-// into lookups and to merge them. 
-function mergeAllToLookup(array) {
-    if (array.length == 0)
-        return null;
-    let result = convertToLookup(array[array.length-1]);
-    if (result == null)
-        return null;
-    for (let i=array.length - 2; i >= 0; --i) {
-        let tmp = convertToLookup(array[i]);
-        if (tmp == null)
-            return null;
-        result = mergeLookups(tmp, result)
-    }
-    return result;
 }
 
 // (a b* b) => (a b*)
@@ -216,16 +202,16 @@ function optimizeRule(r)
 
             // Heuristic:
             // Not([abc]) => [^abc];
-            if (child instanceof CharSet)
+            if (child instanceof m.CharSet)
                 return m.notAtChar(child.chars);
 
             // Heuristic:
             // Not([^abc]) => [abc];
-            if (child instanceof NegatedCharSet)
+            if (child instanceof m.NegatedCharSet)
                 return m.char(child.chars);
 
             // Not(Advance) => AtEnd
-            if (child instanceof Advance) 
+            if (child instanceof m.Advance) 
                 return m.atEnd;
         }
 
@@ -309,8 +295,15 @@ let o2 = optimizeRule(o.copy);
 
 // TODO: compre the two ASTs. I need a function for converting an AST to a string. 
 */
-timeParse(o, input);
-timeParse(o2, input);
+console.log("Unoptimized");
+for (let i = 0; i < 4; ++i) {
+    timeParse(o, input);
+}
+console.log("Optimized");
+for (let i = 0; i < 4; ++i) {
+    timeParse(o2, input);
+}
+console.log("Native")
 timeIt(function() { JSON.parse(input); });
 
 // console.log(r);
