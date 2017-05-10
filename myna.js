@@ -45,6 +45,8 @@ var Myna;
             this.input = input;
             this.index = index;
             this.nodes = nodes;
+            this.code = -1;
+            this.code = input.charCodeAt(index);
         }
         Object.defineProperty(ParseState.prototype, "inRange", {
             // Returns true if the index is within the input range. 
@@ -616,7 +618,7 @@ var Myna;
             this.parser = function (p) {
                 if (!p.inRange)
                     return null;
-                var tkn = p.input.charCodeAt(p.index);
+                var tkn = p.code;
                 var parser = table[tkn];
                 if (parser)
                     return parser(p);
@@ -685,12 +687,10 @@ var Myna;
             this.className = "Text";
             var length = text.length;
             this.parser = function (p) {
-                if (p.index > p.input.length - length)
-                    return null;
-                for (var i = 0; i < length; ++i)
-                    if (p.input.charCodeAt(p.index + i) !== text.charCodeAt(i))
+                for (var i = 0; i < length; ++i, p = p.advance())
+                    if (!p || p.code !== text.charCodeAt(i))
                         return null;
-                return p.advance(length);
+                return p;
             };
         }
         Object.defineProperty(Text.prototype, "definition", {
@@ -714,7 +714,7 @@ var Myna;
                 throw new Error("Expected a single character");
             var code = text.charCodeAt(0);
             this.parser = function (p) {
-                return p.input.charCodeAt(p.index) == code ? p.advance() : null;
+                return p.code == code ? p.advance() : null;
             };
         }
         Object.defineProperty(Char.prototype, "definition", {

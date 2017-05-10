@@ -38,12 +38,16 @@ module Myna
 
     // This stores the state of the parser and is passed to the parse and match functions.
     export class ParseState
-    {        
+    {
+        code = -1;
+
         constructor(
             public input:string, 
             public index:number,
             public nodes:NodeBldr)
-        { }
+        { 
+            this.code = input.charCodeAt(index);
+        }
         
         // Returns true if the index is within the input range. 
         get inRange() : boolean {
@@ -514,7 +518,7 @@ module Myna
             }
             this.parser = p => {
                 if (!p.inRange) return null;
-                let tkn = p.input.charCodeAt(p.index);
+                let tkn = p.code;
                 let parser = table[tkn];
                 if (parser) 
                     return parser(p);
@@ -555,12 +559,10 @@ module Myna
             super([]); 
             let length = text.length;
             this.parser = p => {
-                if (p.index > p.input.length - length)
-                    return null;
-                for (let i=0; i < length; ++i) 
-                    if (p.input.charCodeAt(p.index+i) !== text.charCodeAt(i))
+                for (let i=0; i < length; ++i, p = p.advance()) 
+                    if (!p || p.code !== text.charCodeAt(i))
                         return null;
-                return p.advance(length);
+                return p;
             };
         }           
         get definition() : string { return '"' + escapeChars(this.text) + '"' }
@@ -578,7 +580,7 @@ module Myna
                 throw new Error("Expected a single character");
             let code = text.charCodeAt(0);
             this.parser = p => {
-                return p.input.charCodeAt(p.index) == code ? p.advance() : null;
+                return p.code == code ? p.advance() : null;
             };
         }           
         get definition() : string { return '"' + escapeChars(this.text) + '"' }
