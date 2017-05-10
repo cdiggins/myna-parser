@@ -1117,7 +1117,7 @@ var Myna;
     Myna.space = text(" ");
     Myna.tab = text("\t");
     // TODO: figure out how to support unicode characters.
-    //export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
+    //export var ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
     Myna.ws = char(" \t\r\n").zeroOrMore;
     Myna.wordChar = Myna.letter.or(char("-'"));
     Myna.word = Myna.letter.then(Myna.wordChar.zeroOrMore);

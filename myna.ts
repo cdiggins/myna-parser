@@ -71,13 +71,13 @@ module Myna
 
         // Returns a string that helps debugging to figure out exactly where we are in the input string 
         get debugContext() : string {
-            let contextWidth = 5;
-            let start = this.index - contextWidth - 1;
+            var contextWidth = 5;
+            var start = this.index - contextWidth - 1;
             if (start < 0) start = 0;
-            let prefix = this.input.slice(start, this.index - 1);
-            let end = this.index + contextWidth;
+            var prefix = this.input.slice(start, this.index - 1);
+            var end = this.index + contextWidth;
             if (end >= this.input.length) end = this.input.length - 1;
-            let postfix = this.input.slice(this.index, end);
+            var postfix = this.input.slice(this.index, end);
             return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
         }
     }
@@ -86,7 +86,7 @@ module Myna
     // by parsing the rule. 
     export function parse(r : Rule, s : string) : AstNode
     {
-        let p = new ParseState(s, 0, new NodeBldr());        
+        var p = new ParseState(s, 0, new NodeBldr());        
         p = r.ast.parser(p);  
         return p ? p.nodes.toAst() : null;
     }
@@ -97,7 +97,7 @@ module Myna
     // flag set explicitly. 
     export function tokenize(r:Rule, s:string) : AstNode[]
     {
-        let result = this.parse(r.ast.zeroOrMore, s);
+        var result = this.parse(r.ast.zeroOrMore, s);
         return result ? result.children : [];
     }
         
@@ -105,13 +105,13 @@ module Myna
     // Internal variables used by the Myna library
 
     // A lookup table of all grammars registered with the Myna module 
-    export let grammars = {}
+    export var grammars = {}
 
     // A lookup table of all named rules registered with the Myna module
-    export let allRules = {}
+    export var allRules = {}
 
     // Generates a new ID for each rule 
-    let _nextId = 0;
+    var _nextId = 0;
     function genId() { 
         return _nextId++;
     }
@@ -168,7 +168,7 @@ module Myna
         // Returns the first child with the given name, or null if no named child is found. 
         child(name:string) : AstNode { 
             if (this.children)
-                for (let c of this.children) 
+                for (var c of this.children) 
                     if (c.name == name) return c; 
             return null; 
         }
@@ -284,7 +284,7 @@ module Myna
 
         // Returns a copy of this rule with all fields copied.  
         get copy() : Rule {
-            let r = this.cloneImplementation();
+            var r = this.cloneImplementation();
             if (typeof(r) !== typeof(this))
                 throw new Error("Error in implementation of cloneImplementation: not returning object of correct type");
             r.name = this.name;
@@ -297,11 +297,11 @@ module Myna
         // Returns a copy of the rule that will create a node in the parse tree.
         // This property is the only way to create rules that generate nodes in a parse tree. 
         get ast() : Rule {
-            let r = this.copy;
+            var r = this.copy;
             r._createAstNode = true;
-            let parser = r.parser;
+            var parser = r.parser;
             r.parser = p => {
-                let result = parser(p);
+                var result = parser(p);
                 if (result == null) return null;
                 return result.addNode(r, p); 
             }
@@ -323,11 +323,11 @@ module Myna
         // Returns a string that describes the AST nodes created by this rule.
         // Will throw an exception if this is not a valid AST rule (this.isAstRule != true)
         get astRuleDefn() : string {    
-            let rules = this.rules.filter(r => r.isAstRule);        
+            var rules = this.rules.filter(r => r.isAstRule);        
             if (!rules.length)
                 return this.name;
             if (rules.length == 1) {
-                let result = rules[0].astRuleNameOrDefn;
+                var result = rules[0].astRuleNameOrDefn;
                 if (this instanceof Quantified)
                     result += "[" + this.min + "," + this.max + "]";     
                 return result;
@@ -392,8 +392,8 @@ module Myna
 
         constructor(rules:Rule[]) { 
             super(rules); 
-            let parsers = this.rules.map(r => r.parser);
-            let len = parsers.length;
+            var parsers = this.rules.map(r => r.parser);
+            var len = parsers.length;
             this.parser = p => {
                 for (var i = 0; i < len; ++i) 
                     if (!(p = parsers[i](p))) 
@@ -403,7 +403,7 @@ module Myna
         }
 
         get definition() : string {
-            let result = this.rules.map((r) => r.toString()).join(" ");
+            var result = this.rules.map((r) => r.toString()).join(" ");
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
@@ -420,10 +420,10 @@ module Myna
 
         constructor(rules:Rule[]) { 
             super(rules);
-            let parsers = this.rules.map(p => p.parser);
-            let len = parsers.length;
+            var parsers = this.rules.map(p => p.parser);
+            var len = parsers.length;
             this.parser = p => {
-                let tmp = null;
+                var tmp = null;
                 for (var i = 0; i < len; ++i) 
                     if (tmp = parsers[i](p)) 
                         return tmp;
@@ -432,7 +432,7 @@ module Myna
         }
 
         get definition() : string {
-            let result = this.rules.map((r) => r.toString()).join(" / ");
+            var result = this.rules.map((r) => r.toString()).join(" / ");
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
@@ -450,11 +450,11 @@ module Myna
        
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { 
             super([rule]); 
-            let pChild = this.firstChild.parser;
+            var pChild = this.firstChild.parser;
             this.parser = p => {
-                let result = p;
-                for (let i=0; i < max; ++i) {
-                    let tmp = pChild(result);
+                var result = p;
+                for (var i=0; i < max; ++i) {
+                    var tmp = pChild(result);
 
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
@@ -506,20 +506,20 @@ module Myna
         className = "Lookup";
         constructor(public lookup:any, public onDefault:Rule) { 
             super([]); 
-            let table = [];
-            let defaultParser = this.onDefault.parser;
-            for (let i=0;i<255;++i)
+            var table = [];
+            var defaultParser = this.onDefault.parser;
+            for (var i=0;i<255;++i)
                 table[i] = defaultParser;
-            for (let k in lookup) {
+            for (var k in lookup) {
                 if (k.length != 1)
                     throw new Error("A lookup table has to have exactly one element");
-                let val = k.charCodeAt(0);
+                var val = k.charCodeAt(0);
                 table[val] = lookup[k].parser;
             }
             this.parser = p => {
                 if (!p.inRange) return null;
-                let tkn = p.code;
-                let parser = table[tkn];
+                var tkn = p.code;
+                var parser = table[tkn];
                 if (parser) 
                     return parser(p);
                 return defaultParser(p);
@@ -557,9 +557,9 @@ module Myna
         className = "Text";
         constructor(public text:string) { 
             super([]); 
-            let length = text.length;
+            var length = text.length;
             this.parser = p => {
-                for (let i=0; i < length; ++i, p = p.advance()) 
+                for (var i=0; i < length; ++i, p = p.advance()) 
                     if (!p || p.code !== text.charCodeAt(i))
                         return null;
                 return p;
@@ -578,7 +578,7 @@ module Myna
             super([]); 
             if (text.length != 1) 
                 throw new Error("Expected a single character");
-            let code = text.charCodeAt(0);
+            var code = text.charCodeAt(0);
             this.parser = p => {
                 return p.code == code ? p.advance() : null;
             };
@@ -595,7 +595,7 @@ module Myna
         className = "Delay";
         constructor(public fn:()=>Rule) { 
             super([]); 
-            let tmp = null;
+            var tmp = null;
             this.parser = p => (tmp ? tmp : tmp = fn().parser)(p);
         }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
@@ -612,7 +612,7 @@ module Myna
         className = "Not";
         constructor(rule:Rule) { 
             super([rule]); 
-            let child = rule.parser; 
+            var child = rule.parser; 
             this.parser = p => child(p) ? null : p;
         }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
@@ -626,7 +626,7 @@ module Myna
         className = "At";
         constructor(rule:Rule) { 
             super([rule]); 
-            let child = rule.parser; 
+            var child = rule.parser; 
             this.parser = p => child(p) ? p : null;
         }
         cloneImplementation() : Rule { return new At(this.firstChild); }
@@ -848,38 +848,38 @@ module Myna
     //===============================================================    
     // Core grammar rules 
         
-    export let truePredicate    = new TruePredicate();
-    export let falsePredicate   = new FalsePredicate();
-    export let end              = new AtEndPredicate();
-    export let notEnd           = end.not;
-    export let advance          = new Advance();   
-    export let all              = advance.zeroOrMore;
-    export let letterLower      = range('a','z');
-    export let letterUpper      = range('A','Z');
-    export let letter           = choice(letterLower, letterUpper);
-    export let letters          = letter.oneOrMore;
-    export let digit            = range('0', '9');
-    export let digits           = digit.oneOrMore;
-    export let digitNonZero     = range('1', '9');
-    export let integer          = choice('0', seq(digitNonZero, digit.zeroOrMore));
-    export let hexDigit         = choice(digit,range('a','f'), range('A','F'));
-    export let binaryDigit      = char('01');
-    export let octalDigit       = range('0','7');
-    export let alphaNumeric     = choice(letter, digit);
-    export let underscore       = text("_");
-    export let identifierFirst  = choice(letter, underscore);
-    export let identifierNext   = choice(alphaNumeric, underscore);     
-    export let identifier       = seq(identifierFirst, identifierNext.zeroOrMore);     
-    export let hyphen           = text("-");
-    export let crlf             = text("\r\n");
-    export let newLine          = choice(crlf, "\n");          
-    export let space            = text(" ");
-    export let tab              = text("\t");    
+    export var truePredicate    = new TruePredicate();
+    export var falsePredicate   = new FalsePredicate();
+    export var end              = new AtEndPredicate();
+    export var notEnd           = end.not;
+    export var advance          = new Advance();   
+    export var all              = advance.zeroOrMore;
+    export var letterLower      = range('a','z');
+    export var letterUpper      = range('A','Z');
+    export var letter           = choice(letterLower, letterUpper);
+    export var letters          = letter.oneOrMore;
+    export var digit            = range('0', '9');
+    export var digits           = digit.oneOrMore;
+    export var digitNonZero     = range('1', '9');
+    export var integer          = choice('0', seq(digitNonZero, digit.zeroOrMore));
+    export var hexDigit         = choice(digit,range('a','f'), range('A','F'));
+    export var binaryDigit      = char('01');
+    export var octalDigit       = range('0','7');
+    export var alphaNumeric     = choice(letter, digit);
+    export var underscore       = text("_");
+    export var identifierFirst  = choice(letter, underscore);
+    export var identifierNext   = choice(alphaNumeric, underscore);     
+    export var identifier       = seq(identifierFirst, identifierNext.zeroOrMore);     
+    export var hyphen           = text("-");
+    export var crlf             = text("\r\n");
+    export var newLine          = choice(crlf, "\n");          
+    export var space            = text(" ");
+    export var tab              = text("\t");    
     // TODO: figure out how to support unicode characters.
-    //export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
-    export let ws               = char(" \t\r\n").zeroOrMore;    
-    export let wordChar         = letter.or(char("-'"));
-    export let word             = letter.then(wordChar.zeroOrMore);    
+    //export var ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
+    export var ws               = char(" \t\r\n").zeroOrMore;    
+    export var wordChar         = letter.or(char("-'"));
+    export var word             = letter.then(wordChar.zeroOrMore);    
         
     //===============================================================
     // Grammar functions 
@@ -915,14 +915,14 @@ module Myna
     // Given a rule will output the full structure of the rule as a JSON object  
     // This is useful for debugging rules and rule transformations 
     export function ruleStructure(rule:Rule) : any {        
-        let r = { class:rule.className };
+        var r = { class:rule.className };
         if (rule.name)
             r['name'] = rule.name;
         if (rule instanceof Text)
             return "Text:" + rule.text;
         if (rule instanceof Lookup) {
             r['lookup'] = {}; 
-            for (let r2 in rule.lookup)
+            for (var r2 in rule.lookup)
                 //r['lookup'][r2] = ruleStructure(rule.lookup[r2]);
                 r['lookup'][r2] = rule.lookup[r2].className;
             r['default'] = ruleStructure(rule.onDefault);
@@ -946,9 +946,9 @@ module Myna
     // name of the grammar. Each rule is stored in Myna.rules and each grammar is stored in Myna.grammars. 
     export function registerGrammar(grammarName:string, grammar:any)
     {
-        for (let k in grammar) {
+        for (var k in grammar) {
             if (grammar[k] instanceof Rule) {
-                let rule = grammar[k];
+                var rule = grammar[k];
                 rule.setName(grammarName, k);
                 allRules[rule.fullName] = rule;
             }
@@ -962,16 +962,16 @@ module Myna
 
     // Replaces characters with the JSON escaped version
     export function escapeChars(text:string) {
-        let r = JSON.stringify(text);
+        var r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
     }
 
     // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
     function charsToDictionary(chars:string, rule:RuleType)
     {
-        let d = {};
-        let tokens = chars.split("");
-        for (let t of tokens) 
+        var d = {};
+        var tokens = chars.split("");
+        for (var t of tokens) 
             d[t] = RuleTypeToRule(rule);
         return d;
     }
@@ -981,10 +981,10 @@ module Myna
     {
         if (min.length != 1 || max.length != 1)
             throw new Error("rangeToDictionary requires characters as inputs");
-        let d = {};
-        let a = min.charCodeAt(0);
-        let b = max.charCodeAt(0);
-        for (let i=a; i <= b; ++i)  
+        var d = {};
+        var a = min.charCodeAt(0);
+        var b = max.charCodeAt(0);
+        for (var i=a; i <= b; ++i)  
             d[String.fromCharCode(i)] = RuleTypeToRule(rule);
         return d;
     }
@@ -999,6 +999,6 @@ module Myna
 // Export the function for use with Node.js and the CommonJS module system. 
 // In TypeScript we have to "declare" the module variable to make it a valid symbol, 
 // before we check if it exists. 
-declare let module;
+declare var module;
 if (typeof module === "object" && module.exports) 
     module.exports = Myna;
