@@ -18,18 +18,26 @@ function CreateJsonGrammar(myna)
         this.exponent       = m.seq(m.char("eE"), this.plusOrMinus.opt, m.digits); 
         this.comma          = m.text(",").ws;  
 
-        // The following rules create nodes in the abstract syntax tree 
-        
-        // Using a lazy evaluation rule to allow recursive rule definitions  
-        let _this = this; 
-        this.value = m.delay(function() { 
-            return m.choice(_this.string, _this.number, _this.object, _this.array, _this.bool, _this.null); 
-        }).ast;
-
+        // The following rules create nodes in the abstract syntax tree     
         this.string         = m.doubleQuoted(this.quoteChar.zeroOrMore).ast;
         this.null           = m.keyword("null").ast;
-        this.bool           = m.keywords("true", "false").ast;
+        this.true           = m.keyword("true").ast;
+        this.false          = m.keyword("false").ast;
         this.number         = m.seq(this.plusOrMinus.opt, m.integer, this.fraction.opt, this.exponent.opt).ast;
+
+        let _this = this;
+        this.value = m.lookup(
+            {
+                "[": m.delay(() => _this.array),
+                "{": m.delay(() => _this.object),
+                "t": this.true,
+                "f": this.false,
+                "n": this.null,
+                '"': this.string,
+            },
+            this.number
+        );
+
         this.array          = m.bracketed(m.delimited(this.value.ws, this.comma)).ast;
         this.pair           = m.seq(this.string, m.ws, ":", m.ws, this.value.ws).ast;
         this.object         = m.braced(m.delimited(this.pair.ws, this.comma)).ast;
