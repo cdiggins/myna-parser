@@ -64,6 +64,11 @@ module Myna
             return new ParseState(this.input, this.index+n, this.nodes);
         }
 
+        // A stateful advance function 
+        _advance() {
+            this.code = this.input.charCodeAt(++this.index);
+        }
+
         // Creates a new ParseState with a node added to it.
         addNode(rule:Rule, begin:ParseState):ParseState {
             return new ParseState(this.input, this.index, this.nodes.addNode(rule, begin, this));
@@ -393,9 +398,8 @@ module Myna
         constructor(rules:Rule[]) { 
             super(rules); 
             var parsers = this.rules.map(r => r.parser);
-            var len = parsers.length;
             this.parser = p => {
-                for (var i = 0; i < len; ++i) 
+                for (var i = 0, len = parsers.length; i < len; ++i) 
                     if (!(p = parsers[i](p))) 
                         return null;
                 return p;
@@ -420,11 +424,11 @@ module Myna
 
         constructor(rules:Rule[]) { 
             super(rules);
+            var length = rules.length;
             var parsers = this.rules.map(p => p.parser);
-            var len = parsers.length;
             this.parser = p => {
                 var tmp = null;
-                for (var i = 0; i < len; ++i) 
+                for (var i = 0, len = length; i < len; ++i) 
                     if (tmp = parsers[i](p)) 
                         return tmp;
                 return null;
@@ -452,24 +456,23 @@ module Myna
             super([rule]); 
             var pChild = this.firstChild.parser;
             this.parser = p => {
-                var result = p;
                 for (var i=0; i < max; ++i) {
-                    var tmp = pChild(result);
+                    var tmp = pChild(p);
 
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
                     if (tmp == null) 
-                        return i >= min ? result : null;
+                        return i >= min ? p : null;
 
                     // Check for progress, to assure we aren't hitting an infinite loop  
                     // Without this it is possible to accidentally put a zeroOrMore with a predicate.
                     // For example: myna.truePredicate.zeroOrMore would loop forever 
-                    if (max === Infinity && result.index === tmp.index)
+                    if (i === 1 && max === Infinity && tmp.index === p.index)
                         throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
 
-                    result = tmp;
+                    p = tmp;
                 }            
-                return result;
+                return p;
             };
         }
 
@@ -509,7 +512,7 @@ module Myna
             var table = [];
             var defaultParser = this.onDefault.parser;
             for (var i=0;i<255;++i)
-                table[i] = defaultParser;
+                table.push(defaultParser);
             for (var k in lookup) {
                 if (k.length != 1)
                     throw new Error("A lookup table has to have exactly one element");
@@ -520,9 +523,7 @@ module Myna
                 if (!p.inRange) return null;
                 var tkn = p.code;
                 var parser = table[tkn];
-                if (parser) 
-                    return parser(p);
-                return defaultParser(p);
+                return parser ? parser(p) : defaultParser(p);
             };
         }           
         get definition() : string {
@@ -532,20 +533,41 @@ module Myna
     }
 
     // A specialization of the lookup 
-    export class CharSet extends Lookup {
+    export class CharSet extends Rule {
         type = "charSet";
         className = "CharSet";
-        constructor(public chars:string) { super(charsToDictionary(chars, advance), falsePredicate); }
+        constructor(public chars:string) { 
+            super([]);
+            let vals = [];
+            let length = chars.length;
+            for (var i=0; i < length; ++i)
+                vals[i] = chars.charCodeAt(i);
+            this.parser = p => { 
+                let code = p.code;
+                for (let i=0, len = length; i < len; ++i) 
+                    if (code === vals[i])
+                        return p.advance();
+                return null;
+            }
+        }
         get definition() : string { return "[" + escapeChars(this.chars) + "]"};
         cloneImplementation() : Rule { return new CharSet(this.chars); }        
     }
 
     // A specialization of the lookup 
     // Advances if the current token is within a range of characters, otherwise returns false
-    export class CharRange extends Lookup {
+    export class CharRange extends Rule {
         type = "charRange";
         className = "CharRange";
-        constructor(public min:string, public max:string) { super(charRangeToDictionary(min, max, advance), falsePredicate); }
+        constructor(public min:string, public max:string) { 
+            super([]);
+            let minCode = min.charCodeAt(0);
+            let maxCode = max.charCodeAt(0);
+            this.parser = p => { 
+                let code = p.code;
+                return code >= minCode && code <= maxCode ? p.advance() : null;
+            }
+        }
         get definition() : string { return "[" + this.min + ".." + this.max + "]"};
         cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
     }
@@ -558,10 +580,17 @@ module Myna
         constructor(public text:string) { 
             super([]); 
             var length = text.length;
+            var vals = [];
+            for (var i=0; i < length; ++i)
+                vals.push(text.charCodeAt(i));
             this.parser = p => {
-                for (var i=0; i < length; ++i, p = p.advance()) 
-                    if (!p || p.code !== text.charCodeAt(i))
+                if (p.code !== vals[0]) return null;
+                p = p.advance();
+                for (var i=1; i < length; ++i) {
+                    if (p.code !== vals[i])
                         return null;
+                    p._advance();
+                }
                 return p;
             };
         }           
@@ -580,7 +609,7 @@ module Myna
                 throw new Error("Expected a single character");
             var code = text.charCodeAt(0);
             this.parser = p => {
-                return p.code == code ? p.advance() : null;
+                return p.code === code ? p.advance() : null;
             };
         }           
         get definition() : string { return '"' + escapeChars(this.text) + '"' }
@@ -599,8 +628,20 @@ module Myna
             this.parser = p => (tmp ? tmp : tmp = fn().parser)(p);
         }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
-        get definition() : string { return "delay(" + this.fn() + ")"; }    
+        get definition() : string { return "<delay>"; }    
     } 
+
+    export class Custom extends Rule 
+    {
+        type = "custom";
+        className = "Custom";
+        constructor(public fn:(ParseState)=>ParseState) { 
+            super([]); 
+            this.parser = fn;
+        }
+        cloneImplementation() : Rule { return new Custom(this.fn); }    
+        get definition() : string { return "<custom>"; }    
+    }
 
     //=======================================
     // Zero length rules: they don't create nodes 
@@ -714,8 +755,13 @@ module Myna
 
     // Enables Rules to be defined in terms of variables that are defined later on.
     // This enables recursive rule definitions.  
-    export function delay(fxn:()=>RuleType) { 
-        return new Delay(() => RuleTypeToRule(fxn())); 
+    export function delay(fxn:()=>Rule) { 
+        return new Delay(fxn); 
+    }
+
+    // Enables custom parsers to be created
+    export function custom(fxn:(ParseState)=>ParseState) { 
+        return new Custom(fxn); 
     }
 
     // Parses successfully if the given rule does not match the input at the current location  
@@ -862,7 +908,7 @@ module Myna
     export var digits           = digit.oneOrMore;
     export var digitNonZero     = range('1', '9');
     export var integer          = choice('0', seq(digitNonZero, digit.zeroOrMore));
-    export var hexDigit         = choice(digit,range('a','f'), range('A','F'));
+    export var hexDigit         = choice(digit, range('a','f'), range('A','F'));
     export var binaryDigit      = char('01');
     export var octalDigit       = range('0','7');
     export var alphaNumeric     = choice(letter, digit);

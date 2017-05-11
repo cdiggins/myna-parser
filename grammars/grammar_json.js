@@ -21,22 +21,87 @@ function CreateJsonGrammar(myna)
         // The following rules create nodes in the abstract syntax tree     
         this.string         = m.doubleQuoted(this.quoteChar.zeroOrMore).ast;
         this.null           = m.keyword("null").ast;
-        this.true           = m.keyword("true").ast;
-        this.false          = m.keyword("false").ast;
+        this.bool           = m.keywords("true", "false").ast;
         this.number         = m.seq(this.plusOrMinus.opt, m.integer, this.fraction.opt, this.exponent.opt).ast;
 
-        let _this = this;
-        this.value = m.lookup(
+        let backslash = "\\".charCodeAt(0);
+        let quote = '"'.charCodeAt(0);
+        let slash = '/'.charCodeAt(0);
+        let u = 'u'.charCodeAt(0);
+        let b = 'b'.charCodeAt(0);
+        let f = 'f'.charCodeAt(0);
+        let n = 'n'.charCodeAt(0);
+        let r = 'b'.charCodeAt(0);
+        let t = 't'.charCodeAt(0);
+        
+        this.string = m.custom(p => {
+            if (p.code !== quote)
+                return null;
+            p = new m.ParseState(p.input, p.index+1, p.nodes);
+            while (p.code !== quote && p.inRange)
             {
-                "[": m.delay(() => _this.array),
-                "{": m.delay(() => _this.object),
-                "t": this.true,
-                "f": this.false,
-                "n": this.null,
-                '"': this.string,
-            },
-            this.number
-        );
+                if (p.code === backslash)
+                {
+                    // [\]
+                    p._advance();
+
+                    if (p.code === u)
+                    {
+                        // [u]
+                        p._advance();
+                        // 4 hex-digit
+                        p._advance();
+                        p._advance();
+                        p._advance();
+                        p._advance();
+                    }
+                    else {
+                        // [brntf\"]
+                        p._advance();
+                    }
+                }
+                else {
+                    p._advance();
+                }
+            }
+            if (!p.inRange)
+                return null;
+            p._advance();
+            return p;
+        });
+            
+        let plus = "+".charCodeAt(0);
+        let minus = "-".charCodeAt(0);
+        let zero = "0".charCodeAt(0);
+        let nine = "9".charCodeAt(0);
+        let dot = ".".charCodeAt(0);
+        let e = "e".charCodeAt(0);
+        let E = "E".charCodeAt(0);
+        
+        this.number = m.custom(p => {
+            if (p.code !== plus && p.code !== minus && (p.code < zero || p.code > nine))
+                return null;
+            p = new m.ParseState(p.input, p.index+1, p.nodes);
+            while (p.code >= zero && p.code <= nine) p._advance();
+            if (p.code === dot)
+            {
+                p._advance();
+                while (p.code >= zero && p.code <= nine) p._advance();
+            }
+            if (p.code === e || p.code === E)
+            {
+                p._advance();
+                if (p.code === plus || p.code === minus) p._advance();
+                while (p.code >= zero && p.code <= nine) p._advance();
+            }
+            return p;
+        });
+            
+        let _this = this;
+        this.value = m.choice(this.string, this.bool, this.null, this.number, 
+            // Using a lazy evaluation rule to allow recursive rule definitions  
+            m.delay(function() { return m.choice(_this.object, _this.array); 
+        }));
 
         this.array          = m.bracketed(m.delimited(this.value.ws, this.comma)).ast;
         this.pair           = m.seq(this.string, m.ws, ":", m.ws, this.value.ws).ast;

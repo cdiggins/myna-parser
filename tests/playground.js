@@ -61,6 +61,7 @@ function convertToLookup(r) {
 // (a b* b) => (a b*)
 // (a b+ b) => (b)
 
+/*
 function optimizeRule(r) 
 {
     if (r instanceof m.Quantified)
@@ -255,6 +256,63 @@ function optimizeRule(r)
         return r;                
     }
 
+    return r;
+}
+*/
+
+function optimizeRule(r) 
+{
+    if (r instanceof m.Sequence)
+    {
+        let tmp = [];
+
+        for (let i=0; i < r.rules.length; ++i) {
+            let r2 = optimizeRule(r.rules[i]);
+
+            // Heuristic: Sequence flattening 
+            // (a (b c)) => (a b c)
+            if (!r2._createAstNode && r2 instanceof m.Sequence) 
+                tmp = tmp.concat(r2.rules); 
+            else 
+                tmp.push(r2);
+        }
+
+        r.rules = tmp;
+    }
+    else if (r instanceof m.Choice)
+    {
+        let tmp = [];
+
+        for (let i=0; i < r.rules.length; ++i) {
+            let r2 = optimizeRule(r.rules[i]);
+
+            // Heuristic: Choice flattening
+            // (a\(b\c)) => (a\b\c)
+            if (r2 instanceof m.Choice) 
+                tmp = tmp.concat(r2.rules);
+            else 
+                tmp.push(r2);
+        }
+
+        /*
+        // Filter the new list of rules
+        for (let i = tmp.length-1; i >= 1; --i) {
+            let r1 = tmp[i-1];
+            let r2 = tmp[i];
+
+            if (r1 instanceof CharSet && r2 instanceof CharSet)
+            {
+                let text = r1.text + r2.text;
+                tmp[i-1] = m.chars(text);
+                tmp.splice(i, 1);
+            }
+        }
+        */
+
+        // TODO: can I convert the things to lookups? 
+
+        r.rules = tmp;
+    }
     return r;
 }
 
