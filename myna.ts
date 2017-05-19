@@ -121,37 +121,6 @@ module Myna
     // For convenience this enables strings and boolean to be used interchangably with Rules in the combinators.
     export type RuleType = Rule | string | boolean;
 
-    //===============================================================
-    // Main Myna functions 
-
-    // Returns the root node of the abstract syntax tree created 
-    // by parsing the rule. 
-    export function parse(r : Rule, s : string) : AstNode
-    {
-        var p = new ParseState(s, 0, new NodeBldr());        
-        p = r.ast.parser(p);  
-        return p ? p.nodes.toAst() : null;
-    }
-
-    // Returns an array of nodes created by parsing the given rule repeatedly until 
-    // it fails or the end of the input is arrived. One Astnode is created for each time 
-    // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
-    // flag set explicitly. 
-    export function tokenize(r:Rule, s:string) : AstNode[]
-    {
-        var result = this.parse(r.ast.zeroOrMore, s);
-        return result ? result.children : [];
-    }
-        
-    // Given a RuleType returns an instance of a Rule.
-    export function RuleTypeToRule(rule:RuleType) : Rule {
-        if (rule instanceof Rule) return rule;
-        if (typeof(rule) === "string") return text(rule);
-        if (typeof(rule) === "boolean") return rule ? truePredicate : falsePredicate;
-        throw new Error("Invalid rule type: " + rule);
-    }     
-
-
     // Represents a node in the generated parse tree. These nodes are returned by the Rule.parse function. If a Rule 
     // has the "_createAstNode" field set to true (because you created the rule using the ".ast" property), then the 
     // generated node will also be added to the constructed parse tree.   
@@ -324,16 +293,14 @@ module Myna
             return r;
         }
 
-        //  Returns true if any of the child rules are "ast rules" meaning they create nodes in the 
-        // parse tree.
+        // Returns true if any of the child rules are "ast rules" meaning they create nodes in the parse tree.
         get hasAstChildRule() : boolean {
             return this.rules.filter(r => r.isAstRule).length > 0;
         }
 
         // Returns true if this rule when parsed successfully will create a node in the parse tree 
         get isAstRule() : boolean{
-            return this._createAstNode || (this.hasAstChildRule 
-            && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+            return this._createAstNode || (this.hasAstChildRule && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
         }
 
         // Returns a string that describes the AST nodes created by this rule.
@@ -591,7 +558,7 @@ module Myna
                 let code = p.code;
                 return code >= minCode && code <= maxCode;
             }
-            this.parser = p => this.lexer(p) ? p : null;
+            this.parser = lexerToParser(this.lexer);
         }
         get definition() : string { return "[" + this.min + ".." + this.max + "]"};
         cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
@@ -620,7 +587,7 @@ module Myna
                 }
                 return true;
             }
-            this.parser = p => this.lexer(p) ? p : null;
+            this.parser = lexerToParser(this.lexer);
         }           
         get definition() : string { return '"' + escapeChars(this.text) + '"' }
         cloneImplementation() : Rule { return new Text(this.text); }        
@@ -652,7 +619,7 @@ module Myna
             super([rule]); 
             var childLexer = rule.lexer; 
             this.lexer = p => { let index = p.index; if (childLexer(p)) { p.index = index; return false; } return true; }
-            this.parser = p => this.lexer(p) ? null : p;
+            this.parser = lexerToParser(this.lexer);
         }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
         get definition() : string { return "!" + this.firstChild.toString(); }
@@ -667,7 +634,7 @@ module Myna
             super([rule]); 
             var childLexer = rule.lexer; 
             this.lexer = p => { let index = p.index; if (!childLexer(p)) { p.index = index; return false; } return true; }
-            this.parser = p => this.lexer(p) ? null : p;
+            this.parser = lexerToParser(this.lexer);
         }
         cloneImplementation() : Rule { return new At(this.firstChild); }
         get definition() : string { return "&" + this.firstChild.toString(); }
@@ -681,7 +648,7 @@ module Myna
         constructor(public fn:(p:ParseState)=>boolean) {
             super([]); 
             this.lexer = fn;
-            this.parser = p => this.lexer(p) ? p : null;
+            this.parser = lexerToParser(this.lexer);
         }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
         get definition() : string { return "<predicate>"; }
@@ -853,6 +820,28 @@ module Myna
     export var ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
         
     //===============================================================
+    // Parsing function 
+    
+    // Returns an array of nodes created by parsing the given rule repeatedly until 
+    // it fails or the end of the input is arrived. One Astnode is created for each time 
+    // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
+    // flag set explicitly. 
+    export function tokenize(r:Rule, s:string) : AstNode[]
+    {
+        var result = this.parse(r.ast.zeroOrMore, s);
+        return result ? result.children : [];
+    }
+
+    // Returns the root node of the abstract syntax tree created 
+    // by parsing the rule. 
+    export function parse(r : Rule, s : string) : AstNode
+    {
+        var p = new ParseState(s, 0, new NodeBldr());        
+        p = r.ast.parser(p);  
+        return p ? p.nodes.toAst() : null;
+    }
+
+    //===============================================================
     // Grammar functions 
     
     // The following are helper functions for grammar objects. A grammar is a loosely defined concept.
@@ -913,27 +902,17 @@ module Myna
         return r.slice(1, r.length - 1);
     }
 
-    // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
-    function charsToDictionary(chars:string, rule:RuleType)
-    {
-        var d = {};
-        var tokens = chars.split("");
-        for (var t of tokens) 
-            d[t] = RuleTypeToRule(rule);
-        return d;
-    }
+    // Given a RuleType returns an instance of a Rule.
+    export function RuleTypeToRule(rule:RuleType) : Rule {
+        if (rule instanceof Rule) return rule;
+        if (typeof(rule) === "string") return text(rule);
+        if (typeof(rule) === "boolean") return rule ? truePredicate : falsePredicate;
+        throw new Error("Invalid rule type: " + rule);
+    }     
 
-    // Creates a dictionary from a range of tokens, mapping each one to the same rule.     
-    function charRangeToDictionary(min:string, max:string, rule:RuleType)
-    {
-        if (min.length != 1 || max.length != 1)
-            throw new Error("rangeToDictionary requires characters as inputs");
-        var d = {};
-        var a = min.charCodeAt(0);
-        var b = max.charCodeAt(0);
-        for (var i=a; i <= b; ++i)  
-            d[String.fromCharCode(i)] = RuleTypeToRule(rule);
-        return d;
+    // Given a lexer function, returns a parser function
+    export function lexerToParser(lexer:(ParseState)=>boolean) :  (ParseState)=>ParseState {
+        return p => lexer(p) ? p : null;        
     }
 
     //===========================================================================
