@@ -79,20 +79,20 @@ function CreateJsonGrammar(myna)
         let E = "E".charCodeAt(0);
         
         this.number = m.custom(p => {
-            if (p.code !== plus && p.code !== minus && (p.code < zero || p.code > nine))
+            if (!p.atPlus && !p.atMinus && !p.atDigit)
                 return null;
-            p = new m.ParseState(p.input, p.index+1, p.nodes);
-            while (p.code >= zero && p.code <= nine) p._advance();
-            if (p.code === dot)
+            p = p.advance();
+            while (p.atDigit) p._advance();
+            if (p.atDot)
             {
                 p._advance();
-                while (p.code >= zero && p.code <= nine) p._advance();
+                while (p.atDigit) p._advance();
             }
             if (p.code === e || p.code === E)
             {
                 p._advance();
-                if (p.code === plus || p.code === minus) p._advance();
-                while (p.code >= zero && p.code <= nine) p._advance();
+                if (p.atPlus || p.atMinus) p._advance();
+                while (p.atDigit) p._advance();
             }
             return p;
         });
