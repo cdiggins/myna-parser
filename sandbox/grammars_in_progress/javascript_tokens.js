@@ -27,7 +27,7 @@ function JavaScriptTokenGrammar(myna)
         
     this.futureKeywords = m.keywords("enum await implements package protected interface private public".split(" "));
 
-    this.punctuator = m.seq("{ ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ++ -- << >> >>> & | ^ ! ~ && || ? : = += -= *= %= <<= >>= >>>= &= |= ^= => ** **=".split(" "));
+    this.punctuator = m.choice("{ ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ++ -- << >> >>> & | ^ ! ~ && || ? : = += -= *= %= <<= >>= >>>= &= |= ^= => ** **=".split(" "));
     
     this.divPunctuator = m.seq("/", "/=");
     this.rightBrace = m.text("}");

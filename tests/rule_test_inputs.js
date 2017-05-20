@@ -8,6 +8,7 @@ function RuleTestInputs(myna)
     let cg = m.grammars.csv;
     let mdg = m.grammars.markdown;
     let tg = m.grammars.template;
+    let lg = m.grammars.lucene;
 
     let records = [
             'Stock Name,Country of Listing,Ticker,Margin Rate,Go Short?,Limited Risk Premium',
@@ -195,8 +196,23 @@ function RuleTestInputs(myna)
         [tg.invertedSection, ['{{^abc}}{{/abc}}', '{{^nsection}}stuff{{/nsection}}', '{{^nsection}}{{#nested}}more stuff{{/nested}}some {{/nsection}}'], ['{{abc}}', '{{abc}}{{/abc}}', '{{abc}}{{/abc}}']],
         [tg.plainText, ['', 'abc', '{}', '}}', '{', 'abc \n{}  \t }}}',], ['{{', 'abc {{']],
         [tg.document, ['', 'abc', '{{abc}}', 'ab\ncd', 'something{{#section}}{{var}}{{/section}}{{anothervar}}something else\nparagraph\n{{#section 2}}yes another\n one{}{{/section 2}}'], []],
+
+        // Lucene query grammar
+        [lg.query, [
+            '{!}solr rocks', '{!func}popularity', '{!q.op=AND df=title}solr rocks', "{!type=dismax qf='myfield yourfield'}solr rocks", '{!type=dismax qf="myfield yourfield"}solr rocks', 
+            '{!dismax qf=myfield}solr rocks', '{!type=dismax qf=myfield}solr rocks', "{!type=dismax qf=myfield v='solr rocks'}", '{!type=dismax qf=myfield v=$qq}&qq=solr rocks',
+            '{!lucene q.op=AND df=text}myfield:foo +bar -baz', ],
+            ['{}solr rocks', '{!solr rocks', '!{}solr rocks']]        
+        ],
+        [lg.term, ['te?t', 'test*', 'te*t', 'roam~', 'roam~2', 'prox^3', 'prox^1.2', 'title:"The Right Way" AND text:go', 'title:"Do it right" AND right', 'title:Doing it wrong', 
+            '1972-05-20T17:33:18.772Z+6MONTHS+3DAYS/DAY', '\\(1\\+1\\)\\:2', '"(1+1):2"', '1972-05-20T17:33:18.772Z', 'timestamp:[* TO NOW]', 'createdate:[1976-03-06T23:59:59.999Z TO *]',
+            'createdate:[1995-12-31T23:59:59.999Z TO 2007-03-06T00:00:00Z]', 'pubdate:[NOW-1YEAR/DAY TO NOW/DAY+1DAY]', 'createdate:[1976-03-06T23:59:59.999Z TO 1976-03-06T23:59:59.999Z+1YEAR]',
+            'createdate:[1976-03-06T23:59:59.999Z/YEAR TO 1976-03-06T23:59:59.999Z]', 'field:[* TO 100]', 'field:[100 TO *]', 'field:[* TO *]', 
+            'start_date:[* TO NOW]', '_val_:myfield', '_val_:"recip(rord(myfield),1,2,3)', '+popularity:[10 TO  *] +section:0'], 
+            []]
     ];
 }
+
 
 // Export the function for use use with Node.js
 if (typeof module === "object" && module.exports) 
