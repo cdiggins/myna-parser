@@ -19,7 +19,7 @@ function CreateMarkdownGrammar(myna)
         
         this.boundedInline = function(begin, end) {
             if (end == undefined) end = begin;
-            return m.seq(begin, this.inlineDelayed.butNot(end).zeroOrMore, end);
+            return m.seq(begin, this.inlineDelayed.unless(end).zeroOrMore, end);
         }
         
         // Plain text
@@ -27,7 +27,7 @@ function CreateMarkdownGrammar(myna)
         this.escaped = m.seq('\\', m.char(this.specialCharSet)).ast;
         this.ws = m.char(' \t').oneOrMore;
         this.optWs = this.ws.opt;
-        this.nonSpecialChar = m.charExcept(this.specialCharSet).butNot(m.newLine);
+        this.nonSpecialChar = m.notChar(this.specialCharSet).unless(m.newLine);
         this.specialChar = m.char(this.specialCharSet).ast;
         this.plainText = m.choice(m.digits, m.letters, this.ws, this.nonSpecialChar).oneOrMore.ast;
 
@@ -40,12 +40,12 @@ function CreateMarkdownGrammar(myna)
         this.styledText = m.choice(this.bold, this.italic, this.strike, this.code);
 
         // Image instructions 
-        this.url = m.choice(this.escaped, m.charExcept(')')).zeroOrMore.ast;
-        this.altText =  m.choice(this.escaped, m.charExcept(']')).zeroOrMore.ast;
+        this.url = m.choice(this.escaped, m.notChar(')')).zeroOrMore.ast;
+        this.altText =  m.choice(this.escaped, m.notChar(']')).zeroOrMore.ast;
         this.image = m.seq('![', this.altText, ']', m.ws, '(', this.url, ')').ast;
 
         // Linked text
-        this.linkedText = this.inlineDelayed.butNot(']').zeroOrMore.ast;
+        this.linkedText = this.inlineDelayed.unless(']').zeroOrMore.ast;
         this.linkText = m.seq('[', this.linkedText, ']');
         this.linkUrl = m.seq('(', this.url, ')');
         this.link = m.seq(this.linkText, m.ws, this.linkUrl).ast;        
@@ -68,9 +68,9 @@ function CreateMarkdownGrammar(myna)
         // Inline content 
         this.any = m.advance.ast;
         this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.plainText, this.any);
-        this.restOfLine = m.seq(this.inline.butNot(m.newLine).zeroOrMore, m.newLine.opt).ast;
+        this.restOfLine = m.seq(this.inline.unless(m.newLine).zeroOrMore, m.newLine.opt).ast;
         this.simpleLine = m.seq(m.not(this.specialLineStart), this.restOfLine).ast;
-        this.paragraph = this.simpleLine.butNot(m.end).oneOrMore.ast;
+        this.paragraph = this.simpleLine.unless(m.end).oneOrMore.ast;
         
         // Lists 
         this.numberedListItem = m.seq(this.numListStart, this.optWs, this.restOfLine).ast;

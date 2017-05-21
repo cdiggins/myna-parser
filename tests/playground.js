@@ -11,52 +11,6 @@ let jg = require('../grammars/grammar_json')(m);
 let fs = require('fs');
 let input = require('../tests/1k_json.js');
 
-function mergeLookups(r1, r2) {
-    let lookup1 = r1.lookup;
-    let lookup2 = r2.lookup;
-    let lookup = {};
-    // Add items from first lookup                     
-    for (let k in lookup1) {
-        lookup[k] = lookup1[k];
-    }
-    // Now add items from second lookup 
-    for (let k in lookup2) {
-        if (k in lookup) 
-            lookup[k] = lookup[k].or(lookup2[k]); else 
-            lookup[k] = lookup2[k];
-    }
-    // Add the 'onDefault'
-    let onDefault = r1.onDefault;
-    if (onDefault !== r2.onDefault) 
-        onDefault = onDefault.or(r2.onDefault);                    
-    return new m.Lookup(lookup, onDefault);
-}
-
-function convertToLookup(r) {
-    if (r instanceof m.Lookup)
-        return r;
-    if (r instanceof m.Text) 
-    {
-        let firstChar = r.text[0];
-        let tailText = r.text.length > 1 ? m.text(r.text.slice(1)) : m.advance;
-        let table = {};
-        table[firstChar] = tailText;
-        return m.Lookup(
-            table,
-            m.falsePredicate);
-    }
-    if (r instanceof m.Sequence) {
-        let result = convertToLookup(r.rules[0]);
-        if (!result)
-            return null;
-        let tail = new m.Sequence(r.rules.slice(1));
-        for (let k in result.lookup)
-            result.lookup[k] = optimizeRule(result.lookup[k].then(tail));
-        result.onDefault = optimizeRule(result.onDefault.then(tail));
-        return result;
-    }
-    return null;
-}
 
 // (a b* b) => (a b*)
 // (a b+ b) => (b)
@@ -294,7 +248,6 @@ function optimizeRule(r)
                 tmp.push(r2);
         }
 
-        /*
         // Filter the new list of rules
         for (let i = tmp.length-1; i >= 1; --i) {
             let r1 = tmp[i-1];
@@ -307,7 +260,6 @@ function optimizeRule(r)
                 tmp.splice(i, 1);
             }
         }
-        */
 
         // TODO: can I convert the things to lookups? 
 

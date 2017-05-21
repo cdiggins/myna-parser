@@ -27,7 +27,7 @@ function CreateMarkdownGrammar(myna)
         this.escaped = m.seq('\\', m.char(this.specialCharSet)).ast;
         this.ws = m.char(' \t').oneOrMore;
         this.optWs = this.ws.opt;
-        this.nonSpecialChar = m.charExcept(this.specialCharSet).butNot(m.newLine);
+        this.nonSpecialChar = m.notChar(this.specialCharSet).butNot(m.newLine);
         this.specialChar = m.char(this.specialCharSet).ast;
         this.plainText = m.choice(m.digits, m.letters, this.ws, this.nonSpecialChar).oneOrMore.ast;
 
@@ -40,7 +40,7 @@ function CreateMarkdownGrammar(myna)
         this.styledText = m.choice(this.bold, this.italic, this.strike, this.code);
 
         // Image instructions 
-        this.url = m.choice(this.escaped, m.charExcept(')')).zeroOrMore.ast;
+        this.url = m.choice(this.escaped, m.notChar(')')).zeroOrMore.ast;
         this.altText =  m.choice(this.escaped, m.charExcept(']')).zeroOrMore.ast;
         this.image = m.seq('![', this.altText, ']', m.ws, '(', this.url, ')').ast;
 

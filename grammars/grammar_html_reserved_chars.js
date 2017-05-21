@@ -10,7 +10,7 @@ function CreateHtmlReservedCharsGrammar(myna)
     {
         let escapeChars = '&<>"\'';        
         this.specialChar = m.char(escapeChars).ast;
-        this.plainText = m.charExcept(escapeChars).oneOrMore.ast;
+        this.plainText = m.notChar(escapeChars).oneOrMore.ast;
         this.text = m.choice(this.specialChar, this.plainText).zeroOrMore;
     }
 

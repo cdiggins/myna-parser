@@ -12,11 +12,11 @@ function CreateJsonGrammar(myna)
         // These are helper rules, they do not create nodes in the parse tree.  
         this.escapedChar    = m.seq('\\', m.char('\\/bfnrt"'));
         this.escapedUnicode = m.seq('\\u', m.hexDigit.repeat(4));
-        this.quoteChar      = m.choice(this.escapedChar, this.escapedUnicode, m.charExcept('"'));
+        this.quoteChar      = m.choice(this.escapedChar, this.escapedUnicode, m.notChar('"'));
         this.fraction       = m.seq(".", m.digit.zeroOrMore);    
         this.plusOrMinus    = m.char("+-");
         this.exponent       = m.seq(m.char("eE"), this.plusOrMinus.opt, m.digits); 
-        this.comma          = m.text(",").ws;  
+        this.comma          = m.char(",").ws;  
 
         // The following rules create nodes in the abstract syntax tree     
         this.string         = m.doubleQuoted(this.quoteChar.zeroOrMore).ast;

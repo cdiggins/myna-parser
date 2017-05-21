@@ -61,7 +61,7 @@ function JavaScriptTokenGrammar(myna)
     this.lineContinuation = m.seq('\\', this.lineTerminatorSequence).ast;
     this.escapedLiteralChar = m.char('\\').then('')
     
-    this.stringLiteralChar = m.charExcept("\u005C\u000D\u2028\u2029\u000A\\").or(this.escapedLiteralChar).or(this.lineContinuation).ast;
+    this.stringLiteralChar = m.notChar("\u005C\u000D\u2028\u2029\u000A\\").or(this.escapedLiteralChar).or(this.lineContinuation).ast;
 
     this.doubleQuotedStringContents = m.not('"').then(stringLiteralChar).zeroOrMore.ast;
     this.singleQuotedStringContents = m.not("'").then(stringLiteralChar).zeroOrMore.ast;
@@ -69,7 +69,7 @@ function JavaScriptTokenGrammar(myna)
     this.singleQuote = m.seq("'", this.singleQuotedStringContents, "'");
     this.stringLiteral = this.doubleQuote.or(this.singleQuote);
 
-    this.regexNonTerminator = m.charExcept(lineTerminator);
+    this.regexNonTerminator = m.notChar(lineTerminator);
     this.regexBackslashSeq = m.seq('\\', this.regexNonTerminator);
 
     this.regexClassChar = this.not(']', '\\').then(regexNonTerminator).or(regexBackslashSeq).ast;

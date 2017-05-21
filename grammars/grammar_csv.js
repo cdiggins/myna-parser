@@ -14,11 +14,11 @@ function CreateCsvGrammar(myna, delimiter)
 
     let g = new function() 
     {
-        this.textdata   = m.charExcept('\n\r"' + delimiter);    
-        this.quoted     = m.doubleQuoted(m.charExcept('"').or('""').zeroOrMore);
+        this.textdata   = m.notChar('\n\r"' + delimiter);    
+        this.quoted     = m.doubleQuoted(m.notChar('"').or('""').zeroOrMore);
         this.field      = this.textdata.or(this.quoted).zeroOrMore.ast;
         this.record     = this.field.delimited(delimiter).ast;
-        this.file       = this.record.delimited(m.newLine);   
+        this.file       = this.record.delimited(m.newLine).ast;   
     }
 
     myna.registerGrammar("csv", g);

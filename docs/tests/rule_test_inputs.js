@@ -87,7 +87,7 @@ function RuleTestInputs(myna)
         [m.delimited("a", ","), ["", "a", "a,a", "a,a,a"], ["a,", ",a", ",", "aa", "aa,aa"]],
         [m.choice("a", "b").oneOrMore, ["a","aaa", "b", "abab"], ["", "c", "aaabc", "bbac"]],
         [m.char("a").oneOrMore, ["a","aaa"], ["", "aaab", "bba"]],
-        [m.char("ab").zeroOrMore.butNot("aba"), ["aa", "ab"], ["aba", "abc", "abab"]],
+        [m.char("ab").zeroOrMore.unless("aba"), ["aa", "ab"], ["aba", "abc", "abab"]],
         [m.char("a").then("b"), ["ab"], ["a", "ba", "b"]],
         [m.char("a").thenAt(m.end), ["a"], ["ab", "ba", "b"]],
         [m.char("a").thenAt("b").then("b"), ["ab"], ["a", "ba", "b"]],
