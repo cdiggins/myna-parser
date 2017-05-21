@@ -279,7 +279,7 @@ function timeIt(fn) {
 
 function timeParse(rule, input) {
     timeIt(function () { 
-        for (let i=0; i < 1; ++i)
+        for (let i=0; i < 10; ++i)
             m.parse(rule, input); 
     });    
 }
@@ -306,11 +306,11 @@ let o2 = optimizeRule(o.copy);
 // TODO: compre the two ASTs. I need a function for converting an AST to a string. 
 */
 console.log("Unoptimized");
-for (let i = 0; i < 4; ++i) {
+for (let i = 0; i < 3; ++i) {
     timeParse(o, input);
 }
 console.log("Optimized");
-for (let i = 0; i < 4; ++i) {
+for (let i = 0; i < 3; ++i) {
     timeParse(o2, input);
 }
 console.log("Native")
