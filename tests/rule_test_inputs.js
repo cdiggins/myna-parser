@@ -196,35 +196,37 @@ function RuleTestInputs(myna)
         [tg.plainText, ['', 'abc', '{}', '}}', '{', 'abc \n{}  \t }}}'], ['{{', 'abc {{']],
         [tg.document, ['', 'abc', '{{abc}}', 'ab\ncd', 'something{{#section}}{{var}}{{/section}}{{anothervar}}something else\nparagraph\n{{#section 2}}yes another\n one{}{{/section 2}}'], []],
 
-        [lg.operator, ['AND', 'OR', 'NOT'], ['ANDA', 'ORR', 'NO']],
-
-        /*
- * - conjunction operators (AND, OR, ||, &&, NOT)
- * - prefix operators (+, -)
- * - quoted values ("foo bar")
- * - named fields (foo:bar)
- * - range expressions (foo:[bar TO baz], foo:{bar TO baz})
- * - proximity search expressions ("foo bar"~5)
- * - boost expressions (foo^5, "foo bar"^5)
- * - fuzzy search expressions (foo~, foo~0.5)
- * - parentheses grouping ( (foo OR bar) AND baz )
- * - field groups ( foo:(bar OR baz) )
- * */
-
         // Lucene query grammar
+        // Tests taken from https://github.com/thoward/lucene-query-parser.js/blob/master/spec/lucene-query-parser.spec.js
+        // http://lucene.apache.org/core/4_0_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html
+        [lg.operator, ['AND', 'OR', 'NOT'], ['ANDA', 'ORR', 'NO', 'TO']],
+        [lg.singleTerm, ['fizz'], ['fizz buzz', '{fizz TO buzz}']],
+        [lg.phrase, ['"fizz"', '"fizz buzz"'], ['"fizz buzz', 'fizz "buzz']],
+        [lg.field, ['abc:', 'a+b:'], ['a b:', 'ab :']],
+        [lg.term, ['ab:cd', 'a.b:"bcd"'], ['ab : cd']],
+        [lg.range, ['{fizz TO buzz}', '[fizz TO buzz]'], ['{fizz buzz}', '{fizz TO buzz]', '[fizz TO buzz}', 'fizz TO buzz']],
+        [lg.term, ['+fizz', '+"fizz buzz"', '-fizz', '-"fizz buzz"', '+fizz~', 'fizz~', 'fizz~3', 'fizz~3.2', '+fizz^4', 'fizz^3.2', 'fizz^3~2', 'fizz~2^3'], 
+            ['+fizz buzz', '+"fizz buzz', 'fizz~~', 'fizz^3.2^4']],        
+        [lg.term, ['te?t', 'test*', 'te*t', 'roam~', 'roam~2', 'prox^3', 'prox^1.2'], []],
+        [lg.query, ['x AND y', 'x OR y', 'x NOT y', 'x && y', 'x || y', 'x ! y'], []],
+        [lg.term, ['1972-05-20T17:33:18.772Z+6MONTHS+3DAYS/DAY', 'createdate:[1995-12-31T23:59:59.999Z TO 2007-03-06T00:00:00Z]', 'pubdate:[NOW-1YEAR/DAY TO NOW/DAY+1DAY]', 
+            '1972-05-20T17:33:18.772Z', 'createdate:[1976-03-06T23:59:59.999Z TO 1976-03-06T23:59:59.999Z+1YEAR]', 'createdate:[1976-03-06T23:59:59.999Z/YEAR TO 1976-03-06T23:59:59.999Z]'], []],
+        [lg.query, ['title:"The Right Way" AND text:go', 'title:"Do it right" AND right', 'title:Doing it wrong', 
+            '\\(1\\+1\\)\\:2', '"(1+1):2"',  'timestamp:[* TO NOW]', 'createdate:[1976-03-06T23:59:59.999Z TO *]',
+             'field:[* TO 100]', 'field:[100 TO *]', 'field:[* TO *]', 
+            'start_date:[* TO NOW]', '_val_:myfield', '_val_:"recip(rord(myfield),1,2,3)', '+popularity:[10 TO  *] +section:0'], 
+            []],
         [lg.query, [
             '{!}solr rocks', '{!func}popularity', '{!q.op=AND df=title}solr rocks', "{!type=dismax qf='myfield yourfield'}solr rocks", '{!type=dismax qf="myfield yourfield"}solr rocks', 
             '{!dismax qf=myfield}solr rocks', '{!type=dismax qf=myfield}solr rocks', "{!type=dismax qf=myfield v='solr rocks'}", '{!type=dismax qf=myfield v=$qq}&qq=solr rocks',
             '{!lucene q.op=AND df=text}myfield:foo +bar -baz', ],
-            ['{}solr rocks', '{!solr rocks', '!{}solr rocks']
-        ],
-        [lg.term, ['x AND y', 'x ! y', 'x OR y', 'x && y'], ['x ANDD y', 'X AND AND Y', 'x ORA y']],
-        [lg.term, ['te?t', 'test*', 'te*t', 'roam~', 'roam~2', 'prox^3', 'prox^1.2', 'title:"The Right Way" AND text:go', 'title:"Do it right" AND right', 'title:Doing it wrong', 
-            '1972-05-20T17:33:18.772Z+6MONTHS+3DAYS/DAY', '\\(1\\+1\\)\\:2', '"(1+1):2"', '1972-05-20T17:33:18.772Z', 'timestamp:[* TO NOW]', 'createdate:[1976-03-06T23:59:59.999Z TO *]',
-            'createdate:[1995-12-31T23:59:59.999Z TO 2007-03-06T00:00:00Z]', 'pubdate:[NOW-1YEAR/DAY TO NOW/DAY+1DAY]', 'createdate:[1976-03-06T23:59:59.999Z TO 1976-03-06T23:59:59.999Z+1YEAR]',
-            'createdate:[1976-03-06T23:59:59.999Z/YEAR TO 1976-03-06T23:59:59.999Z]', 'field:[* TO 100]', 'field:[100 TO *]', 'field:[* TO *]', 
-            'start_date:[* TO NOW]', '_val_:myfield', '_val_:"recip(rord(myfield),1,2,3)', '+popularity:[10 TO  *] +section:0'], 
-            []]
+            ['{}solr rocks', '{!solr rocks', '!{}solr rocks']],
+        [lg.query, ['(jakarta OR apache) AND website', '"jakarta apache" -"Apache Lucene"', 'NOT "jakarta apache"', '"jakarta apache" NOT "Apache Lucene"', '+jakarta lucene',
+            '"jakarta apache" AND "Apache Lucene"', '"jakarta apache" OR jakarta', '"jakarta apache" jakarta', '"jakarta apache"^4 "Apache Lucene"', 'jakarta^4 apache',
+            'jakarta apache', 'title:{Aida TO Carmen}', 'mod_date:[20020101 TO 20030101]', '"jakarta apache"~10', 'roam~0.8', 'roam~', 'title:"Do it right" AND right',
+            'title:"The Right Way" AND text:go', 'foo:{bar TO baz}', 'foo:[bar TO baz]', 'fizz AND (buzz OR baz)', 'fizz (buzz baz)', 'fizz || buzz', 'fizz && buzz',
+            'fizz NOT buzz', 'fizz OR buzz', 'fizz AND buzz', 'fizz ! buzz', 'fizz buzz', 'foo:+"fizz buzz"', 'foo:-"fizz buzz"', 'foo:+bar', 'foo:-bar', 'foo:"fizz buzz"',
+            'sub.foo:bar', 'foo:2015-01-01', 'foo:bar', '+"fizz buzz"', '-"fizz buzz"', 'published_at:>now+5d', 'created_at:>now-5d', ' Test:Foo', ' \r\n'], []]
     ];
 }
 
