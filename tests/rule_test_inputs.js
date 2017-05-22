@@ -214,7 +214,7 @@ function RuleTestInputs(myna)
         [lg.query, ['title:"The Right Way" AND text:go', 'title:"Do it right" AND right', 'title:Doing it wrong', 
             '\\(1\\+1\\)\\:2', '"(1+1):2"',  'timestamp:[* TO NOW]', 'createdate:[1976-03-06T23:59:59.999Z TO *]',
              'field:[* TO 100]', 'field:[100 TO *]', 'field:[* TO *]', 
-            'start_date:[* TO NOW]', '_val_:myfield', '_val_:"recip(rord(myfield),1,2,3)', '+popularity:[10 TO  *] +section:0'], 
+            'start_date:[* TO NOW]', '_val_:myfield', '_val_:"recip(rord(myfield),1,2,3)"', '+popularity:[10 TO  *] +section:0'], 
             []],
         [lg.query, [
             '{!}solr rocks', '{!func}popularity', '{!q.op=AND df=title}solr rocks', "{!type=dismax qf='myfield yourfield'}solr rocks", '{!type=dismax qf="myfield yourfield"}solr rocks', 

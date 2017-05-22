@@ -8,17 +8,18 @@
 // https://cwiki.apache.org/confluence/display/solr/Spatial+Search
 // https://wiki.apache.org/solr/SpatialSearch
 // http://lucene.apache.org/core/4_0_0/core/org/apache/lucene/util/automaton/RegExp.html?is-external=true
-// http://lucene.apache.org/solr/6_5_1/solr-core/org/apache/solr/util/DateMathParser.html
 
 // Sample grammars
-// https://github.com/canassa/solr-mock/blob/master/lucene-query.grammar
-// https://github.com/bripkens/lucene/blob/master/lib/lucene.grammar
-// https://github.com/thoward/lucene-query-parser.js
 // https://github.com/thoward/lucene-query-parser.js/blob/master/lib/lucene-query.grammar
 // https://github.com/lrowe/lucenequery/blob/master/lucenequery/StandardLuceneGrammar.g4
 // https://github.com/romanchyla/montysolr/blob/master/contrib/antlrqueryparser/grammars/StandardLuceneGrammar.g
 
 // TODO: is a&&b a single term? Or two terms? 
+// TODO: support geo-coordinate parsing 
+// TODO: support fucntion parsing 
+
+// TODO: support date-time parsing 
+// http://lucene.apache.org/solr/6_5_1/solr-core/org/apache/solr/util/DateMathParser.html
 
 function CreateLuceneGrammar(myna) 
 {
@@ -27,27 +28,31 @@ function CreateLuceneGrammar(myna)
     let g = new function() 
     { 
         let _this = this; 
-        this.delayedTerm = m.delay(function () { return _this.term; });
+        this.delayedQuery = m.delay(function () { return _this.query; });
 
         this.ws = m.char(' \t\n\r\f').zeroOrMore;
         this.escapedChar = m.char('\\').advance;
-
         this.float = m.digit.zeroOrMore.then(m.seq('.', m.digits).opt).ast;    
+
+        //
         this.boostFactor = this.float.ast;
         this.boost = m.text("^").then(this.boostFactor).ast;
         
         this.fuzzFactor = this.float.ast; 
         this.fuzz = m.seq('~', this.fuzzFactor.opt).ast;    
+
         this.modifier = m.char("+-").ast;
 
         this.symbolicOperator = m.choice("||", "&&", "!");
         this.operator = m.keywords("OR NOT", "AND NOT", "OR", "AND", "NOT").or(this.symbolicOperator).opt.ast;
 
         // Represents valid termchars 
-        this.termChar = m.seq(this.symbolicOperator.not, m.charExcept(' \t\r\n\f{}()"/^~[]\\')).or(this.escapedChar);
+        // NOTE: according to the specification additional characters are not accepted: ':/&|' however, many of these 
+        // interfere with date parsing. 
+        this.termChar = m.seq(this.symbolicOperator.not, m.charExcept(' \t\r\n\f{}()"^~[]\\')).or(this.escapedChar);
 
         this.singleTerm = this.termChar.oneOrMore.ast;    
-        this.fieldName = this.termChar.butNot(':').oneOrMore.ast;
+        this.fieldName = this.termChar.butNot(m.char(':/')).oneOrMore.ast;
         this.field = this.fieldName.then(':');
 
         // TODO: this should be in Myna
@@ -55,7 +60,7 @@ function CreateLuceneGrammar(myna)
         this.regex = m.seq('/', m.charExcept('/').zeroOrMore, '/').ast;
         
         // TODO: use the whitespace in the grammar 
-        this.group = m.parenthesized(this.delayedTerm).ast;
+        this.group = m.seq('(', this.delayedQuery, m.assert(')')).ast;
                         
         // TODO: make the ranges a guarded sequence 
         this.endPoint  = m.seq(this.ws, this.singleTerm, this.ws);
@@ -75,8 +80,9 @@ function CreateLuceneGrammar(myna)
         this.param = this.paramKey.then('=').opt.then(this.paramValue).ast;
         this.localParams = m.seq('{!', m.delimited(this.param, this.ws), m.assert('}')).ast;
 
-        this.terms = m.delimited(this.term.then(this.ws.opt), this.operator.then(this.ws.opt)).ast;
-        this.query = m.seq(this.localParams.opt, this.ws.opt, this.terms).ast;
+        // Query 
+        this.terms = m.delimited(this.term.then(this.ws), this.operator.then(this.ws)).ast;
+        this.query = m.seq(this.ws, this.localParams.opt, this.ws, this.terms, this.ws).ast;
     };
 
     return m.registerGrammar("lucene", g);
