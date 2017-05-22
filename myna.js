@@ -757,7 +757,7 @@ var Myna;
             var childLexer = rule.lexer;
             this.lexer = function (p) {
                 if (!p.inRange)
-                    return false;
+                    return true;
                 var index = p.index;
                 if (!childLexer(p))
                     return true;
@@ -906,17 +906,29 @@ var Myna;
     function unless(rule, condition) { return seq(not(condition), rule).setType("unless"); }
     Myna.unless = unless;
     // Repeats the rule while the condition is not true
-    function repeatWhileNot(body, condition) { return unless(body, condition).zeroOrMore.setType("whileNot"); }
+    function repeatWhileNot(body, condition) { return unless(body, condition).zeroOrMore.setType("repeatWhileNot"); }
     Myna.repeatWhileNot = repeatWhileNot;
+    // Repeats the rule while the condition is not true, but must execute at least once 
+    function repeatOneOrMoreWhileNot(body, condition) { return not(condition).then(body).then(repeatWhileNot(body, condition)).setType("repeatOneOrMoreWhileNot"); }
+    Myna.repeatOneOrMoreWhileNot = repeatOneOrMoreWhileNot;
     // Repeats the rule until just after the condition is true once 
     function repeatUntilPast(body, condition) { return repeatWhileNot(body, condition).then(condition).setType("repeatUntilPast"); }
     Myna.repeatUntilPast = repeatUntilPast;
+    // Repeats the rule until just after the condition is true once but must execute at least once 
+    function repeatOneOrMoreUntilPast(body, condition) { return not(condition).then(body).then(repeatUntilPast(body, condition)).setType("repeatOneOrMoreUntilPast"); }
+    Myna.repeatOneOrMoreUntilPast = repeatOneOrMoreUntilPast;
     // Advances the parse state while the rule is not true. 
     function advanceWhileNot(rule) { return repeatWhileNot(Myna.advance, rule).setType("advanceWhileNot"); }
     Myna.advanceWhileNot = advanceWhileNot;
+    // Advances the parse state while the rule is not true but must execute ast least once 
+    function advanceOneOrMoreWhileNot(rule) { return repeatOneOrMoreWhileNot(Myna.advance, rule).setType("advanceOneOrMoreWhileNot"); }
+    Myna.advanceOneOrMoreWhileNot = advanceOneOrMoreWhileNot;
     // Advance the parser until just after the rule is executed 
     function advanceUntilPast(rule) { return repeatUntilPast(Myna.advance, rule).setType("advanceUntilPast"); }
     Myna.advanceUntilPast = advanceUntilPast;
+    // Advance the parser until just after the rule is executed, but must execute at least once  
+    function advanceOneOrMoreUntilPast(rule) { return repeatOneOrMoreUntilPast(Myna.advance, rule).setType("advanceOneOrMoreUntilPast"); }
+    Myna.advanceOneOrMoreUntilPast = advanceOneOrMoreUntilPast;
     // Advances the parser unless the rule is true. 
     function advanceUnless(rule) { return Myna.advance.unless(rule).setType("advanceUnless"); }
     Myna.advanceUnless = advanceUnless;
@@ -955,11 +967,17 @@ var Myna;
     }
     Myna.guardedSeq = guardedSeq;
     // Parses the given rule surrounded by double quotes 
-    function doubleQuoted(rule) { return seq("\"", rule, "\"").setType("doubleQuoted"); }
+    function doubleQuoted(rule) { return seq("\"", rule, assert("\"")).setType("doubleQuoted"); }
     Myna.doubleQuoted = doubleQuoted;
+    // Parses a double quoted string, taking into account special escape rules
+    function doubleQuotedString(escape) { return doubleQuoted(choice(escape, notChar('"').zeroOrMore)).setType("doubleQuotedString"); }
+    Myna.doubleQuotedString = doubleQuotedString;
     // Parses the given rule surrounded by single quotes 
-    function singleQuoted(rule) { return seq("'", rule, "'").setType("singleQuoted"); }
+    function singleQuoted(rule) { return seq("'", rule, assert("'")).setType("singleQuoted"); }
     Myna.singleQuoted = singleQuoted;
+    // Parses a singe quoted string, taking into account special escape rules
+    function singleQuotedString(escape) { return singleQuoted(choice(escape, notChar("'").zeroOrMore)).setType("singleQuotedString"); }
+    Myna.singleQuotedString = singleQuotedString;
     // Parses the given rule surrounded by parentheses, and consumes whitespace  
     function parenthesized(rule) { return seq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
     Myna.parenthesized = parenthesized;

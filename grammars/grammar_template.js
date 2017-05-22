@@ -43,10 +43,9 @@ function CreateTemplateGrammar(myna, start, end) {
         this.partial = m.seq(start, ">", m.ws.opt, this.key, end).ast;
         this.comment = m.seq(start, "!", this.key, end).ast;    
         this.sectionContent = this.recursiveContent.ast;
-        this.section = m.seq(this.startSection, this.sectionContent, this.endSection).ast;
-        this.invertedSection = m.seq(this.startInvertedSection, this.sectionContent, this.endSection).ast;
-        this.plainText = m.advanceWhileNot("{{").ast;
-
+        this.section = m.guardedSeq(this.startSection, this.sectionContent, this.endSection).ast;
+        this.invertedSection = m.guardedSeq(this.startInvertedSection, this.sectionContent, this.endSection).ast;
+        this.plainText = m.advanceOneOrMoreWhileNot(start).ast;
         this.content = m.choice(this.invertedSection, this.section, this.comment, this.partial, this.var, this.plainText).zeroOrMore;
 
         this.document = this.content.ast;

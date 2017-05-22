@@ -10,11 +10,10 @@ function CreateMarkdownGrammar(myna)
     let m = myna;
 
     let g = new function()
-    {
-        let _this = this;
-        
+    {        
         // Allows the "inline" to be referenced before it is defined. 
         // This enables recursive definitions. 
+        let _this = this;
         this.inlineDelayed = m.delay(function() { return _this.inline; });            
         
         this.boundedInline = function(begin, end) {
@@ -24,7 +23,7 @@ function CreateMarkdownGrammar(myna)
         
         // Plain text
         this.specialCharSet = '[]()*~`@#\\_!';
-        this.escaped = m.seq('\\', m.char(this.specialCharSet)).ast;
+        this.escaped = m.seq('\\', m.advance).ast;
         this.ws = m.char(' \t').oneOrMore;
         this.optWs = this.ws.opt;
         this.nonSpecialChar = m.notChar(this.specialCharSet).unless(m.newLine);
@@ -67,10 +66,11 @@ function CreateMarkdownGrammar(myna)
 
         // Inline content 
         this.any = m.advance.ast;
-        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.plainText, this.any);
-        this.restOfLine = m.seq(this.inline.unless(m.newLine).zeroOrMore, m.newLine.opt).ast;
-        this.simpleLine = m.seq(m.not(this.specialLineStart), this.restOfLine).ast;
-        this.paragraph = this.simpleLine.unless(m.end).oneOrMore.ast;
+        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.plainText, this.any).unless(m.newLine);
+        this.lineEnd = m.newLine.or(m.assert(m.end));
+        this.restOfLine = m.seq(this.inline.zeroOrMore).then(this.lineEnd).ast;
+        this.simpleLine = m.seq(this.specialLineStart.not, m.notEnd, this.restOfLine).ast;
+        this.paragraph = this.simpleLine.oneOrMore.ast;
         
         // Lists 
         this.numberedListItem = m.seq(this.numListStart, this.optWs, this.restOfLine).ast;
@@ -82,9 +82,10 @@ function CreateMarkdownGrammar(myna)
         this.quote = this.quotedLine.oneOrMore.ast;    
 
         // Code blocks
-        this.codeBlockContent = m.advanceUnless("```").zeroOrMore.ast;
+        this.codeBlockDelim = m.text("```");
+        this.codeBlockContent = m.advanceUnless(this.codeBlockDelim).zeroOrMore.ast;
         this.codeBlockHint = m.advanceWhileNot(m.newLine).ast;
-        this.codeBlock = m.guardedSeq("```", this.optWs, this.codeBlockHint, m.newLine.opt, this.codeBlockContent, "```").ast;
+        this.codeBlock = m.guardedSeq(this.codeBlockDelim, this.optWs, this.codeBlockHint, m.newLine.opt, this.codeBlockContent, this.codeBlockDelim).ast;
 
         // Heading 
         this.heading = this.headingLineStart.then(this.optWs).then(this.restOfLine).ast;

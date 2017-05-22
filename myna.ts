@@ -630,7 +630,7 @@ module Myna
             super([rule]); 
             var childLexer = rule.lexer; 
             this.lexer = (p : ParseState) => { 
-                if (!p.inRange) return false;
+                if (!p.inRange) return true;
                 let index = p.index; 
                 if (!childLexer(p)) 
                     return true;
@@ -746,16 +746,28 @@ module Myna
     export function unless(rule:RuleType, condition:RuleType) { return seq(not(condition), rule).setType("unless"); }        
 
     // Repeats the rule while the condition is not true
-    export function repeatWhileNot(body:RuleType, condition:RuleType) { return unless(body, condition).zeroOrMore.setType("whileNot"); }
+    export function repeatWhileNot(body:RuleType, condition:RuleType) { return unless(body, condition).zeroOrMore.setType("repeatWhileNot"); }
+
+    // Repeats the rule while the condition is not true, but must execute at least once 
+    export function repeatOneOrMoreWhileNot(body:RuleType, condition:RuleType) { return not(condition).then(body).then(repeatWhileNot(body, condition)).setType("repeatOneOrMoreWhileNot"); }
 
     // Repeats the rule until just after the condition is true once 
     export function repeatUntilPast(body:RuleType, condition:RuleType) { return repeatWhileNot(body, condition).then(condition).setType("repeatUntilPast"); }
 
+    // Repeats the rule until just after the condition is true once but must execute at least once 
+    export function repeatOneOrMoreUntilPast(body:RuleType, condition:RuleType) { return not(condition).then(body).then(repeatUntilPast(body, condition)).setType("repeatOneOrMoreUntilPast"); }
+
     // Advances the parse state while the rule is not true. 
     export function advanceWhileNot(rule:RuleType) { return repeatWhileNot(advance, rule).setType("advanceWhileNot"); }
 
+    // Advances the parse state while the rule is not true but must execute ast least once 
+    export function advanceOneOrMoreWhileNot(rule:RuleType) { return repeatOneOrMoreWhileNot(advance, rule).setType("advanceOneOrMoreWhileNot"); }
+
     // Advance the parser until just after the rule is executed 
     export function advanceUntilPast(rule:RuleType) { return repeatUntilPast(advance, rule).setType("advanceUntilPast"); }
+
+    // Advance the parser until just after the rule is executed, but must execute at least once  
+    export function advanceOneOrMoreUntilPast(rule:RuleType) { return repeatOneOrMoreUntilPast(advance, rule).setType("advanceOneOrMoreUntilPast"); }
 
     // Advances the parser unless the rule is true. 
     export function advanceUnless(rule:RuleType) { return advance.unless(rule).setType("advanceUnless"); }
