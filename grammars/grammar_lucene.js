@@ -49,15 +49,15 @@ function CreateLuceneGrammar(myna)
         // Represents valid termchars 
         // NOTE: according to the specification additional characters are not accepted: ':/&|' however, many of these 
         // interfere with date parsing. 
-        this.termChar = m.seq(this.symbolicOperator.not, m.charExcept(' \t\r\n\f{}()"^~[]\\')).or(this.escapedChar);
+        this.termChar = m.seq(this.symbolicOperator.not, m.notChar(' \t\r\n\f{}()"^~[]\\')).or(this.escapedChar);
 
         this.singleTerm = this.termChar.oneOrMore.ast;    
-        this.fieldName = this.termChar.butNot(m.char(':/')).oneOrMore.ast;
+        this.fieldName = this.termChar.unless(m.char(':/')).oneOrMore.ast;
         this.field = this.fieldName.then(':');
 
         // TODO: this should be in Myna
-        this.phrase = m.doubleQuoted(m.charExcept('"').zeroOrMore).ast;
-        this.regex = m.seq('/', m.charExcept('/').zeroOrMore, '/').ast;
+        this.phrase = m.doubleQuoted(m.notChar('"').zeroOrMore).ast;
+        this.regex = m.seq('/', m.notChar('/').zeroOrMore, '/').ast;
         
         // TODO: use the whitespace in the grammar 
         this.group = m.seq('(', this.delayedQuery, m.assert(')')).ast;
@@ -74,8 +74,8 @@ function CreateLuceneGrammar(myna)
         this.keyChar = m.letter.or(".");
         this.escapedChar = m.char('\\').then(m.advance);
         this.paramKey = this.keyChar.oneOrMore.ast;
-        this.singleQuotedValue= m.seq("'", this.escapedChar.or(m.charExcept("'")), "'").ast;
-        this.doubleQuotedValue= m.seq('"', this.escapedChar.or(m.charExcept('"')), "'").ast;
+        this.singleQuotedValue= m.singleQuotedString(this.escapedChar).ast;
+        this.doubleQuotedValue= m.doubleQuotedString(this.escapedChar).ast;
         this.paramValue = m.choice(this.singleQuotedValue, this.doubleQuotedValue, this.term).ast;
         this.param = this.paramKey.then('=').opt.then(this.paramValue).ast;
         this.localParams = m.seq('{!', m.delimited(this.param, this.ws), m.assert('}')).ast;

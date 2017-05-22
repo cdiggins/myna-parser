@@ -788,10 +788,16 @@ module Myna
     }
     
     // Parses the given rule surrounded by double quotes 
-    export function doubleQuoted(rule:RuleType) { return seq("\"", rule, "\"").setType("doubleQuoted"); }
+    export function doubleQuoted(rule:RuleType) { return seq("\"", rule, assert("\"")).setType("doubleQuoted"); }
+
+    // Parses a double quoted string, taking into account special escape rules
+    export function doubleQuotedString(escape:RuleType) { return doubleQuoted(choice(escape, notChar('"').zeroOrMore)).setType("doubleQuotedString"); }
 
     // Parses the given rule surrounded by single quotes 
-    export function singleQuoted(rule:RuleType) { return seq("'", rule, "'").setType("singleQuoted"); }
+    export function singleQuoted(rule:RuleType) { return seq("'", rule, assert("'")).setType("singleQuoted"); }
+
+    // Parses a singe quoted string, taking into account special escape rules
+    export function singleQuotedString(escape:RuleType) { return singleQuoted(choice(escape, notChar("'").zeroOrMore)).setType("singleQuotedString"); }
 
     // Parses the given rule surrounded by parentheses, and consumes whitespace  
     export function parenthesized(rule:RuleType) { return seq("(", ws, rule, ws, ")").setType("parenthesized"); }
