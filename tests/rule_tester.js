@@ -59,7 +59,6 @@ function RuleTester(myna, inputs, testRunner)
     for (let i=0; i < inputs.length; ++i) 
     {        
         let t = inputs[i];
-        
         if (!t || t.length < 2 || !t[0]) 
             throw new Error("Each test must have a rule, an array of passing strings, and an array of failing strings");
         
