@@ -191,19 +191,34 @@ function RuleTestInputs(myna)
         [tg.endSection, ['{{/abc}}'], ['{{abc}}', '{{abc}}', '{{^abc}}']],
         [tg.partial, ['{{>abc}}', '{{> abc.html}}'], ['{{abc}}', '{{abc}}', '{{^abc}}']],
         [tg.comment, ['{{! abc def 123\nsome stuff}}', '{{!}}'], ['{{abc}}', '{{abc}}', '{{^abc}}']],
-        [tg.section, ['{{#abc}}{{/abc}}', '{{#section}}stuff{{/section}}', '{{#section}}{{#nested}}more stuff{{/nested}}some {{/section}}', 
-            '{{#A}} {{!this is a comment}} {{/A}}'], ['{{abc}}', '{{abc}}{{/abc}}', '{{^abc}}{{/abc}}']],
+        [tg.section, ['{{#abc}}{{/abc}}', '{{#section}}stuff{{/section}}', '{{#section}}{{#nested}}more stuff{{/nested}}some {{/section}}', '{{#A}} {{!this is a comment}} {{/A}}'], ['{{abc}}', '{{abc}}{{/abc}}', '{{^abc}}{{/abc}}']],
         [tg.invertedSection, ['{{^abc}}{{/abc}}', '{{^nsection}}stuff{{/nsection}}', '{{^nsection}}{{#nested}}more stuff{{/nested}}some {{/nsection}}'], ['{{abc}}', '{{abc}}{{/abc}}', '{{abc}}{{/abc}}']],
-        [tg.plainText, ['', 'abc', '{}', '}}', '{', 'abc \n{}  \t }}}',], ['{{', 'abc {{']],
+        [tg.plainText, ['', 'abc', '{}', '}}', '{', 'abc \n{}  \t }}}'], ['{{', 'abc {{']],
         [tg.document, ['', 'abc', '{{abc}}', 'ab\ncd', 'something{{#section}}{{var}}{{/section}}{{anothervar}}something else\nparagraph\n{{#section 2}}yes another\n one{}{{/section 2}}'], []],
+
+        [lg.operator, ['AND', 'OR', 'NOT'], ['ANDA', 'ORR', 'NO']],
+
+        /*
+ * - conjunction operators (AND, OR, ||, &&, NOT)
+ * - prefix operators (+, -)
+ * - quoted values ("foo bar")
+ * - named fields (foo:bar)
+ * - range expressions (foo:[bar TO baz], foo:{bar TO baz})
+ * - proximity search expressions ("foo bar"~5)
+ * - boost expressions (foo^5, "foo bar"^5)
+ * - fuzzy search expressions (foo~, foo~0.5)
+ * - parentheses grouping ( (foo OR bar) AND baz )
+ * - field groups ( foo:(bar OR baz) )
+ * */
 
         // Lucene query grammar
         [lg.query, [
             '{!}solr rocks', '{!func}popularity', '{!q.op=AND df=title}solr rocks', "{!type=dismax qf='myfield yourfield'}solr rocks", '{!type=dismax qf="myfield yourfield"}solr rocks', 
             '{!dismax qf=myfield}solr rocks', '{!type=dismax qf=myfield}solr rocks', "{!type=dismax qf=myfield v='solr rocks'}", '{!type=dismax qf=myfield v=$qq}&qq=solr rocks',
             '{!lucene q.op=AND df=text}myfield:foo +bar -baz', ],
-            ['{}solr rocks', '{!solr rocks', '!{}solr rocks']]        
+            ['{}solr rocks', '{!solr rocks', '!{}solr rocks']
         ],
+        [lg.term, ['x AND y', 'x ! y', 'x OR y', 'x && y'], ['x ANDD y', 'X AND AND Y', 'x ORA y']],
         [lg.term, ['te?t', 'test*', 'te*t', 'roam~', 'roam~2', 'prox^3', 'prox^1.2', 'title:"The Right Way" AND text:go', 'title:"Do it right" AND right', 'title:Doing it wrong', 
             '1972-05-20T17:33:18.772Z+6MONTHS+3DAYS/DAY', '\\(1\\+1\\)\\:2', '"(1+1):2"', '1972-05-20T17:33:18.772Z', 'timestamp:[* TO NOW]', 'createdate:[1976-03-06T23:59:59.999Z TO *]',
             'createdate:[1995-12-31T23:59:59.999Z TO 2007-03-06T00:00:00Z]', 'pubdate:[NOW-1YEAR/DAY TO NOW/DAY+1DAY]', 'createdate:[1976-03-06T23:59:59.999Z TO 1976-03-06T23:59:59.999Z+1YEAR]',
