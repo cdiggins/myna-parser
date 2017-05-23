@@ -10,9 +10,10 @@
   <div id="qunit-fixture"></div>
   <script src="qunit-2.0.1.js"></script>
   <script src="../myna.js"></script>
+  <script src="../grammars/grammar_arithmetic.js"></script>
   <script src="../grammars/grammar_csv.js"></script>
   <script src="../grammars/grammar_json.js"></script>
-  <script src="../grammars/grammar_arithmetic.js"></script>
+  <script src="../grammars/grammar_lucene.js"></script>
   <script src="../grammars/grammar_markdown.js"></script>
   <script src="../grammars/grammar_template.js"></script>
   <script src="../grammars/grammar_html_reserved_chars.js"></script>
@@ -27,6 +28,7 @@
       CreateMarkdownGrammar(Myna),
       CreateTemplateGrammar(Myna),
       CreateHtmlReservedCharsGrammar(Myna),
+      CreateLuceneGrammar(Myna),
     ];
 
   // Print a representation of the grammar in the console. 

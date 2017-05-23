@@ -177,6 +177,13 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        // Returns the AST as a string for debug and test purposes
+        AstNode.prototype.toString = function () {
+            var contents = this.isLeaf
+                ? this.allText
+                : this.children.map(function (c) { return c.toString(); }).join(" ");
+            return "(" + this.rule.name + ': ' + contents + ")";
+        };
         return AstNode;
     }());
     Myna.AstNode = AstNode;
