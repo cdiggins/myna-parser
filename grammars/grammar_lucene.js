@@ -87,3 +87,7 @@ function CreateLuceneGrammar(myna)
 
     return m.registerGrammar("lucene", g);
 }
+
+// Export the grammar for usage by Node.js and CommonJs compatible module loaders 
+if (typeof module === "object" && module.exports) 
+    module.exports = CreateLuceneGrammar;
