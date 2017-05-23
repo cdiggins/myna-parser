@@ -181,6 +181,14 @@ module Myna
         get allChildrenText() : string {
             return this.input.slice(this._firstChildStart, this._lastChildEnd);
         }
+
+        // Returns the AST as a string for debug and test purposes
+        toString() : string {
+            let contents = this.isLeaf 
+                ? this.allText 
+                : this.children.map(c => c.toString()).join(" ");
+            return "(" + this.rule.name + ': ' + contents + ")";
+        }
     }
 
     //===============================================================
