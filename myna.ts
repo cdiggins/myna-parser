@@ -55,10 +55,10 @@ module Myna
             var contextWidth = 5;
             var start = this.index - contextWidth - 1;
             if (start < 0) start = 0;
-            var prefix = this.input.slice(start, this.index - 1);
+            var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
             var end = this.index + contextWidth;
             if (end >= this.input.length) end = this.input.length - 1;
-            var postfix = this.input.slice(this.index, end);
+            var postfix = this.input.slice(this.index + 1, end);
             return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
         }    
     }
@@ -215,6 +215,8 @@ module Myna
             return this.rules[0];
         }
 
+        // Sets the "type" associated with the rule. 
+        // This is useful for tracking how a rule was created. 
         setType(type : string) : Rule {
             this.type = type;
             return this;
@@ -268,8 +270,13 @@ module Myna
         }
 
         // Returns true if this rule when parsed successfully will create a node in the parse tree 
-        get createsAstNode() : boolean{
-            return this._createAstNode || (this.hasAstChildRule && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+        get createsAstNode() : boolean {
+            return this._createAstNode || (this instanceof Delay) || (this.hasAstChildRule && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+        }
+
+        // Returns true if this rule doesn't advance the input
+        get nonAdvancing() : boolean {
+            return false; 
         }
 
         // Returns a string that describes the AST nodes created by this rule.
@@ -362,27 +369,15 @@ module Myna
                 return true;
             };
             var lexers = this.rules.map(r => r.lexer);
-
-            if (this.rules.length == 2 && this.rules[0] instanceof PredicateRule && this.rules[1] instanceof Advance)
-            {
-                // Optimization for a very common case 
-                // TODO: move this into its own class "AdvanceIf"
-                let lexer = this.rules[0].lexer;
-                this.lexer = (p : ParseState) => 
-                    p.inRange && lexer(p) && ++p.index >= 0;
-            }
-            else 
-            {
-                this.lexer = (p : ParseState) => {
-                    var original = p.index;
-                    for (var i = 0, len = length; i < len; ++i) {
-                        if (!lexers[i](p)) {
-                            p.index = original;
-                            return false;
-                        }
+            this.lexer = (p : ParseState) => {
+                var original = p.index;
+                for (var i = 0, len = length; i < len; ++i) {
+                    if (!lexers[i](p)) {
+                        p.index = original;
+                        return false;
                     }
-                    return true;
                 }
+                return true;
             }
             // When none of the child rules create a node, we can use the lexer to parse
             if (!this.createsAstNode)
@@ -394,6 +389,10 @@ module Myna
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
+        }
+
+        get nonAdvancing() : boolean {
+            return this.rules.every(r => r.nonAdvancing); 
         }
 
         cloneImplementation() : Rule { return new Sequence(this.rules); }
@@ -432,6 +431,10 @@ module Myna
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
+        }
+
+        get nonAdvancing() : boolean {
+            return this.rules.every(r => r.nonAdvancing); 
         }
 
         cloneImplementation() : Rule { return new Choice(this.rules); }
@@ -529,6 +532,22 @@ module Myna
         cloneImplementation() : Rule { return new Advance(); }                
     }
 
+    // Advances the parser by one token if the predicate is true.
+    export class AdvanceIf extends Rule
+    {
+        type = "advanceIf";
+        className = "AdvanceIf";
+        constructor(condition:Rule) { 
+            super([condition]); 
+            var lexCondition = condition.lexer;
+            this.lexer = (p : ParseState) => 
+                p.inRange && lexCondition(p) ? ++p.index >= 0 : false;
+            this.parser = this.lexer;
+        }
+        get definition() : string { return "advanceif(" + this.firstChild.toString() + ")"; }
+        cloneImplementation() : Rule { return new AdvanceIf(this.firstChild); }                
+    }
+
     // Used to match a string in the input string, advances the token. 
     export class Text extends Rule
     {
@@ -541,10 +560,11 @@ module Myna
             for (var i=0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = (p : ParseState) => {
-                if (p.code !== vals[0]) return null;
+                if (!p.inRange) return false;
+                if (p.code !== vals[0]) return false;
                 let index = p.index++;                
                 for (var i=1; i < length; ++i, ++p.index) {
-                    if (p.code !== vals[i]) {
+                    if (!p.inRange || p.code !== vals[i]) {
                         p.index = index;
                         return false;
                     }
@@ -578,15 +598,18 @@ module Myna
     // Predicates don't advance the input 
 
     // Used to identify rules that do not advance the input
-    export class PredicateRule extends Rule {
+    export class NonAdvancingRule extends Rule {
         type = "charSet";
         constructor(rules:Rule[]) { 
             super(rules);
         }
+        get nonAdvancing() : boolean {
+            return true;
+        }
     }
 
     // Returns true if the current token is in the token set. 
-    export class CharSet extends PredicateRule {
+    export class CharSet extends NonAdvancingRule {
         type = "charSet";
         className = "CharSet";
         constructor(public chars:string) { 
@@ -604,7 +627,7 @@ module Myna
     }
 
     // Returns true if the current token is within a range of characters, otherwise returns false
-    export class CharRange extends PredicateRule {
+    export class CharRange extends NonAdvancingRule {
         type = "charRange";
         className = "CharRange";
         constructor(public min:string, public max:string) { 
@@ -622,7 +645,7 @@ module Myna
     }
 
     // Returns true only if the child rule fails to match.
-    export class Not extends PredicateRule
+    export class Not extends NonAdvancingRule
     {
         type = "not";
         className = "Not";
@@ -644,7 +667,7 @@ module Myna
     }   
 
     // Returns true only if the child rule matches, but does not advance the parser
-    export class At extends PredicateRule
+    export class At extends NonAdvancingRule
     {
         type = "at";
         className = "At";
@@ -665,7 +688,7 @@ module Myna
     }   
 
     // Uses a function to return true or not based on the behavior of the predicate rule
-    export class Predicate extends PredicateRule
+    export class Predicate extends NonAdvancingRule
     {
         type = "predicate";
         className = "Predicate";
@@ -685,11 +708,31 @@ module Myna
     // Create a rule that matches the text 
     export function text(text:string) { return new Text(text);  }
 
-    // Matches a series of rules in order, and succeeds if they all do
-    export function seq(...rules:RuleType[]) { return new Sequence(rules.map(RuleTypeToRule)); }
+    // Creates a rule that matches a series of rules in order, and succeeds if they all do
+    export function seq(...rules:RuleType[]) { 
+        let rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return truePredicate;
+        if (rs.length == 1)
+            return rs[0];
+        if (rs.length == 2 && rs[0].nonAdvancing && rs[1] instanceof Advance) 
+            return new AdvanceIf(rs[0]);
+            */
+        return new Sequence(rs); 
+    }
 
-    // Tries to match each rule in order, and succeeds if one does 
-    export function choice(...rules:RuleType[]) : Choice { return new Choice(rules.map(RuleTypeToRule)); }        
+    // Creates a rule that tries to match each rule in order, and succeeds if at least one does 
+    export function choice(...rules:RuleType[]) : Choice { 
+        let rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return falsePredicate;
+        if (rs.length == 1)
+            return rs[0];
+            */
+        return new Choice(rs); 
+    }        
 
     // Enables Rules to be defined in terms of variables that are defined later on.
     // This enables recursive rule definitions.  

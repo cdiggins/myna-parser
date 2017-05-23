@@ -61,11 +61,11 @@ var Myna;
                 var start = this.index - contextWidth - 1;
                 if (start < 0)
                     start = 0;
-                var prefix = this.input.slice(start, this.index - 1);
+                var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
                 var end = this.index + contextWidth;
                 if (end >= this.input.length)
                     end = this.input.length - 1;
-                var postfix = this.input.slice(this.index, end);
+                var postfix = this.input.slice(this.index + 1, end);
                 return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
             },
             enumerable: true,
@@ -253,6 +253,8 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        // Sets the "type" associated with the rule. 
+        // This is useful for tracking how a rule was created. 
         Rule.prototype.setType = function (type) {
             this.type = type;
             return this;
@@ -316,6 +318,14 @@ var Myna;
             // Returns true if this rule when parsed successfully will create a node in the parse tree 
             get: function () {
                 return this._createAstNode || (this.hasAstChildRule && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Rule.prototype, "nonAdvancing", {
+            // Returns true if this rule doesn't advance the input
+            get: function () {
+                return false;
             },
             enumerable: true,
             configurable: true
@@ -450,26 +460,16 @@ var Myna;
                 return true;
             };
             var lexers = this.rules.map(function (r) { return r.lexer; });
-            if (this.rules.length == 2 && this.rules[0] instanceof PredicateRule && this.rules[1] instanceof Advance) {
-                // Optimization for a very common case 
-                // TODO: move this into its own class "AdvanceIf"
-                var lexer_1 = this.rules[0].lexer;
-                this.lexer = function (p) {
-                    return p.inRange && lexer_1(p) && ++p.index >= 0;
-                };
-            }
-            else {
-                this.lexer = function (p) {
-                    var original = p.index;
-                    for (var i = 0, len = length; i < len; ++i) {
-                        if (!lexers[i](p)) {
-                            p.index = original;
-                            return false;
-                        }
+            this.lexer = function (p) {
+                var original = p.index;
+                for (var i = 0, len = length; i < len; ++i) {
+                    if (!lexers[i](p)) {
+                        p.index = original;
+                        return false;
                     }
-                    return true;
-                };
-            }
+                }
+                return true;
+            };
             // When none of the child rules create a node, we can use the lexer to parse
             if (!this.createsAstNode)
                 this.parser = this.lexer;
@@ -480,6 +480,13 @@ var Myna;
                 if (this.rules.length > 1)
                     result = "(" + result + ")";
                 return result;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sequence.prototype, "nonAdvancing", {
+            get: function () {
+                return this.rules.every(function (r) { return r.nonAdvancing; });
             },
             enumerable: true,
             configurable: true
@@ -520,6 +527,13 @@ var Myna;
                 if (this.rules.length > 1)
                     result = "(" + result + ")";
                 return result;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Choice.prototype, "nonAdvancing", {
+            get: function () {
+                return this.rules.every(function (r) { return r.nonAdvancing; });
             },
             enumerable: true,
             configurable: true
@@ -623,6 +637,28 @@ var Myna;
         return Advance;
     }(Rule));
     Myna.Advance = Advance;
+    // Advances the parser by one token if the predicate is true.
+    var AdvanceIf = (function (_super) {
+        __extends(AdvanceIf, _super);
+        function AdvanceIf(condition) {
+            _super.call(this, [condition]);
+            this.type = "advanceIf";
+            this.className = "AdvanceIf";
+            var lexCondition = condition.lexer;
+            this.lexer = function (p) {
+                return p.inRange && lexCondition(p) ? ++p.index >= 0 : false;
+            };
+            this.parser = this.lexer;
+        }
+        Object.defineProperty(AdvanceIf.prototype, "definition", {
+            get: function () { return "advanceif(" + this.firstChild.toString() + ")"; },
+            enumerable: true,
+            configurable: true
+        });
+        AdvanceIf.prototype.cloneImplementation = function () { return new AdvanceIf(this.firstChild); };
+        return AdvanceIf;
+    }(Rule));
+    Myna.AdvanceIf = AdvanceIf;
     // Used to match a string in the input string, advances the token. 
     var Text = (function (_super) {
         __extends(Text, _super);
@@ -636,11 +672,13 @@ var Myna;
             for (var i = 0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = function (p) {
+                if (!p.inRange)
+                    return false;
                 if (p.code !== vals[0])
-                    return null;
+                    return false;
                 var index = p.index++;
                 for (var i = 1; i < length; ++i, ++p.index) {
-                    if (p.code !== vals[i]) {
+                    if (!p.inRange || p.code !== vals[i]) {
                         p.index = index;
                         return false;
                     }
@@ -684,15 +722,22 @@ var Myna;
     //====================================================================================================================
     // Predicates don't advance the input 
     // Used to identify rules that do not advance the input
-    var PredicateRule = (function (_super) {
-        __extends(PredicateRule, _super);
-        function PredicateRule(rules) {
+    var NonAdvancingRule = (function (_super) {
+        __extends(NonAdvancingRule, _super);
+        function NonAdvancingRule(rules) {
             _super.call(this, rules);
             this.type = "charSet";
         }
-        return PredicateRule;
+        Object.defineProperty(NonAdvancingRule.prototype, "nonAdvancing", {
+            get: function () {
+                return true;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return NonAdvancingRule;
     }(Rule));
-    Myna.PredicateRule = PredicateRule;
+    Myna.NonAdvancingRule = NonAdvancingRule;
     // Returns true if the current token is in the token set. 
     var CharSet = (function (_super) {
         __extends(CharSet, _super);
@@ -718,7 +763,7 @@ var Myna;
         ;
         CharSet.prototype.cloneImplementation = function () { return new CharSet(this.chars); };
         return CharSet;
-    }(PredicateRule));
+    }(NonAdvancingRule));
     Myna.CharSet = CharSet;
     // Returns true if the current token is within a range of characters, otherwise returns false
     var CharRange = (function (_super) {
@@ -745,7 +790,7 @@ var Myna;
         ;
         CharRange.prototype.cloneImplementation = function () { return new CharRange(this.min, this.max); };
         return CharRange;
-    }(PredicateRule));
+    }(NonAdvancingRule));
     Myna.CharRange = CharRange;
     // Returns true only if the child rule fails to match.
     var Not = (function (_super) {
@@ -773,7 +818,7 @@ var Myna;
             configurable: true
         });
         return Not;
-    }(PredicateRule));
+    }(NonAdvancingRule));
     Myna.Not = Not;
     // Returns true only if the child rule matches, but does not advance the parser
     var At = (function (_super) {
@@ -799,7 +844,7 @@ var Myna;
             configurable: true
         });
         return At;
-    }(PredicateRule));
+    }(NonAdvancingRule));
     Myna.At = At;
     // Uses a function to return true or not based on the behavior of the predicate rule
     var Predicate = (function (_super) {
@@ -819,29 +864,45 @@ var Myna;
             configurable: true
         });
         return Predicate;
-    }(PredicateRule));
+    }(NonAdvancingRule));
     Myna.Predicate = Predicate;
     //===============================================================
     // Rule creation function
     // Create a rule that matches the text 
     function text(text) { return new Text(text); }
     Myna.text = text;
-    // Matches a series of rules in order, and succeeds if they all do
+    // Creates a rule that matches a series of rules in order, and succeeds if they all do
     function seq() {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             rules[_i - 0] = arguments[_i];
         }
-        return new Sequence(rules.map(RuleTypeToRule));
+        var rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return truePredicate;
+        if (rs.length == 1)
+            return rs[0];
+        if (rs.length == 2 && rs[0].nonAdvancing && rs[1] instanceof Advance)
+            return new AdvanceIf(rs[0]);
+            */
+        return new Sequence(rs);
     }
     Myna.seq = seq;
-    // Tries to match each rule in order, and succeeds if one does 
+    // Creates a rule that tries to match each rule in order, and succeeds if at least one does 
     function choice() {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             rules[_i - 0] = arguments[_i];
         }
-        return new Choice(rules.map(RuleTypeToRule));
+        var rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return falsePredicate;
+        if (rs.length == 1)
+            return rs[0];
+            */
+        return new Choice(rs);
     }
     Myna.choice = choice;
     // Enables Rules to be defined in terms of variables that are defined later on.
