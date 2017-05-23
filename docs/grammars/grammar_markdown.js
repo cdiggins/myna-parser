@@ -52,7 +52,7 @@ function CreateMarkdownGrammar(myna)
 
         // Mention
         this.reference = m.choice(m.char('/-'), m.identifierNext).oneOrMore.ast;
-        this.mention = m.seq('@').then(this.reference).ast;    
+        this.mention = m.seq('@', this.reference).ast;    
 
         // Comment
         this.comment = m.seq("<!--", m.advanceUntilPast("-->")).ast;

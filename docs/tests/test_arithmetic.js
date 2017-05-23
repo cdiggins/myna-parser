@@ -5,10 +5,10 @@ let grammar = require('../grammars/grammar_arithmetic')(myna);
 let evaluator = require('../tools/myna_arithmetic_evaluator.js')(myna);
 
 let arithmeticTestInputs = [  
+    ["(42)", 42],
     ["6 * 7", 42],    
     ["42", 42],
     ["0", 0],    
-    ["(42)", 42],
     ["-42", -42],
     ["- 5", -5],
     ["-\t-   5", 5],
