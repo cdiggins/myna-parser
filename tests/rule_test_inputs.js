@@ -46,6 +46,8 @@ function RuleTestInputs(myna)
         [m.advance, ["a", "Z", "9", "."], ["", " a"]],
 
         // Myna operator tests
+        [m.text("ab"), ["ab"], ["a", "abc", ""]],
+        [m.text("a"), ["a"], ["ab", "abc", ""]],
         [m.char("a").oneOrMore, ["a","aaa"], ["", "aaab", "bba"]],
         [m.seq(m.notEnd, m.all), ["a", " ", "jhasd kajshd"], [""]],
         [m.char("ab").zeroOrMore, ["", "a", "aabbaa"], ["c", "abc"]],
@@ -79,6 +81,7 @@ function RuleTestInputs(myna)
         [m.seq("a", m.not("b"), m.choice("b", "c")), ["ac"], ["ab", "a", ""]],
         [m.keyword("abc"), ["abc"], ["ab", "abcd", "ABC", "abc "]],
         [m.parenthesized("a"), ["(a)"], ["()", "a", "", "(a", "a)", "()a", "a()"]],
+        [m.parenthesized(m.opt("a")), ["(a)", "()"], ["a", "", "(a", "a)", "()a", "a()"]],
         [m.guardedSeq("(", "a", ")"), ["(a)"], ["()", "a", "", "(a", "a)", "()a", "a()"]],
         [m.braced("a"), ["{a}"], ["{}", "a", "", "{a", "a}", "{}a", "a{}"]],
         [m.bracketed("a"), ["[a]"], ["[]", "a", "", "[a", "a]", "[]a", "a[]"]],

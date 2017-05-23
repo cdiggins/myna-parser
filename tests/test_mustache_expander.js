@@ -13,16 +13,6 @@ function testExpand(template, data, expected) {
 }
 
 console.log("==========");
-console.log("The Mustache grammar:");
-console.log("==========");
-console.log(myna.grammarToString("template"));
-
-console.log("==========");
-console.log("The Mustache AST schema:");
-console.log("==========");
-console.log(myna.astSchemaToString("template"));
-
-console.log("==========");
 console.log("Basic expansion tests");
 console.log("==========");
 testExpand("{{a}}", { a:42 }, "42");
