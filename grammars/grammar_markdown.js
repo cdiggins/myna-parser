@@ -95,7 +95,8 @@ function CreateMarkdownGrammar(myna)
         this.document = this.content.zeroOrMore;
     }
 
-    return m.registerGrammar("markdown", g);
+    // Register the grammar, providing a name and the default parse rule
+    return m.registerGrammar("markdown", g, g.document);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 

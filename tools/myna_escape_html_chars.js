@@ -10,10 +10,7 @@
 let myna = require('../myna');
 
 // Get the HTML reserved characters grammar 
-let grammar = require('../grammars/grammar_html_reserved_chars')(myna);
-
-// Get the main rule for parsing the text
-let rule = grammar.text;
+require('../grammars/grammar_html_reserved_chars')(myna);
 
 // Given a character that belongs to one of the reserved HTML characters 
 // returns the entity representation. For all other text, returns the text  
@@ -39,7 +36,7 @@ function astNodeToHtmlText(ast) {
 // Returns a string, replacing all of the reserved characters with entities 
 function escapeHtmlChars(text) 
 {
-    let ast = myna.parse(rule, text);
+    let ast = myna.parsers.html_reserved_chars(text);
     if (!ast.children)    
         return "";
     return ast.children.map(astNodeToHtmlText).join('');

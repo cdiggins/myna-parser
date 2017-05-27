@@ -21,6 +21,9 @@ module Myna
     // A lookup table of all named rules registered with the Myna module
     export var allRules = {}
 
+    // A lookup table of parsing functions for each registered grammar  
+    export var parsers = {}
+
     //===========================================================================
     // class ParseState
     
@@ -277,9 +280,10 @@ module Myna
             return this.rules.filter(r => r.createsAstNode).length > 0;
         }
 
-        // Returns true if this rule when parsed successfully will create a node in the parse tree 
+        // Returns true if this rule when parsed successfully will create a node in the parse tree. 
+        // Some rules will override this function. 
         get createsAstNode() : boolean {
-            return this._createAstNode || (this instanceof Delay) || (this.hasAstChildRule && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+            return this._createAstNode;
         }
 
         // Returns true if this rule doesn't advance the input
@@ -403,6 +407,10 @@ module Myna
             return this.rules.every(r => r.nonAdvancing); 
         }
 
+        get createsAstNode() : boolean {
+            return this._createAstNode || this.hasAstChildRule;
+        }
+
         cloneImplementation() : Rule { return new Sequence(this.rules); }
     }
     
@@ -443,6 +451,10 @@ module Myna
 
         get nonAdvancing() : boolean {
             return this.rules.every(r => r.nonAdvancing); 
+        }
+
+        get createsAstNode() : boolean {
+            return this._createAstNode || this.hasAstChildRule;
         }
 
         cloneImplementation() : Rule { return new Choice(this.rules); }
@@ -522,6 +534,10 @@ module Myna
             return this.firstChild.toString() + "{" + this.min + "," + this.max + "}";
          }
 
+        get createsAstNode() : boolean {
+            return this._createAstNode || this.hasAstChildRule;
+        }
+
         cloneImplementation() : Rule { return new Quantified(this.firstChild, this.min, this.max); }
     }
 
@@ -600,6 +616,11 @@ module Myna
         }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
         get definition() : string { return "<delay>"; }    
+
+        // It is assumed that a delay function creates an AST node,
+        get createsAstNode() : boolean {
+            return true;
+        }
     } 
 
     //====================================================================================================================
@@ -991,7 +1012,7 @@ module Myna
     // Initializes and register a grammar object and all of the rules. 
     // Sets names for all of the rules from the name of the field it is associated with combined with the 
     // name of the grammar. Each rule is stored in Myna.rules and each grammar is stored in Myna.grammars. 
-    export function registerGrammar(grammarName:string, grammar:any)
+    export function registerGrammar(grammarName:string, grammar:any, defaultRule:Rule)
     {
         for (var k in grammar) {
             if (grammar[k] instanceof Rule) {
@@ -1001,6 +1022,10 @@ module Myna
             }
         }
         grammars[grammarName] = grammar;
+
+        if (defaultRule) {
+            parsers[grammarName] = text => parse(defaultRule, text);
+        }
         return grammar;
     }
 
@@ -1031,7 +1056,7 @@ module Myna
     // Initialization
 
     // The entire module is a grammar because it is an object that exposes rules as properties
-    registerGrammar("core", Myna);
+    registerGrammar("core", Myna, null);
 }
 
 // Export the function for use with Node.js and the CommonJS module system. 

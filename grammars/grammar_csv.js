@@ -21,7 +21,8 @@ function CreateCsvGrammar(myna, delimiter)
         this.file       = this.record.delimited(m.newLine).ast;   
     }
 
-    myna.registerGrammar("csv", g);
+    // Register the grammar, providing a name and the default parse rule
+    myna.registerGrammar("csv", g, g.file);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 

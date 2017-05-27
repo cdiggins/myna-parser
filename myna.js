@@ -20,6 +20,8 @@ var Myna;
     Myna.grammars = {};
     // A lookup table of all named rules registered with the Myna module
     Myna.allRules = {};
+    // A lookup table of parsing functions for each registered grammar  
+    Myna.parsers = {};
     //===========================================================================
     // class ParseState
     // This stores the state of the parser and is passed to the parse and match functions.
@@ -322,9 +324,10 @@ var Myna;
             configurable: true
         });
         Object.defineProperty(Rule.prototype, "createsAstNode", {
-            // Returns true if this rule when parsed successfully will create a node in the parse tree 
+            // Returns true if this rule when parsed successfully will create a node in the parse tree. 
+            // Some rules will override this function. 
             get: function () {
-                return this._createAstNode || (this.hasAstChildRule && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+                return this._createAstNode;
             },
             enumerable: true,
             configurable: true
@@ -498,6 +501,13 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Sequence.prototype, "createsAstNode", {
+            get: function () {
+                return this._createAstNode || this.hasAstChildRule;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Sequence.prototype.cloneImplementation = function () { return new Sequence(this.rules); };
         return Sequence;
     }(Rule));
@@ -541,6 +551,13 @@ var Myna;
         Object.defineProperty(Choice.prototype, "nonAdvancing", {
             get: function () {
                 return this.rules.every(function (r) { return r.nonAdvancing; });
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Choice.prototype, "createsAstNode", {
+            get: function () {
+                return this._createAstNode || this.hasAstChildRule;
             },
             enumerable: true,
             configurable: true
@@ -615,6 +632,13 @@ var Myna;
                 if (this.min == 1 && this.max == Infinity)
                     return this.firstChild.toString() + "+";
                 return this.firstChild.toString() + "{" + this.min + "," + this.max + "}";
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Quantified.prototype, "createsAstNode", {
+            get: function () {
+                return this._createAstNode || this.hasAstChildRule;
             },
             enumerable: true,
             configurable: true
@@ -720,6 +744,14 @@ var Myna;
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
             get: function () { return "<delay>"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Delay.prototype, "createsAstNode", {
+            // It is assumed that a delay function creates an AST node,
+            get: function () {
+                return true;
+            },
             enumerable: true,
             configurable: true
         });
@@ -1171,7 +1203,7 @@ var Myna;
     // Initializes and register a grammar object and all of the rules. 
     // Sets names for all of the rules from the name of the field it is associated with combined with the 
     // name of the grammar. Each rule is stored in Myna.rules and each grammar is stored in Myna.grammars. 
-    function registerGrammar(grammarName, grammar) {
+    function registerGrammar(grammarName, grammar, defaultRule) {
         for (var k in grammar) {
             if (grammar[k] instanceof Rule) {
                 var rule = grammar[k];
@@ -1180,6 +1212,9 @@ var Myna;
             }
         }
         Myna.grammars[grammarName] = grammar;
+        if (defaultRule) {
+            Myna.parsers[grammarName] = function (text) { return parse(defaultRule, text); };
+        }
         return grammar;
     }
     Myna.registerGrammar = registerGrammar;
@@ -1211,7 +1246,7 @@ var Myna;
     //===========================================================================
     // Initialization
     // The entire module is a grammar because it is an object that exposes rules as properties
-    registerGrammar("core", Myna);
+    registerGrammar("core", Myna, null);
 })(Myna || (Myna = {}));
 if (typeof module === "object" && module.exports)
     module.exports = Myna;

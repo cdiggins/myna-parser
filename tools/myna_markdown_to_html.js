@@ -4,7 +4,7 @@
 let myna = require('../myna');
 
 // Load the Myna markdown grammar module 
-let mdGrammar = require('../grammars/grammar_markdown')(myna);
+require('../grammars/grammar_markdown')(myna);
 
 // Returns the HTML for a start tag
 function startTag(tag, attr) {

@@ -14,9 +14,8 @@ function CreateHtmlReservedCharsGrammar(myna)
         this.text = m.choice(this.specialChar, this.plainText).zeroOrMore;
     }
 
-    // Register the grammar with m.
-    // This sets the names of the rules, and makes the grammar accessible 
-    return m.registerGrammar('html_reserved_chars', g);
+    // Register the grammar, providing a name and the default parse rule
+    return m.registerGrammar('html_reserved_chars', g, g.text);
 }
 
 // Export the main function for usage by Node.js and CommonJs compatible module loaders 

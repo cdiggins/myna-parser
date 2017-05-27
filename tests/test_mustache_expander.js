@@ -5,10 +5,10 @@ let expand = require('../tools/myna_mustache_expander');
 
 function testExpand(template, data, expected) {
     console.log("Expanding template: ", template);
-    console.log("Data: ", data);
+    console.log("  Data: ", data);
     let result = expand(template, data);
-    console.log("Result: ", result);
-    console.log("Expected: ", expected);
+    console.log("  Result: ", result);
+    console.log("  Expected: ", expected);
     console.log(result == expected ? "Passed" : "Failed");
 }
 

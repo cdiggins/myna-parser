@@ -85,7 +85,8 @@ function CreateLuceneGrammar(myna)
         this.query = m.seq(this.ws, this.localParams.opt, this.ws, this.terms, this.ws).ast;
     };
 
-    return m.registerGrammar("lucene", g);
+    // Register the grammar, providing a name and the default parse rule
+    return m.registerGrammar("lucene", g, g.query);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 

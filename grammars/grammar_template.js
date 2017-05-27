@@ -47,11 +47,11 @@ function CreateTemplateGrammar(myna, start, end) {
         this.invertedSection = m.guardedSeq(this.startInvertedSection, this.sectionContent, this.endSection).ast;
         this.plainText = m.advanceOneOrMoreWhileNot(start).ast;
         this.content = m.choice(this.invertedSection, this.section, this.comment, this.partial, this.var, this.plainText).zeroOrMore;
-
         this.document = this.content.ast;
     }
 
-    return m.registerGrammar("template", g);
+    // Register the grammar, providing a name and the default parse rule
+    return m.registerGrammar("template", g, g.document);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 

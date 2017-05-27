@@ -53,9 +53,8 @@ function EvalArithmetic(exprNode)
 }
 
 function CreateEvaluator(myna) {
-    let rule = myna.grammars.arithmetic.expr;
     return function (expr) {
-        let ast = myna.parse(rule, expr);        
+        let ast = myna.parsers.arithmetic(expr);
         return EvalArithmetic(ast);
     }
 }

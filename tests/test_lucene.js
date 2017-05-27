@@ -1,12 +1,12 @@
 'use strict';
 
 let myna = require('../myna');
-let grammar = require('../grammars/grammar_lucene')(myna);
+require('../grammars/grammar_lucene')(myna);
 
 function testQuery(q) 
 {
     console.log("Input query = " + q);
-    let ast = myna.parse(myna.grammars.lucene.query, q)    
+    let ast = myna.parsers.lucene(q);    
     console.log(ast.toString());
 }
 
