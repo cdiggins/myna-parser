@@ -182,7 +182,7 @@ function RuleTestInputs(myna)
         [mdg.italic,    ['* italic *', '_ italic _', '_ ~~italicstrike~~ _', '_\\*_', '*\\_*', '_ ** test ** _', '_*test*_', '*some ~~thing~~*'], ['** bold **', '__ italic __']],
         [mdg.strike,    ['~~ strike ~~', '~~strike~~'], ['* italic *', '_ italic _']],
         [mdg.heading,   ['# heading\n', '## heading 2\n', '### heading 3 with newline\n', '#### *heading4 italicized*\n'], [' # nope\n', '_#nope_\n']],
-        [mdg.codeBlock, ['```\ntest\ntest\n```'], ['```test```', '``\ntest\ntest\n``']],
+        [mdg.codeBlock, ['```\ntest\ntest\n```', '```test```'], ['``\ntest\ntest\n``', '']],
         [mdg.mention,   ['@abc', '@123-456', '@test/reference-something/123'], ['@qw er', 'asd@asd']],
         [mdg.code,      ['`code`', '`*codebold*`'], ['*`boldcode`*']],
         [mdg.quote,     ['>\n', '> simple\n', '> line 1\n> line *2*\n', '> no newline'], [' > not valid\n']], 

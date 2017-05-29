@@ -35,7 +35,7 @@ function CreateMarkdownGrammar(myna)
         this.boldItalic = m.choice(this.boundedInline('*_', '_*'), this.boundedInline('_*', '*_')).ast;
         this.italic = m.choice(this.boundedInline('*'), this.boundedInline('_')).ast;
         this.strike = this.boundedInline('~~').ast;
-        this.code = this.boundedInline('`').ast;
+        this.code = m.not('```').then(this.boundedInline('`')).ast;
         this.styledText = m.choice(this.bold, this.italic, this.strike, this.code);
 
         // Image instructions 
@@ -62,7 +62,8 @@ function CreateMarkdownGrammar(myna)
         this.quotedLineStart = m.seq(this.indent, '>');
         this.listStart = m.seq(this.indent, m.char('*-'), m.ws);
         this.headingLineStart = m.quantified('#', 1, 6).ast;
-        this.specialLineStart = m.choice(this.listStart, this.headingLineStart, this.quotedLineStart, this.numListStart);
+        this.codeBlockDelim = m.text("```");
+        this.specialLineStart = this.optWs.then(m.choice(this.listStart, this.headingLineStart, this.quotedLineStart, this.numListStart, this.codeBlockDelim));
 
         // Inline content 
         this.any = m.advance.ast;
@@ -72,7 +73,7 @@ function CreateMarkdownGrammar(myna)
         this.simpleLine = m.seq(this.specialLineStart.not, m.notEnd, this.restOfLine).ast;
         this.paragraph = this.simpleLine.oneOrMore.ast;
         
-        // Lists 
+        // Lists
         this.numberedListItem = m.seq(this.numListStart, this.optWs, this.restOfLine).ast;
         this.unorderedListItem = m.seq(this.listStart, this.optWs, this.restOfLine).ast;
         this.list = m.choice(this.numberedListItem, this.unorderedListItem).oneOrMore.ast;
@@ -81,11 +82,10 @@ function CreateMarkdownGrammar(myna)
         this.quotedLine = m.seq('>', this.optWs, this.restOfLine).ast;
         this.quote = this.quotedLine.oneOrMore.ast;    
 
-        // Code blocks
-        this.codeBlockDelim = m.text("```");
-        this.codeBlockContent = m.advanceUnless(this.codeBlockDelim).zeroOrMore.ast;
-        this.codeBlockHint = m.advanceWhileNot(m.newLine).ast;
-        this.codeBlock = m.guardedSeq(this.codeBlockDelim, this.optWs, this.codeBlockHint, m.newLine.opt, this.codeBlockContent, this.codeBlockDelim).ast;
+        // Code blocks        
+        this.codeBlockContent = m.advanceWhileNot(this.codeBlockDelim).ast;
+        this.codeBlockHint = m.advanceWhileNot(m.choice(m.newLine, this.codeBlockDelim)).ast;
+        this.codeBlock = m.guardedSeq(this.codeBlockDelim, this.codeBlockHint, m.newLine.opt, this.codeBlockContent, this.codeBlockDelim).ast;
 
         // Heading 
         this.heading = this.headingLineStart.then(this.optWs).then(this.restOfLine).ast;

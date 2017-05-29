@@ -5,85 +5,66 @@
 
 ### [Home Page](https://cdiggins.github.io/myna-parser) | [QUnit Tests](https://cdiggins.github.io/myna-parser/tests/qunit.html) | [Source Code](https://github.com/cdiggins/myna-parser/blob/master/myna.ts) 
 
-Myna is a lightweight general purpose JavaScript library for syntactic analysis (text parsing) based on the [PEG formalism](http://bford.info/pub/lang/peg). This means that Myna is capable of recognizing any pattern that can be described using a regular-expression or context-free grammar (CFG). Myna is written using [TypeScript 2.0](https://www.typescriptlang.org/) and targets [ECMAScript 5.1](https://www.ecma-international.org/ecma-262/5.1/). 
+Myna is an efficient and easy to use parsing library for JavaScript written using [TypeScript 2.0](https://www.typescriptlang.org/) which targets [ECMAScript 5.1](https://www.ecma-international.org/ecma-262/5.1/). 
 
-Unlike several popular syntactic analyzers (e.g. [Jison](http://jison.org/), [PEG.js](https://pegjs.org/), [nearley](http://nearley.js.org/), [ANTLR](http://www.antlr.org/)) Myna is an API, not a code generation tool, which makes it easier for programmers to write, debug, and maintain their parsing algorithms. This makes Myna closest to [Parsimmon](https://github.com/jneen/parsimmon) and [Chevrotain](https://github.com/SAP/chevrotain). Myna has no dependencies, you can just download myna.js and start using it immediately.
+Unlike several popular parsing libraries (e.g. [Jison](http://jison.org/), [PEG.js](https://pegjs.org/), [nearley](http://nearley.js.org/), and [ANTLR](http://www.antlr.org/)) Myna is an API, not a code generation tool, which makes it easier for programmers to write, debug, and maintain their parsing algorithms. This makes Myna closest to [Parsimmon](https://github.com/jneen/parsimmon) and [Chevrotain](https://github.com/SAP/chevrotain). Myna has no dependencies, you can just download myna.js and start using it immediately.
 
-Myna, and the accompanying grammars, are implemented as CommonJS and Node.js compatible JavaScript modules that also "just work" in the browser without the need for an additional module loader. 
+There are several [example tools](https://github.com/cdiggins/myna-parser/tree/master/tools) that demonstrate how to use Myna parsers and 
+a number of [sample grammars](https://github.com/cdiggins/myna-parser/tree/master/grammars) shipped with Myna that you can use or modify as needed. 
 
-# Using Myna 
+# Getting Started
 
-You can download the latest `myna.js` [via GitHub](https://github.com/cdiggins/myna-parser/raw/master/myna.js) or [via Unpkg](https://unpkg.com/myna-parser) directly and just start using it in your project, or you can also install the latest Myna package from npm using:
+You can either download the latest `myna.js` file [via GitHub](https://github.com/cdiggins/myna-parser/raw/master/myna.js) or [via Unpkg](https://unpkg.com/myna-parser) and start using it in your project, or you can [install Myna from npm](https://www.npmjs.com/package/myna-parser). 
 
-> npm i myna-parser
+## Using Myna 
 
-# About Myna 
+Myna parsers are defined as oen or more *rules*. Each rule defines how to recognize a syntactic phrase in the language you are parsing. 
+Rules can be combined using functions like `seq` or `choice` which are known as *combinators*. 
+A collection of rule defined within a single object are called a *grammar*. 
+For example a simple grammar for parsing Comma Separated Values (CSV) could look like this:
 
-## How is Myna different from a Regular Expression
+```
+    let m = myna;
 
-In many respects any parsing library that can recognize a context-free grammar (CFG) like Myna is similar to writing a regular expression. Many of the same concepts carry over (e.g. concatenation, alternation, Kleene closure, quantification, etc.). The advantages of Myna are that you can easily find and capture patterns that have a nested structure, such as [nested parentheses](http://stackoverflow.com/questions/133601/can-regular-expressions-be-used-to-match-nested-patterns). Other advantages are the you can express sub-patterns as variables or functions, and automatically create a parse tree.  
+    let g = new function() 
+    {
+        this.textdata   = m.notChar('\n\r"' + delimiter);    
+        this.quoted     = m.doubleQuoted(m.notChar('"').or('""').zeroOrMore);
+        this.field      = this.textdata.or(this.quoted).zeroOrMore.ast;
+        this.record     = this.field.delimited(delimiter).ast;
+        this.file       = this.record.delimited(m.newLine).ast;   
+    }
+```
 
-## Why another parsing library? 
+Once a grammar is constructed it suffices to register it with the Myna module providing a name, and a reference to the starting rule of the grammar:
 
-I am currently working on a programming language implementation that can run in the browser. I wanted a JavaScript library (not a code generator) based on the PEG formalism that was easy to extend, robust, and efficient. The JavaScript library that comes closest to what I was looking for in terms of API is probably [Parsimmon](https://github.com/jneen/parsimmon). It did not satisfy my particular needs for the project I am working on, so since I had done this a few times before, [first using C++ templates](http://www.drdobbs.com/cpp/recursive-descent-peg-parsers-using-c-te/212700432), [then in C#](https://www.codeproject.com/Articles/272494/Implementing-Programming-Languages-using-Csharp), I decided to implement my own parser combinator using TypeScript.
+```
+    myna.registerGrammar("csv", g, g.file);
+```
 
-When I looked under the hood at many popular JavaScript libraries that perform text parsing for specific goals (e.g. parsing Markdown, CSV, JSON, XML, JavaScript, TypeScript, YAML), they often use custom hand-written parsers combined with regular expressions. I believe that with enough work a PEG parsing library should  be able to have performance on par with these hand-written parsers while making it easier to extend, maintain, re-use, and debug the code-bases. 
+Once the grammar is registered with Myna a parse function is exposed that will take an input string and output a *parse tree*, also knowns as an *abstract syntax tree* or *AST* for short. In the case of the CSV example the parse function is `myna.parsers.csv`. 
 
-## Related Parsing Libraries
-
-Like many developers you are probably trying to evaluate which library is best suited for your needs. In my own research here are some JavaScript parsing libraries and parser generators that I found on GitHub, listed according to the number of times the repo has been starred on Github (as of January 2, 2017).
-
-- [Jison](https://github.com/zaach/jison) (2611)
-- [Peg.js](https://github.com/pegjs/pegjs) (2078)
-- [Ohm](https://github.com/harc/ohm) (814)
-- [Nearley](https://github.com/Hardmath123/nearley) (571)
-- [Parsimmon](https://github.com/jneen/parsimmon) (413)
-- [Chevrotain](https://github.com/SAP/chevrotain) (304)
-- [JSParse](https://github.com/doublec/jsparse) (103)
-- [Bennu](https://github.com/mattbierner/bennu) (81)
-- [Packrattle](https://github.com/robey/packrattle) (66)
-
-## Example of Writing Grammars 
-
-Take a look at the various [sample grammars](https://github.com/cdiggins/myna-parser/tree/master/grammars) shipped with Myna to understand how parser rules 
-can be combined to create a grammar.
-
-## Examples of Creating and Using Parsers 
-
-Given a Myna grammar there are [several example tools](https://github.com/cdiggins/myna-parser/tree/master/tools) that demonstrate uses of the Myna parser. You
-can also consult the [tests](https://github.com/cdiggins/myna-parser/tree/master/tests).
+Only rules that are defined with the `.ast` property will generate nodes in the parse tree. 
 
 ## Myna Source Code and Dependencies
 
-The Myna library is written in TypeScript 2.0 and is contained in one file `myna.ts`. There are no other dependencies.
+The Myna library is written in TypeScript 2.0 and is contained in one file [`myna.ts`](https://github.com/cdiggins/myna-parser/tree/master/myna.ts). 
+The generated Myna JavaScript file that you would include in your project is [`myna.js`](https://github.com/cdiggins/myna-parser/tree/master/myna.js). 
+
+Myna has no run-time dependencies. The Myna module, and the grammars are designed to be able to be run from the browser or from Node.JS.
  
 ## Building Myna
 
 The `myna.js` library is generated from the `myna.ts` source file using the TypeScript 2.0 compiler (tsc). I use [npm](http://npmjs.com) as my build tool and task runner. 
-I would welcome submissions for making my package cross platform. I use Visual Studio Code as my development environment.  
-
-<!--
-The commands you can use from the shell once you have npm installed are:
-
-- `npm run build` - Runs the TypeScript compiler (tsc) to generate `myna.js` from `myna.ts`. 
-
-- The post build steps are to run `test`, `wincover`, `makedist` and `copyfiles` 
-
-- `npm run test` or `npm tests` - Runs the Mocha test runner on the test suite `tests\mocha_runner.js`
-- `npm run makdist` - Creates a minified version of myna `dist\myna.min.js`
-- `npm run copyfiles` - Copies test files and build results to the documentation folder.  
-- `npm run wincover` - Creates a code coverage report build using Istanbul (re-runs Mocha)  
--->
-
-You can look at the `package.json` file to see how each of the scripts are implemented.    
+I would welcome submissions for making my package cross platform. I use Visual Studio Code as my development environment. 
 
 ## Myna Tests  
 
-I am using [QUnit](http://qunitjs.com) to [test Myna in the browser](https://cdiggins.github.io/myna-parser/qunit.html), [Mocha](http://mochajs.org) to run the unit tests on Node.js via `npm test`, and [Istanbul](http://istanbul-js.org) to measure [code coverage](https://cdiggins.github.io/myna-parser/coverage/lcov-report/index.html). I am currently testing on Node.js v4.5.0 and Chrome v55 on Windows 10. I do not use any  assertion libraries instead there is an agnostic test suite (see `test/tests.js`) that is can be fed run to different test runners.    
- 
+There are over a [1000 unit tests](https://cdiggins.github.io/myna-parser/qunit.html) written using [QUnit](http://qunitjs.com). There are also individual test files for each example tool, which you can run as a suite using `node tests\test_all_tools.js`.
+
 ## Minification   
 
-I am providing a minified/obfuscated version for convenience `dist/myna.min.js` that is being generated with [uglify.js](https://www.npmjs.com/package/uglify-js). Note that for time being I am not testing or supporting the minified version.  
+For convenience I am providing a minified/obfuscated version `dist/myna.min.js` that is being generated with [uglify.js](https://www.npmjs.com/package/uglify-js). 
 
 # Bugs and Issues
 
@@ -106,5 +87,7 @@ Myna is licensed under the MIT License.
 # Acknowledgements 
 
 Thank you to my three gatitas Anneye, Anna, and Beatrice for their love, patience, and support. Also thank you to everyone who has ever written open-source code. We are doing this together!  
+
+Thanks to Eric Lindahl of [Sciumo](https://sciumo.com/) for being the first person to financially support the Myna project.
 
  

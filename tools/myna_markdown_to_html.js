@@ -78,7 +78,7 @@ function markdownAstToHtml(ast, lines) {
                     default: throw "Heading level must be from 1 to 6"
                 }
             }
-        case "paragraph":
+        case "paragraph":   
             return addTag("p", ast.children, true);
         case "list":
             return addTag("ul", ast.children, true);
@@ -92,6 +92,8 @@ function markdownAstToHtml(ast, lines) {
             return addTag("i", ast.children);
         case "code":
             return addTag("code", ast.children);
+        case "codeBlock":
+            return addTag("pre", ast.children);
         case "quote":
             return addTag("blockquote", ast.children, true);
         case "link":
