@@ -31,9 +31,14 @@
       CreateLuceneGrammar(Myna),
     ];
 
-  // Print a representation of the grammar in the console. 
-  for (let g in grammars) {
+  // Print a representation of the grammar and the generated AST schema
+  for (let g of Myna.grammarNames()) 
+  {          
+      console.log("Grammar " + g);
       console.log(Myna.grammarToString(g));
+      
+      console.log("AST Schema " + g);
+      console.log(Myna.astSchemaToString(g));
   }
 
   // Get the inputs for the rule tester 

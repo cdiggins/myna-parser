@@ -2,14 +2,7 @@
 
 // This project outputs the grammars and the schemas of the AST trees 
 
-var myna = require('../myna');
-require('../grammars/grammar_arithmetic')(myna);
-require('../grammars/grammar_csv')(myna);
-require('../grammars/grammar_html_reserved_chars')(myna);
-require('../grammars/grammar_json')(myna);
-require('../grammars/grammar_lucene')(myna);
-require('../grammars/grammar_markdown')(myna);
-require('../grammars/grammar_template')(myna);
+var myna = require('../tools/myna_all');
 
 for (let g of myna.grammarNames()) 
 {

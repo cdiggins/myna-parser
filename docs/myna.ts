@@ -12,121 +12,83 @@
 
 module Myna
 {   
+    //====================================================================================
+    // Internal variables used by the Myna library
+
+    // A lookup table of all grammars registered with the Myna module 
+    export var grammars = {}
+
+    // A lookup table of all named rules registered with the Myna module
+    export var allRules = {}
+
+    // A lookup table of parsing functions for each registered grammar  
+    export var parsers = {}
+
+    //===========================================================================
+    // class ParseState
+    
     // This stores the state of the parser and is passed to the parse and match functions.
-    export class Parser
-    {        
+    export class ParseState
+    {
         constructor(
             public input:string, 
             public index:number,
             public nodes:AstNode[])
-        { }
-
-        // Creates a copy of the parser, including a shallow copy of the nodes. 
-        clone() : Parser {
-            return new Parser(this.input, this.index, this.nodes.slice());
+        { 
+            this.index  = index;
+        }
+                
+        // Returns the code of the current token
+        get code() {
+            return this.input.charCodeAt(this.index);
         }
 
         // Returns true if the index is within the input range. 
         get inRange() : boolean {
-            return this.index >= 0 && this.index < this.input.length;
-        }
-
-        // Sets the state of the parser to be the same as another. 
-        copyFrom(p:Parser) {
-            this.input = p.input; 
-            this.index = p.index;
-            this.nodes = p.nodes;
+            return this.index < this.input.length;
         }
 
         // Returns a string representation of the location. 
         get location() : string {
             return this.index.toString();
         }
-
+        
         // Returns a string that helps debugging to figure out exactly where we are in the input string 
         get debugContext() : string {
-            let contextWidth = 5;
-            let start = this.index - contextWidth - 1;
+            var contextWidth = 5;
+            var start = this.index - contextWidth - 1;
             if (start < 0) start = 0;
-            let prefix = this.input.slice(start, this.index - 1);
-            let end = this.index + contextWidth;
+            var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
+            var end = this.index + contextWidth;
             if (end >= this.input.length) end = this.input.length - 1;
-            let postfix = this.input.slice(this.index, end);
-            return prefix + " >>> " + this.input[this.index] + " <<< " + postfix;
+            var postfix = this.input.slice(this.index + 1, end);
+            return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
+        }    
+    }
+
+    //===========================================================================
+    // class ParseError
+
+    // Represents a parse error, and contains the parse state at the time of the error  
+    export class ParseError extends Error  {
+        constructor(public parser:ParseState, public message:string) {
+            super(message);
         }
     }
-
-    // Return true or false depending on whether the rule matches 
-    // the beginning of the input string. 
-    export function match(r:Rule, s:string) : boolean 
-    {
-        return r.match(new Parser(s, 0, []));        
-    }
-
-    // Returns the root node of the abstract syntax tree created 
-    // by parsing the rule. 
-    export function parse(r : Rule, s : string) : AstNode
-    {
-        let p = new Parser(s, 0, []);        
-        r.ast.parse(p);  
-        if (!p.nodes || !p.nodes.length)
-            return undefined;
-        if (p.nodes.length > 1)
-            throw new Error("parse is returning more than one node");
-        return p.nodes[0];        
-    }
-
-    // Returns an array of nodes created by parsing the given rule repeatedly until 
-    // it fails or the end of the input is arrived. One Astnode is created for each time 
-    // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
-    // flag set explicitly. 
-    export function tokenize(r:Rule, s:string) : AstNode[]
-    {
-        let result = this.parse(r.ast.zeroOrMore, s);
-        return result ? result.children : [];
-    }
-        
-    //====================================================================================
-    // Internal variables used by the Myna library
-
-    // A lookup table of all grammars registered with the Myna module 
-    export let grammars = {}
-
-    // A lookup table of all named rules registered with the Myna module
-    export let allRules = {}
-
-    // Generates a new ID for each rule 
-    let _nextId = 0;
-    function genId() { 
-        return _nextId++;
-    }
-
-    // The returned value of a failed parse
-    const failed = -1;
-
+    
     //===============================================================
     // RuleType union of Rule, string, and boolean
 
     // For convenience this enables strings and boolean to be used interchangably with Rules in the combinators.
     export type RuleType = Rule | string | boolean;
 
-    // Given a RuleType returns an instance of a Rule.
-    export function RuleTypeToRule(rule:RuleType) : Rule {
-        if (rule instanceof Rule) return rule;
-        if (typeof(rule) === "string") return text(rule);
-        if (typeof(rule) === "boolean") return rule ? truePredicate : falsePredicate;
-        throw new Error("Invalid rule type: " + rule);
-    } 
-
-    //===============================================================
-    // AstNode class 
-
     // Represents a node in the generated parse tree. These nodes are returned by the Rule.parse function. If a Rule 
     // has the "_createAstNode" field set to true (because you created the rule using the ".ast" property), then the 
     // generated node will also be added to the constructed parse tree.   
     export class AstNode
     {
-        // The list of child nodes in the parse tree. This is not allocated unless used, to minimize memory consumption 
+        // The list of child nodes in the parse tree. 
+        // This is not allocated unless used, to minimize memory consumption 
         children: AstNode[] = null;
 
         // Constructs a new node associated with the given rule.  
@@ -134,7 +96,7 @@ module Myna
             public rule:Rule, 
             public input:string,
             public start:number=0, 
-            public end:number=failed) 
+            public end:number=-1) 
         { }
 
         // Returns the name of the rule associated with this node
@@ -152,7 +114,7 @@ module Myna
         // Returns the first child with the given name, or null if no named child is found. 
         child(name:string) : AstNode { 
             if (this.children)
-                for (let c of this.children) 
+                for (var c of this.children) 
                     if (c.name == name) return c; 
             return null; 
         }
@@ -192,12 +154,11 @@ module Myna
     }
 
     //===============================================================
-    // Rule class     
+    // class Rule
     
     // A Rule is both a rule in the PEG grammar and a parser. The parse function takes  
     // a particular parse location (in either a string, or array of tokens) and will return 
-    // the location of the end of the parse if successful or the constant failed (-1)
-    // if not successful.  
+    // the location of the end of the parse if successful or null if not successful.  
     export class Rule
     {
         // Identifies individual rule
@@ -206,107 +167,29 @@ module Myna
         // Identifies the grammar that this rule belongs to 
         grammarName:string = "";
 
-        // Internal unique identifier
-        id:number = genId();
-
-        // Identifies types of rules.  
+        // Identifies types of rules. Rules can have "types" that are different than the class name
         type:string = "";
+
+        // Used to provide access to the name of the class 
+        className:string = "Rule"
 
         // Indicates whether generated nodes should be added to the abstract syntax tree
         _createAstNode:boolean = false;
 
+        // A parser function, computed in a rule's constructor. If successful returns either the original or a new 
+        // ParseState object. If it fails it returns null.
+        parser : (ParseState)=>boolean = null;
+
+        // A lexer function, computed in a rule's constructor. The lexer may update the ParseState if successful.
+        // If it fails it is required that the lexer restore the ParseState index to the previous state. 
+        // Lexers should only update the index. 
+        lexer : (ParseState)=>boolean = null;
+
+        // Constructor
         // Note: child-rules are exposed as a public field
         constructor(
             public rules:Rule[]) 
         { }
-        
-        // Each rule derived object provides its own implementation of this function.  
-        parseImplementation(p:Parser):number { 
-            throw new Error("Missing override for parseImplementation");
-        }
-
-        // Returns true if this Rule matches the input at the given location and never creates nodes 
-        match(p:Parser):boolean {
-            // Remember the old parser state
-            let oldP = p.clone();
-
-            // Call the derived parse implementation          
-            let result = this.parseImplementation(p);
-
-            // If the parse fails, we back-track the parser
-            if (result == failed) 
-                p.index = oldP.index;                    
-
-            // Any nodes created are always thrown out 
-            p.nodes = oldP.nodes;
-
-            // We return true or false depending on the success of the parse implementation 
-            return result != failed;
-        }        
-
-        // If successful returns the end-location of where this Rule matches the input 
-        // at the given location, or -1 if failed.
-        // Note that PredicateRule overrides this function 
-        parse(p:Parser):number {        
-            // Remember the old parser state
-            let oldP = p.clone();
-            
-            // Either we add a node to the parse tree, or do a regular parse.
-            if (!this._createAstNode)
-            {
-                let result = this.parseImplementation(p);
-
-                // Update the parser index
-                if (result !== failed)
-                    p.index = result;
-                else
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
-
-                return result;
-            }
-            else
-            {                 
-                // Create a new AST node 
-                let node = new AstNode(this, p.input, p.index);
-
-                // Create a new "node list" for the parser.
-                // This is a new list of child nodes.
-                p.nodes = [];
-
-                // Call the implementation of the parse function 
-                let result = this.parseImplementation(p);
-
-                // Check if the parse succeeded 
-                if (result !== failed) 
-                {                    
-                    // The current nodes children is the parser node list 
-                    node.children = p.nodes;
-                    // Restore the parser's node list to what it was 
-                    p.nodes = oldP.nodes;
-                    // Add the node to the parser's node list 
-                    p.nodes.push(node);
-                    // Set the node
-                    node.end = result;
-                    // Update the parser index
-                    p.index = result;
-                }
-                else 
-                {
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
-                }
-
-                return result;
-            }                                          
-        }
-
-        // Defines the type of rules. Used for defining new rule types as combinators.
-        // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
-        setType(typeName:string) : Rule {
-            this.type = typeName;
-            return this;
-        }
 
         // Sets the name of the rule, and the grammar 
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
@@ -318,10 +201,10 @@ module Myna
 
         // Returns a default definition of the rule
         get definition() : string {
-            return this.type + "(" + this.rules.map((r) => r.toString()).join(", ") + ")";
+            return this.className + "(" + this.rules.map((r) => r.toString()).join(", ") + ")";
         }
 
-        // Returns the name of trhe rule preceded by the grammar name and a "."
+        // Returns the name of the rule preceded by the grammar name and a "."
         get fullName() : string {
             return this.grammarName + "." + this.name
         }
@@ -343,6 +226,13 @@ module Myna
             return this.rules[0];
         }
 
+        // Sets the "type" associated with the rule. 
+        // This is useful for tracking how a rule was created. 
+        setType(type : string) : Rule {
+            this.type = type;
+            return this;
+        }
+
         // Returns a copy of this rule with default values for all fields.  
         // Note: Every new rule class must override cloneImplemenation
         cloneImplementation() : Rule {
@@ -351,44 +241,64 @@ module Myna
 
         // Returns a copy of this rule with all fields copied.  
         get copy() : Rule {
-            let r = this.cloneImplementation();
+            var r = this.cloneImplementation();
             if (typeof(r) !== typeof(this))
                 throw new Error("Error in implementation of cloneImplementation: not returning object of correct type");
             r.name = this.name;
             r.grammarName = this.grammarName;
-            r.type = this.type;
             r._createAstNode = this._createAstNode;
             return r;
         }
 
         // Returns a copy of the rule that will create a node in the parse tree.
         // This property is the only way to create rules that generate nodes in a parse tree. 
+        // TODO: this might be better in a Rule class? 
         get ast() : Rule {
-            let r = this.copy;
+            var r = this.copy;
             r._createAstNode = true;
+            var parser = r.parser;
+            r.parser = (p : ParseState) =>{
+                var originalIndex = p.index; 
+                var originalNodes = p.nodes;
+                p.nodes = [];
+                if (!parser(p)) {
+                    p.nodes = originalNodes;
+                    p.index = originalIndex;
+                    return false;
+                }                
+                let node = new AstNode(r, p.input, originalIndex, p.index);
+                node.children = p.nodes;
+                p.nodes = originalNodes;
+                p.nodes.push(node);
+                return true;
+            }
             return r;
         }
 
-        //  Returns true if any of the child rules are "ast rules" meaning they create nodes in the 
-        // parse tree.
+        // Returns true if any of the child rules are "ast rules" meaning they create nodes in the parse tree.
         get hasAstChildRule() : boolean {
-            return this.rules.filter(r => r.isAstRule).length > 0;
+            return this.rules.filter(r => r.createsAstNode).length > 0;
         }
 
-        // Returns true if this rule when parsed successfully will create a node in the parse tree 
-        get isAstRule() : boolean{
-            return this._createAstNode || (this.hasAstChildRule 
-            && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+        // Returns true if this rule when parsed successfully will create a node in the parse tree. 
+        // Some rules will override this function. 
+        get createsAstNode() : boolean {
+            return this._createAstNode;
+        }
+
+        // Returns true if this rule doesn't advance the input
+        get nonAdvancing() : boolean {
+            return false; 
         }
 
         // Returns a string that describes the AST nodes created by this rule.
         // Will throw an exception if this is not a valid AST rule (this.isAstRule != true)
         get astRuleDefn() : string {    
-            let rules = this.rules.filter(r => r.isAstRule);        
+            var rules = this.rules.filter(r => r.createsAstNode);        
             if (!rules.length)
                 return this.name;
             if (rules.length == 1) {
-                let result = rules[0].astRuleNameOrDefn;
+                var result = rules[0].astRuleNameOrDefn;
                 if (this instanceof Quantified)
                     result += "[" + this.min + "," + this.max + "]";     
                 return result;
@@ -417,6 +327,7 @@ module Myna
         get opt() : Rule { return opt(this); }
         get zeroOrMore() : Rule { return zeroOrMore(this); }
         get oneOrMore() : Rule { return oneOrMore(this); }
+        get at() : Rule { return at(this); }
         get not() : Rule { return not(this); }
         get advance() : Rule { return this.then(advance); }
         get ws() : Rule { return this.then(ws); }
@@ -433,7 +344,7 @@ module Myna
         repeat(count:number) { return repeat(this, count); }
         quantified(min:number, max:number) { return quantified(this, min, max); }
         delimited(delimiter:RuleType) { return delimited(this, delimiter); }        
-        butNot(r:RuleType) { return not(r).then(this); }
+        unless(r:RuleType) { return unless(this, r); }
     }
 
     //===============================================================
@@ -448,21 +359,56 @@ module Myna
     export class Sequence extends Rule 
     {
         type = "seq";
+        className = "Sequence";
 
-        constructor(rules:Rule[]) { super(rules); }
-
-        parseImplementation(p:Parser): number {
-            for (let r of this.rules) 
-                if (r.parse(p) == failed)
-                    return failed;
-            return p.index;
+        constructor(rules:Rule[]) { 
+            super(rules); 
+            var length = rules.length;
+            var parsers = this.rules.map(r => r.parser);
+            this.parser = (p : ParseState) => {
+                var originalCount = p.nodes.length;
+                var originalIndex = p.index;
+                for (var i = 0, len = length; i < len; ++i) {
+                    if (!parsers[i](p)) {                        
+                        // Any created nodes need to be popped off the list 
+                        if (p.nodes.length !== originalCount) 
+                            p.nodes.splice(-1, p.nodes.length - originalCount);
+                        // Assure that the parser is restored to its original position 
+                        p.index = originalIndex;
+                        return false;
+                    }
+                }
+                return true;
+            };
+            var lexers = this.rules.map(r => r.lexer);
+            this.lexer = (p : ParseState) => {
+                var original = p.index;
+                for (var i = 0, len = length; i < len; ++i) {
+                    if (!lexers[i](p)) {
+                        p.index = original;
+                        return false;
+                    }
+                }
+                return true;
+            }
+            // When none of the child rules create a node, we can use the lexer to parse
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
 
         get definition() : string {
-            let result = this.rules.map((r) => r.toString()).join(" ");
+            var result = this.rules.map((r) => r.toString()).join(" ");
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
+        }
+
+        get nonAdvancing() : boolean {
+            return this.rules.every(r => r.nonAdvancing); 
+        }
+
+        get createsAstNode() : boolean {
+            return this._createAstNode || this.hasAstChildRule;
         }
 
         cloneImplementation() : Rule { return new Sequence(this.rules); }
@@ -472,23 +418,43 @@ module Myna
     export class Choice extends Rule
     {
         type = "choice";
+        className = "Choice";
 
-        constructor(rules:Rule[]) { super(rules); }
-
-        parseImplementation(p:Parser): number {
-            for (let r of this.rules) {
-                let result = r.parse(p);
-                if (result !== failed) 
-                    return result;
+        constructor(rules:Rule[]) { 
+            super(rules);
+            var length = rules.length;
+            var parsers = this.rules.map(r => r.parser);
+            this.parser = (p : ParseState) =>{
+                for (var i = 0, len = length; i < len; ++i) 
+                    if (parsers[i](p)) 
+                        return true;
+                return false;
+            };
+            var lexers = this.rules.map(r => r.lexer);
+            this.lexer = (p : ParseState) =>{
+                for (var i = 0, len = length; i < len; ++i) 
+                    if (lexers[i](p)) 
+                        return true;
+                return false;
             }
-            return failed;
-        }        
+            // When none of the child rules create a node, we can use the lexer to parse
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
+        }
 
         get definition() : string {
-            let result = this.rules.map((r) => r.toString()).join(" / ");
+            var result = this.rules.map((r) => r.toString()).join(" / ");
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
+        }
+
+        get nonAdvancing() : boolean {
+            return this.rules.every(r => r.nonAdvancing); 
+        }
+
+        get createsAstNode() : boolean {
+            return this._createAstNode || this.hasAstChildRule;
         }
 
         cloneImplementation() : Rule { return new Choice(this.rules); }
@@ -499,29 +465,62 @@ module Myna
     export class Quantified extends Rule
     {    
         type = "quantified";
+        className = "Quantified";
+       
+        constructor(rule:Rule, public min:number=0, public max:number=Infinity) { 
+            super([rule]); 
+            var pChild = this.firstChild.parser;
+            this.parser = (p : ParseState) =>{
+                var originalCount = p.nodes.length;
+                var originalIndex = p.index;
+                
+                for (var i=0; i < max; ++i) {
+                    var index = p.index;
 
-        constructor(rule:Rule, public min:number=0, public max:number=Infinity) { super([rule]); }
+                    // If parsing the rule fails, we return the last result, or failed 
+                    // if the minimum number of matches is not met. 
+                    if (!pChild(p)) {
+                        if (i >= min) 
+                            return true;
+                         
+                        // Any created nodes need to be popped off the list 
+                        if (p.nodes.length !== originalCount) 
+                            p.nodes.splice(-1, p.nodes.length - originalCount);
 
-        parseImplementation(p:Parser): number {
-            let result = p.index;
-            for (let i=0; i < this.max; ++i) {
-                let tmp = this.firstChild.parse(p);
+                        // Assure that the parser is restored to its original position 
+                        p.index = originalIndex;
+                        return false;
+                    }
 
-                // If parsing the rule fails, we return the last result, or failed 
-                // if the minimum number of matches is not met. 
-                if (tmp === failed) 
-                    return i >= this.min ? result : failed;
+                    // Check for progress, to assure we aren't hitting an infinite loop  
+                    // Without this it is possible to accidentally put a zeroOrMore with a predicate.
+                    // For example: myna.truePredicate.zeroOrMore would loop forever 
+                    debugAssert(max !== Infinity || p.index !== index, this);
+                }            
+                return true;
+            };
+            var lChild = this.firstChild.lexer;
+            this.lexer = (p : ParseState) =>{
+                var original = p.index;
+                for (var i=0; i < max; ++i) {
+                    var index = p.index;
+                    if (!lChild(p)) {
+                        if (i >= min) 
+                            return true;
+                        p.index = original;
+                        return false;
+                    }
 
-                // Check for progress, to assure we aren't hitting an infinite loop  
-                // Without this it is possible to accidentally put a zeroOrMore with a predicate.
-                // For example: myna.truePredicate.zeroOrMore would loop forever 
-                if (this.max == Infinity) 
-                    if (result === tmp)
-                        throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
-
-                result = tmp;
-            }            
-            return result;
+                    // Check for progress, to assure we aren't hitting an infinite loop  
+                    // Without this it is possible to accidentally put a zeroOrMore with a predicate.
+                    // For example: myna.truePredicate.zeroOrMore would loop forever 
+                    //debugAssert(max !== Infinity || p.index !== index, this);
+                }            
+                return true;
+            };
+            // When none of the child rules create a node, we can use the lexer to parse
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
 
         // Used for creating a human readable definition of the grammar.
@@ -535,6 +534,10 @@ module Myna
             return this.firstChild.toString() + "{" + this.min + "," + this.max + "}";
          }
 
+        get createsAstNode() : boolean {
+            return this._createAstNode || this.hasAstChildRule;
+        }
+
         cloneImplementation() : Rule { return new Quantified(this.firstChild, this.min, this.max); }
     }
 
@@ -542,96 +545,59 @@ module Myna
     export class Advance extends Rule
     {
         type = "advance";
-        constructor() { super([]); }
-        parseImplementation(p:Parser): number { return p.inRange ? p.index+1 : failed; }
+        className = "Advance";
+        constructor() { 
+            super([]); 
+            this.lexer = (p : ParseState) => 
+                p.inRange ? ++p.index >= 0 : false;
+            this.parser = this.lexer;
+        }
         get definition() : string { return "<advance>"; }
         cloneImplementation() : Rule { return new Advance(); }                
     }
 
-    // Uses a lookup table to find the next rule to parse next from the current token 
-    export class Lookup extends Rule
+    // Advances the parser by one token if the predicate is true.
+    export class AdvanceIf extends Rule
     {
-        type = "lookup";
-        constructor(public lookup:any, public onDefault:Rule) { super([]); }        
-        parseImplementation(p:Parser): number {
-            if (!p.inRange) return failed;
-            let tkn = p.input[p.index];
-            let r = this.lookup[tkn];
-            if (r !== undefined) 
-                return r.parse(p);
-            return this.onDefault.parse(p);
-        }           
-        get definition() : string {
-            return '{' + Object.keys(this.lookup).map(k => '"' + escapeChars(k)  + '" :' + this.lookup[k].toString()).join(',') + '}';
+        type = "advanceIf";
+        className = "AdvanceIf";
+        constructor(condition:Rule) { 
+            super([condition]); 
+            var lexCondition = condition.lexer;
+            this.lexer = (p : ParseState) => 
+                p.inRange && lexCondition(p) ? ++p.index >= 0 : false;
+            this.parser = this.lexer;
         }
-        cloneImplementation() : Rule { return new Lookup(this.lookup, this.onDefault); }
+        get definition() : string { return "advanceif(" + this.firstChild.toString() + ")"; }
+        cloneImplementation() : Rule { return new AdvanceIf(this.firstChild); }                
     }
 
-    // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
-    export function tokensToDictionary(tokens:string[], rule:RuleType)
-    {
-        let d = {};
-        for (let t of tokens) 
-            d[t] = RuleTypeToRule(rule);
-        return d;
-    }
-
-    // A specialization of the lookup 
-    export class CharSet extends Lookup {
-        type = "charSet";
-        constructor(public chars:string) { 
-            super(tokensToDictionary(chars.split(""), advance), falsePredicate);
-        }
-        get definition() : string { return "[" + escapeChars(this.chars) + "]"};
-        cloneImplementation() : Rule { return new CharSet(this.chars); }        
-    }
-
-    // A specialization of the lookup 
-    export class NegatedCharSet extends Lookup {
-        type = "negatedCharSet";
-        constructor(public chars:string) { 
-            super(tokensToDictionary(chars.split(""), falsePredicate), truePredicate);
-        }
-        get definition() : string { return "[^" +  escapeChars(this.chars) + "]"};
-        cloneImplementation() : Rule { return new NegatedCharSet(this.chars); }        
-    }
-
-    // Creates a dictionary from a range of tokens, mapping each one to the same rule.
-    export function rangeToDictionary(min:string, max:string, rule:RuleType) {
-        if (min.length != 1 || max.length != 1)
-            throw new Error("rangeToDictionary requires characters as inputs");
-        let minChar = min.charCodeAt(0);
-        let maxChar = max.charCodeAt(0);
-        let d = {};
-        for (let x=minChar; x <= maxChar; ++x)
-            d[String.fromCharCode(x)] = rule;
-        return d;
-    }
-
-    // Advances if the current token is within a range of characters, otherwise returns false
-    export class CharRange extends Lookup {
-        type = "charRange";
-        constructor(public min:string, public max:string) { 
-            super(rangeToDictionary(min, max, advance), falsePredicate); 
-        }
-        get definition() : string { return "[" + this.min + ".." + this.max + "]"};
-        cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
-    }
-
-    // Used to match a string in the input string 
+    // Used to match a string in the input string, advances the token. 
     export class Text extends Rule
     {
         type = "text";
-        constructor(public text:string) { super([]); }
-        parseImplementation(p:Parser): number {
-            if (p.index > p.input.length - this.text.length)
-                return failed;
-            for (let i=0; i < this.text.length; ++i) 
-                if (p.input[p.index+i] !== this.text[i])
-                    return failed;
-            return p.index + this.text.length;
-        }
-        get definition() : string { return '"' + escapeChars(this.text) + '"' };
+        className = "Text";
+        constructor(public text:string) { 
+            super([]); 
+            var length = text.length;
+            var vals = [];
+            for (var i=0; i < length; ++i)
+                vals.push(text.charCodeAt(i));
+            this.lexer = (p : ParseState) => {
+                if (!p.inRange) return false;
+                if (p.code !== vals[0]) return false;
+                let index = p.index++;                
+                for (var i=1; i < length; ++i, ++p.index) {
+                    if (!p.inRange || p.code !== vals[i]) {
+                        p.index = index;
+                        return false;
+                    }
+                }
+                return true;
+            }
+            this.parser = this.lexer;
+        }           
+        get definition() : string { return '"' + escapeChars(this.text) + '"' }
         cloneImplementation() : Rule { return new Text(this.text); }        
     }
 
@@ -640,216 +606,263 @@ module Myna
     export class Delay extends Rule 
     {
         type = "delay";
-        constructor(public fn:()=>Rule) { super([]); }        
-        parseImplementation(p:Parser): number { return this.fn().parse(p); }
+        className = "Delay";
+        constructor(public fn:()=>Rule) { 
+            super([]); 
+            var tmpParser = null;
+            this.parser = (p : ParseState) =>(tmpParser ? tmpParser : tmpParser = fn().parser)(p);
+            var tmpLexer = null;
+            this.lexer = (p : ParseState) =>(tmpLexer ? tmpLexer : tmpLexer = fn().lexer)(p);
+        }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
-        get definition() : string { return "delay(" + this.fn() + ")"; }    
+        get definition() : string { return "<delay>"; }    
+
+        // It is assumed that a delay function creates an AST node,
+        get createsAstNode() : boolean {
+            return true;
+        }
     } 
 
-    //=======================================
-    // Zero length rules 
+    //====================================================================================================================
+    // Predicates don't advance the input 
 
-    // A MatchRule that does not advance the input
-    export class MatchRule extends Rule
-    {            
-        // Rules derived from a MatchRule will only provide an override 
-        // of the match function, so the parse is ovverriden and defined in terms of match.  
-        // The parser state is always restored. 
-        parseImplementation(p:Parser):number 
-        {
-            // Remember the old parser state
-            let oldP = p.clone();
-            
-            // The result of calling the derived parseImplementation
-            let result = this.match(p);
+    // Used to identify rules that do not advance the input
+    export class NonAdvancingRule extends Rule {
+        type = "charSet";
+        constructor(rules:Rule[]) { 
+            super(rules);
+        }
+        get nonAdvancing() : boolean {
+            return true;
+        }
+    }
 
-            // Restore the old parser state 
-            p.copyFrom(oldP);
+    // Returns true if the current token is in the token set. 
+    export class CharSet extends NonAdvancingRule {
+        type = "charSet";
+        className = "CharSet";
+        constructor(public chars:string) { 
+            super([]);
+            let vals = [];
+            let length = chars.length;
+            for (var i=0; i < length; ++i)
+                vals[i] = chars.charCodeAt(i);
+            this.lexer = (p : ParseState) => 
+                p.inRange && vals.indexOf(p.code) >= 0;
+            this.parser = this.lexer;
+        }
+        get definition() : string { return "[" + escapeChars(this.chars) + "]"};
+        cloneImplementation() : Rule { return new CharSet(this.chars); }        
+    }
 
-            // Returns the position of the parser, or failed
-            return result ? p.index : failed;
-        } 
+    // Returns true if the current token is within a range of characters, otherwise returns false
+    export class CharRange extends NonAdvancingRule {
+        type = "charRange";
+        className = "CharRange";
+        constructor(public min:string, public max:string) { 
+            super([]);
+            let minCode = min.charCodeAt(0);
+            let maxCode = max.charCodeAt(0);
+            this.lexer = (p : ParseState) => { 
+                let code = p.code;
+                return code >= minCode && code <= maxCode;
+            }
+            this.parser = this.lexer;
+        }
+        get definition() : string { return "[" + this.min + ".." + this.max + "]"};
+        cloneImplementation() : Rule { return new CharRange(this.min, this.max); }            
     }
 
     // Returns true only if the child rule fails to match.
-    export class Not extends MatchRule
+    export class Not extends NonAdvancingRule
     {
         type = "not";
-        constructor(rule:Rule) { super([rule]); }
-        match(p:Parser):boolean { return !this.firstChild.match(p); }
+        className = "Not";
+        constructor(rule:Rule) { 
+            super([rule]); 
+            var childLexer = rule.lexer; 
+            this.lexer = (p : ParseState) => { 
+                if (!p.inRange) return true;
+                let index = p.index; 
+                if (!childLexer(p)) 
+                    return true;
+                p.index = index;
+                return false; 
+            }
+            this.parser = this.lexer;
+        }
         cloneImplementation() : Rule { return new Not(this.firstChild); }
         get definition() : string { return "!" + this.firstChild.toString(); }
     }   
 
     // Returns true only if the child rule matches, but does not advance the parser
-    export class At extends MatchRule
+    export class At extends NonAdvancingRule
     {
         type = "at";
-        constructor(rule:Rule) { super([rule]); }
-        match(p:Parser):boolean { return this.firstChild.match(p); }
+        className = "At";
+        constructor(rule:Rule) { 
+            super([rule]); 
+            var childLexer = rule.lexer; 
+            this.lexer = (p : ParseState) =>{ 
+                let index = p.index; 
+                if (!childLexer(p)) 
+                    return false;
+                p.index = index; 
+                return true; 
+            }
+            this.parser = this.lexer;
+        }
         cloneImplementation() : Rule { return new At(this.firstChild); }
         get definition() : string { return "&" + this.firstChild.toString(); }
     }   
 
     // Uses a function to return true or not based on the behavior of the predicate rule
-    export class Predicate extends MatchRule
+    export class Predicate extends NonAdvancingRule
     {
         type = "predicate";
-        constructor(public fn:(p:Parser)=>boolean) { super([]); }
-        match(p:Parser):boolean { return this.fn(p); }
+        className = "Predicate";
+        constructor(public fn:(p:ParseState)=>boolean) {
+            super([]); 
+            this.lexer = fn;
+            this.parser = this.lexer;
+        }
         cloneImplementation() : Rule { return new Predicate(this.fn); }        
         get definition() : string { return "<predicate>"; }
     }
     
-    // Returns true always 
-    export class TruePredicate extends MatchRule
-    {
-        type = "true";
-        constructor() { super([]); }
-        match(p:Parser):boolean { return true; }
-        cloneImplementation() : Rule { return new TruePredicate(); }        
-        get definition() : string { return "<true>"; }
-    }
-    
-    // Returns true if at the end of the input, or false otherwise
-    export class AtEndPredicate extends MatchRule
-    {
-        type = "end";
-        constructor() { super([]); }
-        match(p:Parser):boolean { return !p.inRange; }
-        cloneImplementation() : Rule { return new AtEndPredicate(); }        
-        get definition() : string { return "<end>"; }
-    }
-    
+
     //===============================================================
     // Rule creation function
     
     // Create a rule that matches the text 
-    export function text(text:string) {
-        return new Text(text); 
+    export function text(text:string) { return new Text(text);  }
+
+    // Creates a rule that matches a series of rules in order, and succeeds if they all do
+    export function seq(...rules:RuleType[]) { 
+        let rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return truePredicate;
+        if (rs.length == 1)
+            return rs[0];
+        if (rs.length == 2 && rs[0].nonAdvancing && rs[1] instanceof Advance) 
+            return new AdvanceIf(rs[0]);
+            */
+        return new Sequence(rs); 
     }
 
-    // Matches a series of rules in order, and succeeds if they all do
-    export function seq(...rules:RuleType[]) {
-        return new Sequence(rules.map(RuleTypeToRule));
-    }
-
-    // Tries to match each rule in order, and succeeds if one does 
-    export function choice(...rules:RuleType[]) : Choice {
-        return new Choice(rules.map(RuleTypeToRule));
+    // Creates a rule that tries to match each rule in order, and succeeds if at least one does 
+    export function choice(...rules:RuleType[]) : Choice { 
+        let rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return falsePredicate;
+        if (rs.length == 1)
+            return rs[0];
+            */
+        return new Choice(rs); 
     }        
 
     // Enables Rules to be defined in terms of variables that are defined later on.
     // This enables recursive rule definitions.  
-    export function delay(fxn:()=>RuleType) { 
-        return new Delay(() => RuleTypeToRule(fxn())); 
-    }
+    export function delay(fxn:()=>Rule) { return new Delay(fxn);  }
 
     // Parses successfully if the given rule does not match the input at the current location  
-    export function not(rule:RuleType) { 
-        return new Not(RuleTypeToRule(rule)); 
-    };
+    export function not(rule:RuleType) { return new Not(RuleTypeToRule(rule));  };
+
+    // Returns true if the rule successfully matches, but does not advance the parser index. 
+    export function at(rule:RuleType) {  return new At(RuleTypeToRule(rule)); };
 
     // Attempts to apply a rule between min and max number of times inclusive. If the maximum is set to Infinity, 
     // it will attempt to match as many times as it can, but throw an exception if the parser does not advance 
-    export function quantified(rule:RuleType, min:number=0, max:number=Infinity) { 
-        return new Quantified(RuleTypeToRule(rule), min, max); 
-    }
+    export function quantified(rule:RuleType, min:number=0, max:number=Infinity) { return new Quantified(RuleTypeToRule(rule), min, max);  }
 
     // Attempts to apply the rule 0 or more times. Will always succeed unless the parser does not 
     // advance, in which case an exception is thrown.    
-    export function zeroOrMore(rule:RuleType) { 
-        return quantified(rule).setType("zeroOrMore"); 
-    };
+    export function zeroOrMore(rule:RuleType) {  return quantified(rule).setType("zeroOrMore");  };
 
     // Attempts to apply the rule 1 or more times. Will throw an exception if the parser does not advance.  
-    export function oneOrMore(rule:RuleType)  { 
-        return quantified(rule, 1).setType("oneOrMore"); 
-    }
+    export function oneOrMore(rule:RuleType) { return quantified(rule, 1).setType("oneOrMore"); } 
 
     // Attempts to match a rule 0 or 1 times. Always succeeds.   
-    export function opt(rule:RuleType)  { 
-        return quantified(rule, 0, 1).setType("opt"); 
-    };
+    export function opt(rule:RuleType) { return quantified(rule, 0, 1).setType("optional"); }
 
     // Attempts to apply a rule a precise number of times
-    export function repeat(rule:RuleType, count:number) { 
-        return quantified(rule, count, count).setType("repeat"); 
-    }
+    export function repeat(rule:RuleType, count:number) { return quantified(rule, count, count).setType("repeat"); }
     
-    // Returns true if the rule successfully matches, but does not advance the parser index. 
-    export function at(rule:RuleType) { 
-        return new At(RuleTypeToRule(rule)); 
-    };
+    // Returns true if one of the characters are present. Does not advances the parser position.
+    export function atChar(chars:string) { return new CharSet(chars); }    
 
-    // Looks up the rule to parse based on whether the token in the array of not.      
-    export function lookup(tokens:string[], rule:RuleType, onDefault:RuleType=false) {
-        return new Lookup(tokensToDictionary(tokens, rule), RuleTypeToRule(onDefault));
-    }
+    // Returns true if none of the characters are present. Does not advances the parser position.
+    export function notAtChar(chars:string) { return atChar(chars).not; }    
 
-    //===============================================================    
-    // Character set rules
+    // Advances parser if one of the characters are present.
+    export function char(chars:string) { return atChar(chars).advance; }    
 
-    // Returns true if one of the characters is present, but does not advance the parser position
-    export function atChar(chars:string) { return at(char(chars)); }
-
-    // Returns true if none of the characters are present, but does not advance the parser position 
-    export function notAtChar(chars:string) { return not(char(chars)); }
-
-    // Advances if none of the characters are present.
-    export function charExcept(chars:string) { return notAtChar(chars).advance; }    
-
-    // Returns true if one of the characters are present, and advances the parser position
-    export function char(chars:string) { return new CharSet(chars); }    
+    // Advances parser if none of the characters are present.
+    export function notChar(chars:string) { return notAtChar(chars).advance; }    
 
     // Advances if one of the characters are present, or returns false
-    export function range(min:string, max:string) { return new CharRange(min, max); }
+    export function atRange(min:string, max:string) { return new CharRange(min, max); }
 
-    // Advance if on of the characters are not in the range
-    export function exceptRange(min:string, max:string) { return range(min, max).not.then(advance); }
+    // Advances if one of the characters are present, or returns false
+    export function range(min:string, max:string) { return atRange(min, max).advance; }
 
-    //===============================================================    
-    // Advanced rule operators 
-    
-    export function delimited(rule:RuleType, delimiter:RuleType) { return opt(seq(rule, zeroOrMore(seq(delimiter, rule)))).setType("delimitedList"); }
-    export function except(condition:RuleType, rule:RuleType) { return seq(not(condition), rule).setType("except"); }        
-    export function repeatWhileNot(body:RuleType, condition:RuleType) { return zeroOrMore(except(condition, body)).setType("whileNot"); }
-    export function repeatUntilPast(body:RuleType, condition:RuleType) { return seq(repeatWhileNot(body, condition), condition).setType("repeatUntilPast"); }
-    export function advanceWhileNot(rule:RuleType) { return not(rule).advance.zeroOrMore.setType("advanceWhileNot"); }
-    export function advanceUntilPast(rule:RuleType) { return seq(advanceWhileNot(rule), rule).setType("advanceUntilPast"); }
-    export function advanceUnless(rule:RuleType) { return advance.butNot(rule).setType("advanceUnless"); }
+    // Returns true if on of the characters are not in the range, but does not advance the parser position
+    export function notRange(min:string, max:string) { return range(min, max).not; }
 
-    //===============================================================    
-    // Predicates and actions  
-    
-    export function predicate(fn:(p:Parser)=>boolean) { return new Predicate(fn); }
-    export function action(fn:(p:Parser)=>void) { return predicate((p)=> { fn(p); return true; }).setType("action"); }
+    // Repeats a rule zero or more times, with a delimiter between each one. 
+    export function delimited(rule:RuleType, delimiter:RuleType) { return opt(seq(rule, seq(delimiter, rule).zeroOrMore)).setType("delimitedList"); }
+
+    // Executes the rule, if the condition is not true
+    export function unless(rule:RuleType, condition:RuleType) { return seq(not(condition), rule).setType("unless"); }        
+
+    // Repeats the rule while the condition is not true
+    export function repeatWhileNot(body:RuleType, condition:RuleType) { return unless(body, condition).zeroOrMore.setType("repeatWhileNot"); }
+
+    // Repeats the rule while the condition is not true, but must execute at least once 
+    export function repeatOneOrMoreWhileNot(body:RuleType, condition:RuleType) { return not(condition).then(body).then(repeatWhileNot(body, condition)).setType("repeatOneOrMoreWhileNot"); }
+
+    // Repeats the rule until just after the condition is true once 
+    export function repeatUntilPast(body:RuleType, condition:RuleType) { return repeatWhileNot(body, condition).then(condition).setType("repeatUntilPast"); }
+
+    // Repeats the rule until just after the condition is true once but must execute at least once 
+    export function repeatOneOrMoreUntilPast(body:RuleType, condition:RuleType) { return not(condition).then(body).then(repeatUntilPast(body, condition)).setType("repeatOneOrMoreUntilPast"); }
+
+    // Advances the parse state while the rule is not true. 
+    export function advanceWhileNot(rule:RuleType) { return repeatWhileNot(advance, rule).setType("advanceWhileNot"); }
+
+    // Advances the parse state while the rule is not true but must execute ast least once 
+    export function advanceOneOrMoreWhileNot(rule:RuleType) { return repeatOneOrMoreWhileNot(advance, rule).setType("advanceOneOrMoreWhileNot"); }
+
+    // Advance the parser until just after the rule is executed 
+    export function advanceUntilPast(rule:RuleType) { return repeatUntilPast(advance, rule).setType("advanceUntilPast"); }
+
+    // Advance the parser until just after the rule is executed, but must execute at least once  
+    export function advanceOneOrMoreUntilPast(rule:RuleType) { return repeatOneOrMoreUntilPast(advance, rule).setType("advanceOneOrMoreUntilPast"); }
+
+    // Advances the parser unless the rule is true. 
+    export function advanceUnless(rule:RuleType) { return advance.unless(rule).setType("advanceUnless"); }
+
+    // Parses successfully if  the predictate passes
+    export function predicate(fn:(p:ParseState)=>boolean) { return new Predicate(fn); }
+
+    // Executes an action when arrived at and continues 
+    export function action(fn:(p:ParseState)=>void) { return predicate((p)=> { fn(p); return true; }).setType("action"); }
+
+    // Logs a message as an action 
     export function log(msg:string = "") { return action(p=> { console.log(msg); }).setType("log"); }
 
-    //==================================================================
-    // Assertions and errors 
+    // Throw a ParseError if reached 
+    export function err(message) {  return action(p=> { throw new ParseError(p, message); }).setType("err");  }
 
-    export class ParseError extends Error 
-    {
-        constructor(public parser:Parser, public message:string)
-        {
-            super(message);
-        }
-    }
-
-    export function err(message) { 
-        return action(p=> { throw new ParseError(p, message); }).setType("err"); 
-    }
-
+    // Asserts that the rule is executed 
+    // This has to be embedded in a function because the rule might be in a circular definition.  
     export function assert(rule:RuleType) { 
-        return choice(rule, action(p => { 
-            // This has to be embedded in a function because the rule might be in a circular definition.  
+        return choice(rule, action((p : ParseState) =>{ 
             throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule)); 
-        })).setType("assert"); 
+        })); 
     }
-    
-    //=======================================================================
-    // Guarded sequences. 
     
     // If first part of a guarded sequence passes then each subsequent rule must pass as well 
     // otherwise an exception occurs. This helps create parsers that fail fast, and thus provide
@@ -858,74 +871,110 @@ module Myna
         return seq(condition, seq(...rules.map((r) => assert(r)))).setType("guardedSeq"); 
     }
     
-    // Common guarded sequences 
+    // Parses the given rule surrounded by double quotes 
+    export function doubleQuoted(rule:RuleType) { return seq("\"", rule, assert("\"")).setType("doubleQuoted"); }
 
-    export function doubleQuoted(rule:RuleType) { return guardedSeq("\"", rule, "\"").setType("doubleQuoted"); }
-    export function singleQuoted(rule:RuleType) { return guardedSeq("'", rule, "'").setType("singleQuoted"); }
+    // Parses a double quoted string, taking into account special escape rules
+    export function doubleQuotedString(escape:RuleType) { return doubleQuoted(choice(escape, notChar('"').zeroOrMore)).setType("doubleQuotedString"); }
 
-    // Create an array rule by injecting another rule in between each pairs
-    export function join(sep:RuleType, ...xs:RuleType[]) : RuleType[] {
-        let r=[];
-        for (var i=0; i < xs.length; ++i) {
-            if (i > 0) r.push(sep);
-            r.push(xs[i]);
-        } 
-        return r;
-    }
+    // Parses the given rule surrounded by single quotes 
+    export function singleQuoted(rule:RuleType) { return seq("'", rule, assert("'")).setType("singleQuoted"); }
 
-    // Given a list of rules, maps the text to keywords 
-    export function keywordMap(...rules:RuleType[]) { return rules.map((r) => typeof r == "string" ? keyword(r) : r); } 
+    // Parses a singe quoted string, taking into account special escape rules
+    export function singleQuotedString(escape:RuleType) { return singleQuoted(choice(escape, notChar("'").zeroOrMore)).setType("singleQuotedString"); }
 
-    // Add whitespace matching rule in between each other rule. 
-    export function seqWs(...rules:RuleType[]) { return seq(...join(ws, ...rules)); } 
+    // Parses the given rule surrounded by parentheses, and consumes whitespace  
+    export function parenthesized(rule:RuleType) { return seq("(", ws, rule, ws, ")").setType("parenthesized"); }
 
-    // Common guarded sequences: with internal whitespace
-    
-    export function parenthesized(rule:RuleType) { return guardedSeq("(", ws, rule, ws, ")").setType("parenthesized"); }
-    export function braced(rule:RuleType) { return guardedSeq("{", ws, rule, ws, "}").setType("braced"); }
-    export function bracketed(rule:RuleType) { return guardedSeq("[", ws, rule, ws, "]").setType("bracketed"); }
-    export function tagged(rule:RuleType) { return guardedSeq("<", ws, rule, ws, ">").setType("tagged"); }
+    // Parses the given rule surrounded by curly braces, and consumes whitespace 
+    export function braced(rule:RuleType) { return seq("{", ws, rule, ws, "}").setType("braced"); }
+
+    // Parses the given rule surrounded by square brackets, and consumes whitespace 
+    export function bracketed(rule:RuleType) { return seq("[", ws, rule, ws, "]").setType("bracketed"); }
+
+    // Parses the given rule surrounded by angle brackets, and consumes whitespace 
+    export function tagged(rule:RuleType) { return seq("<", ws, rule, ws, ">").setType("tagged"); }
          
     // A complete identifier, with no other letters or numbers
     export function keyword(text:string) { return seq(text, not(identifierNext)).setType("keyword"); }
+
+    // Chooses one of a a list of identifiers
     export function keywords(...words:string[]) { return choice(...words.map(keyword)); }
 
     //===============================================================    
     // Core grammar rules 
         
-    export let truePredicate    = new TruePredicate();
-    export let falsePredicate   = truePredicate.not;
-    export let end              = new AtEndPredicate();
-    export let notEnd           = end.not;
-    export let advance          = new Advance();   
-    export let all              = advance.zeroOrMore;
-    export let letterLower      = range('a','z');
-    export let letterUpper      = range('A','Z');
-    export let letter           = choice(letterLower, letterUpper);
-    export let letters          = letter.oneOrMore;
-    export let digit            = range('0', '9');
-    export let digits           = digit.oneOrMore;
-    export let digitNonZero     = range('1', '9');
-    export let integer          = choice('0', seq(digitNonZero, digit.zeroOrMore));
-    export let hexDigit         = choice(digit,range('a','f'), range('A','F'));
-    export let binaryDigit      = char('01');
-    export let octalDigit       = range('0','7');
-    export let alphaNumeric     = choice(letter, digit);
-    export let underscore       = text("_");
-    export let identifierFirst  = choice(letter, underscore);
-    export let identifierNext   = choice(alphaNumeric, underscore);     
-    export let identifier       = seq(identifierFirst, identifierNext.zeroOrMore);     
-    export let hyphen           = text("-");
-    export let crlf             = text("\r\n");
-    export let newLine          = choice(crlf, "\n");          
-    export let space            = text(" ");
-    export let tab              = text("\t");    
-    export let ws               = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;    
-    export let wordChar         = letter.or(char("-'"));
-    export let word             = letter.then(wordChar.zeroOrMore);    
-        
+    export var truePredicate    = new Predicate((p : ParseState) =>true);
+    export var falsePredicate   = new Predicate((p : ParseState) =>false);
+    export var end              = new Predicate((p : ParseState) =>!p.inRange);
+    export var notEnd           = new Predicate((p : ParseState) =>p.inRange);
+    export var advance          = new Advance();   
+    export var all              = advance.zeroOrMore;
+
+    export var atLetterLower      = atRange('a','z');
+    export var atLetterUpper      = atRange('A','Z');
+    export var atLetter           = choice(atLetterLower, atLetterUpper);
+    export var atDigit            = atRange('0', '9');
+    export var atDigitNonZero     = atRange('1', '9');
+    export var atHexDigit         = choice(atDigit, atRange('a','f'), atRange('A','F'));
+    export var atBinaryDigit      = atChar('01');
+    export var atOctalDigit       = atRange('0','7');
+    export var atAlphaNumeric     = choice(atLetter, atDigit);
+    export var atUnderscore       = atChar("_");
+    export var atSpace            = atChar(" ");
+    export var atTab              = atChar("\t");    
+    export var atWs               = atChar(" \t\r\n\u00A0\uFEFF");
+
+    export var letterLower      = atLetterLower.advance;
+    export var letterUpper      = atLetterUpper.advance;
+    export var letter           = atLetter.advance;
+    export var letters          = letter.oneOrMore;
+    export var digit            = atDigit.advance;
+    export var digitNonZero     = atDigitNonZero.advance;
+    export var digits           = digit.oneOrMore;
+    export var integer          = char('0').or(digits);
+    export var hexDigit         = atHexDigit.advance;
+    export var binaryDigit      = atBinaryDigit.advance;
+    export var octalDigit       = atOctalDigit.advance;
+    export var alphaNumeric     = atAlphaNumeric.advance;
+    export var underscore       = atUnderscore.advance;
+    export var identifierFirst  = choice(atLetter, atUnderscore).advance;
+    export var identifierNext   = choice(atAlphaNumeric, atUnderscore).advance;
+    export var identifier       = seq(identifierFirst, identifierNext.zeroOrMore);     
+    export var hyphen           = text("-");
+    export var crlf             = text("\r\n");
+    export var newLine          = choice(crlf, "\n");          
+    export var space            = text(" ");
+    export var tab              = text("\t");    
+    
+    // JSON definition of white-space 
+    export var ws               = atWs.advance.zeroOrMore;        
+
     //===============================================================
-        // Grammar functions 
+    // Parsing function 
+    
+    // Returns an array of nodes created by parsing the given rule repeatedly until 
+    // it fails or the end of the input is arrived. One Astnode is created for each time 
+    // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
+    // flag set explicitly. 
+    export function tokenize(r:Rule, s:string) : AstNode[]
+    {
+        var result = this.parse(r.ast.zeroOrMore, s);
+        return result ? result.children : [];
+    }
+
+    // Returns the root node of the abstract syntax tree created 
+    // by parsing the rule. 
+    export function parse(r : Rule, s : string) : AstNode
+    {
+        var p = new ParseState(s, 0, []);        
+        if (!r.ast.parser(p)) 
+            return null;
+        return p && p.nodes ? p.nodes[0] : null;
+    }
+
+    //===============================================================
+    // Grammar functions 
     
     // The following are helper functions for grammar objects. A grammar is a loosely defined concept.
     // It is any JavaScript object where one or more member fields are instances of the Rule class.    
@@ -963,37 +1012,56 @@ module Myna
     // Initializes and register a grammar object and all of the rules. 
     // Sets names for all of the rules from the name of the field it is associated with combined with the 
     // name of the grammar. Each rule is stored in Myna.rules and each grammar is stored in Myna.grammars. 
-    export function registerGrammar(grammarName:string, grammar:any)
+    export function registerGrammar(grammarName:string, grammar:any, defaultRule:Rule)
     {
-        for (let k in grammar) {
+        for (var k in grammar) {
             if (grammar[k] instanceof Rule) {
-                let rule = grammar[k];
+                var rule = grammar[k];
                 rule.setName(grammarName, k);
                 allRules[rule.fullName] = rule;
             }
         }
         grammars[grammarName] = grammar;
+
+        if (defaultRule) {
+            parsers[grammarName] = text => parse(defaultRule, text);
+        }
         return grammar;
     }
 
     //===========================================================================
     // Utility functions
 
+    // Replaces characters with the JSON escaped version
     export function escapeChars(text:string) {
-        let r = JSON.stringify(text);
+        var r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
+    }
+
+    // Given a RuleType returns an instance of a Rule.
+    export function RuleTypeToRule(rule:RuleType) : Rule {
+        if (rule instanceof Rule) return rule;
+        if (typeof(rule) === "string") return text(rule);
+        if (typeof(rule) === "boolean") return rule ? truePredicate : falsePredicate;
+        throw new Error("Invalid rule type: " + rule);
+    }     
+
+    // These should be commented out in the filnal version 
+    export function debugAssert(condition: boolean, rule: Rule) {
+        if (!condition)
+            throw new Error("Error occured while parsing rule: " + rule.fullName);
     }
 
     //===========================================================================
     // Initialization
 
     // The entire module is a grammar because it is an object that exposes rules as properties
-    registerGrammar("core", Myna);
+    registerGrammar("core", Myna, null);
 }
 
 // Export the function for use with Node.js and the CommonJS module system. 
 // In TypeScript we have to "declare" the module variable to make it a valid symbol, 
 // before we check if it exists. 
-declare let module;
+declare var module;
 if (typeof module === "object" && module.exports) 
     module.exports = Myna;

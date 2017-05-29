@@ -14,32 +14,41 @@ var __extends = (this && this.__extends) || function (d, b) {
 // export code at the bottom of the file. 
 var Myna;
 (function (Myna) {
+    //====================================================================================
+    // Internal variables used by the Myna library
+    // A lookup table of all grammars registered with the Myna module 
+    Myna.grammars = {};
+    // A lookup table of all named rules registered with the Myna module
+    Myna.allRules = {};
+    // A lookup table of parsing functions for each registered grammar  
+    Myna.parsers = {};
+    //===========================================================================
+    // class ParseState
     // This stores the state of the parser and is passed to the parse and match functions.
-    var Parser = (function () {
-        function Parser(input, index, nodes) {
+    var ParseState = (function () {
+        function ParseState(input, index, nodes) {
             this.input = input;
             this.index = index;
             this.nodes = nodes;
+            this.index = index;
         }
-        // Creates a copy of the parser, including a shallow copy of the nodes. 
-        Parser.prototype.clone = function () {
-            return new Parser(this.input, this.index, this.nodes.slice());
-        };
-        Object.defineProperty(Parser.prototype, "inRange", {
-            // Returns true if the index is within the input range. 
+        Object.defineProperty(ParseState.prototype, "code", {
+            // Returns the code of the current token
             get: function () {
-                return this.index >= 0 && this.index < this.input.length;
+                return this.input.charCodeAt(this.index);
             },
             enumerable: true,
             configurable: true
         });
-        // Sets the state of the parser to be the same as another. 
-        Parser.prototype.copyFrom = function (p) {
-            this.input = p.input;
-            this.index = p.index;
-            this.nodes = p.nodes;
-        };
-        Object.defineProperty(Parser.prototype, "location", {
+        Object.defineProperty(ParseState.prototype, "inRange", {
+            // Returns true if the index is within the input range. 
+            get: function () {
+                return this.index < this.input.length;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ParseState.prototype, "location", {
             // Returns a string representation of the location. 
             get: function () {
                 return this.index.toString();
@@ -47,79 +56,39 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Parser.prototype, "debugContext", {
+        Object.defineProperty(ParseState.prototype, "debugContext", {
             // Returns a string that helps debugging to figure out exactly where we are in the input string 
             get: function () {
                 var contextWidth = 5;
                 var start = this.index - contextWidth - 1;
                 if (start < 0)
                     start = 0;
-                var prefix = this.input.slice(start, this.index - 1);
+                var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
                 var end = this.index + contextWidth;
                 if (end >= this.input.length)
                     end = this.input.length - 1;
-                var postfix = this.input.slice(this.index, end);
-                return prefix + " >>> " + this.input[this.index] + " <<< " + postfix;
+                var postfix = this.input.slice(this.index + 1, end);
+                return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
             },
             enumerable: true,
             configurable: true
         });
-        return Parser;
+        return ParseState;
     }());
-    Myna.Parser = Parser;
-    // Return true or false depending on whether the rule matches 
-    // the beginning of the input string. 
-    function match(r, s) {
-        return r.match(new Parser(s, 0, []));
-    }
-    Myna.match = match;
-    // Returns the root node of the abstract syntax tree created 
-    // by parsing the rule. 
-    function parse(r, s) {
-        var p = new Parser(s, 0, []);
-        r.ast.parse(p);
-        if (!p.nodes || !p.nodes.length)
-            return undefined;
-        if (p.nodes.length > 1)
-            throw new Error("parse is returning more than one node");
-        return p.nodes[0];
-    }
-    Myna.parse = parse;
-    // Returns an array of nodes created by parsing the given rule repeatedly until 
-    // it fails or the end of the input is arrived. One Astnode is created for each time 
-    // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
-    // flag set explicitly. 
-    function tokenize(r, s) {
-        var result = this.parse(r.ast.zeroOrMore, s);
-        return result ? result.children : [];
-    }
-    Myna.tokenize = tokenize;
-    //====================================================================================
-    // Internal variables used by the Myna library
-    // A lookup table of all grammars registered with the Myna module 
-    Myna.grammars = {};
-    // A lookup table of all named rules registered with the Myna module
-    Myna.allRules = {};
-    // Generates a new ID for each rule 
-    var _nextId = 0;
-    function genId() {
-        return _nextId++;
-    }
-    // The returned value of a failed parse
-    var failed = -1;
-    // Given a RuleType returns an instance of a Rule.
-    function RuleTypeToRule(rule) {
-        if (rule instanceof Rule)
-            return rule;
-        if (typeof (rule) === "string")
-            return text(rule);
-        if (typeof (rule) === "boolean")
-            return rule ? Myna.truePredicate : Myna.falsePredicate;
-        throw new Error("Invalid rule type: " + rule);
-    }
-    Myna.RuleTypeToRule = RuleTypeToRule;
-    //===============================================================
-    // AstNode class 
+    Myna.ParseState = ParseState;
+    //===========================================================================
+    // class ParseError
+    // Represents a parse error, and contains the parse state at the time of the error  
+    var ParseError = (function (_super) {
+        __extends(ParseError, _super);
+        function ParseError(parser, message) {
+            _super.call(this, message);
+            this.parser = parser;
+            this.message = message;
+        }
+        return ParseError;
+    }(Error));
+    Myna.ParseError = ParseError;
     // Represents a node in the generated parse tree. These nodes are returned by the Rule.parse function. If a Rule 
     // has the "_createAstNode" field set to true (because you created the rule using the ".ast" property), then the 
     // generated node will also be added to the constructed parse tree.   
@@ -127,12 +96,13 @@ var Myna;
         // Constructs a new node associated with the given rule.  
         function AstNode(rule, input, start, end) {
             if (start === void 0) { start = 0; }
-            if (end === void 0) { end = failed; }
+            if (end === void 0) { end = -1; }
             this.rule = rule;
             this.input = input;
             this.start = start;
             this.end = end;
-            // The list of child nodes in the parse tree. This is not allocated unless used, to minimize memory consumption 
+            // The list of child nodes in the parse tree. 
+            // This is not allocated unless used, to minimize memory consumption 
             this.children = null;
         }
         Object.defineProperty(AstNode.prototype, "name", {
@@ -220,12 +190,12 @@ var Myna;
     }());
     Myna.AstNode = AstNode;
     //===============================================================
-    // Rule class     
+    // class Rule
     // A Rule is both a rule in the PEG grammar and a parser. The parse function takes  
     // a particular parse location (in either a string, or array of tokens) and will return 
-    // the location of the end of the parse if successful or the constant failed (-1)
-    // if not successful.  
+    // the location of the end of the parse if successful or null if not successful.  
     var Rule = (function () {
+        // Constructor
         // Note: child-rules are exposed as a public field
         function Rule(rules) {
             this.rules = rules;
@@ -233,82 +203,20 @@ var Myna;
             this.name = "";
             // Identifies the grammar that this rule belongs to 
             this.grammarName = "";
-            // Internal unique identifier
-            this.id = genId();
-            // Identifies types of rules.  
+            // Identifies types of rules. Rules can have "types" that are different than the class name
             this.type = "";
+            // Used to provide access to the name of the class 
+            this.className = "Rule";
             // Indicates whether generated nodes should be added to the abstract syntax tree
             this._createAstNode = false;
+            // A parser function, computed in a rule's constructor. If successful returns either the original or a new 
+            // ParseState object. If it fails it returns null.
+            this.parser = null;
+            // A lexer function, computed in a rule's constructor. The lexer may update the ParseState if successful.
+            // If it fails it is required that the lexer restore the ParseState index to the previous state. 
+            // Lexers should only update the index. 
+            this.lexer = null;
         }
-        // Each rule derived object provides its own implementation of this function.  
-        Rule.prototype.parseImplementation = function (p) {
-            throw new Error("Missing override for parseImplementation");
-        };
-        // Returns true if this Rule matches the input at the given location and never creates nodes 
-        Rule.prototype.match = function (p) {
-            // Remember the old parser state
-            var oldP = p.clone();
-            // Call the derived parse implementation          
-            var result = this.parseImplementation(p);
-            // If the parse fails, we back-track the parser
-            if (result == failed)
-                p.index = oldP.index;
-            // Any nodes created are always thrown out 
-            p.nodes = oldP.nodes;
-            // We return true or false depending on the success of the parse implementation 
-            return result != failed;
-        };
-        // If successful returns the end-location of where this Rule matches the input 
-        // at the given location, or -1 if failed.
-        // Note that PredicateRule overrides this function 
-        Rule.prototype.parse = function (p) {
-            // Remember the old parser state
-            var oldP = p.clone();
-            // Either we add a node to the parse tree, or do a regular parse.
-            if (!this._createAstNode) {
-                var result = this.parseImplementation(p);
-                // Update the parser index
-                if (result !== failed)
-                    p.index = result;
-                else
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
-                return result;
-            }
-            else {
-                // Create a new AST node 
-                var node = new AstNode(this, p.input, p.index);
-                // Create a new "node list" for the parser.
-                // This is a new list of child nodes.
-                p.nodes = [];
-                // Call the implementation of the parse function 
-                var result = this.parseImplementation(p);
-                // Check if the parse succeeded 
-                if (result !== failed) {
-                    // The current nodes children is the parser node list 
-                    node.children = p.nodes;
-                    // Restore the parser's node list to what it was 
-                    p.nodes = oldP.nodes;
-                    // Add the node to the parser's node list 
-                    p.nodes.push(node);
-                    // Set the node
-                    node.end = result;
-                    // Update the parser index
-                    p.index = result;
-                }
-                else {
-                    // In the case of a failed parse, we back-track the parser to the previous state 
-                    p.copyFrom(oldP);
-                }
-                return result;
-            }
-        };
-        // Defines the type of rules. Used for defining new rule types as combinators.
-        // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
-        Rule.prototype.setType = function (typeName) {
-            this.type = typeName;
-            return this;
-        };
         // Sets the name of the rule, and the grammar 
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
         Rule.prototype.setName = function (grammarName, ruleName) {
@@ -319,13 +227,13 @@ var Myna;
         Object.defineProperty(Rule.prototype, "definition", {
             // Returns a default definition of the rule
             get: function () {
-                return this.type + "(" + this.rules.map(function (r) { return r.toString(); }).join(", ") + ")";
+                return this.className + "(" + this.rules.map(function (r) { return r.toString(); }).join(", ") + ")";
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Rule.prototype, "fullName", {
-            // Returns the name of trhe rule preceded by the grammar name and a "."
+            // Returns the name of the rule preceded by the grammar name and a "."
             get: function () {
                 return this.grammarName + "." + this.name;
             },
@@ -354,6 +262,12 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        // Sets the "type" associated with the rule. 
+        // This is useful for tracking how a rule was created. 
+        Rule.prototype.setType = function (type) {
+            this.type = type;
+            return this;
+        };
         // Returns a copy of this rule with default values for all fields.  
         // Note: Every new rule class must override cloneImplemenation
         Rule.prototype.cloneImplementation = function () {
@@ -367,7 +281,6 @@ var Myna;
                     throw new Error("Error in implementation of cloneImplementation: not returning object of correct type");
                 r.name = this.name;
                 r.grammarName = this.grammarName;
-                r.type = this.type;
                 r._createAstNode = this._createAstNode;
                 return r;
             },
@@ -377,28 +290,52 @@ var Myna;
         Object.defineProperty(Rule.prototype, "ast", {
             // Returns a copy of the rule that will create a node in the parse tree.
             // This property is the only way to create rules that generate nodes in a parse tree. 
+            // TODO: this might be better in a Rule class? 
             get: function () {
                 var r = this.copy;
                 r._createAstNode = true;
+                var parser = r.parser;
+                r.parser = function (p) {
+                    var originalIndex = p.index;
+                    var originalNodes = p.nodes;
+                    p.nodes = [];
+                    if (!parser(p)) {
+                        p.nodes = originalNodes;
+                        p.index = originalIndex;
+                        return false;
+                    }
+                    var node = new AstNode(r, p.input, originalIndex, p.index);
+                    node.children = p.nodes;
+                    p.nodes = originalNodes;
+                    p.nodes.push(node);
+                    return true;
+                };
                 return r;
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Rule.prototype, "hasAstChildRule", {
-            //  Returns true if any of the child rules are "ast rules" meaning they create nodes in the 
-            // parse tree.
+            // Returns true if any of the child rules are "ast rules" meaning they create nodes in the parse tree.
             get: function () {
-                return this.rules.filter(function (r) { return r.isAstRule; }).length > 0;
+                return this.rules.filter(function (r) { return r.createsAstNode; }).length > 0;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Rule.prototype, "isAstRule", {
-            // Returns true if this rule when parsed successfully will create a node in the parse tree 
+        Object.defineProperty(Rule.prototype, "createsAstNode", {
+            // Returns true if this rule when parsed successfully will create a node in the parse tree. 
+            // Some rules will override this function. 
             get: function () {
-                return this._createAstNode || (this.hasAstChildRule
-                    && (this instanceof Sequence || this instanceof Choice || this instanceof Quantified));
+                return this._createAstNode;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Rule.prototype, "nonAdvancing", {
+            // Returns true if this rule doesn't advance the input
+            get: function () {
+                return false;
             },
             enumerable: true,
             configurable: true
@@ -407,7 +344,7 @@ var Myna;
             // Returns a string that describes the AST nodes created by this rule.
             // Will throw an exception if this is not a valid AST rule (this.isAstRule != true)
             get: function () {
-                var rules = this.rules.filter(function (r) { return r.isAstRule; });
+                var rules = this.rules.filter(function (r) { return r.createsAstNode; });
                 if (!rules.length)
                     return this.name;
                 if (rules.length == 1) {
@@ -454,6 +391,11 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Rule.prototype, "at", {
+            get: function () { return at(this); },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Rule.prototype, "not", {
             get: function () { return not(this); },
             enumerable: true,
@@ -493,7 +435,7 @@ var Myna;
         Rule.prototype.repeat = function (count) { return repeat(this, count); };
         Rule.prototype.quantified = function (min, max) { return quantified(this, min, max); };
         Rule.prototype.delimited = function (delimiter) { return delimited(this, delimiter); };
-        Rule.prototype.butNot = function (r) { return not(r).then(this); };
+        Rule.prototype.unless = function (r) { return unless(this, r); };
         return Rule;
     }());
     Myna.Rule = Rule;
@@ -509,21 +451,59 @@ var Myna;
         function Sequence(rules) {
             _super.call(this, rules);
             this.type = "seq";
+            this.className = "Sequence";
+            var length = rules.length;
+            var parsers = this.rules.map(function (r) { return r.parser; });
+            this.parser = function (p) {
+                var originalCount = p.nodes.length;
+                var originalIndex = p.index;
+                for (var i = 0, len = length; i < len; ++i) {
+                    if (!parsers[i](p)) {
+                        // Any created nodes need to be popped off the list 
+                        if (p.nodes.length !== originalCount)
+                            p.nodes.splice(-1, p.nodes.length - originalCount);
+                        // Assure that the parser is restored to its original position 
+                        p.index = originalIndex;
+                        return false;
+                    }
+                }
+                return true;
+            };
+            var lexers = this.rules.map(function (r) { return r.lexer; });
+            this.lexer = function (p) {
+                var original = p.index;
+                for (var i = 0, len = length; i < len; ++i) {
+                    if (!lexers[i](p)) {
+                        p.index = original;
+                        return false;
+                    }
+                }
+                return true;
+            };
+            // When none of the child rules create a node, we can use the lexer to parse
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
-        Sequence.prototype.parseImplementation = function (p) {
-            for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
-                var r = _a[_i];
-                if (r.parse(p) == failed)
-                    return failed;
-            }
-            return p.index;
-        };
         Object.defineProperty(Sequence.prototype, "definition", {
             get: function () {
                 var result = this.rules.map(function (r) { return r.toString(); }).join(" ");
                 if (this.rules.length > 1)
                     result = "(" + result + ")";
                 return result;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sequence.prototype, "nonAdvancing", {
+            get: function () {
+                return this.rules.every(function (r) { return r.nonAdvancing; });
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sequence.prototype, "createsAstNode", {
+            get: function () {
+                return this._createAstNode || this.hasAstChildRule;
             },
             enumerable: true,
             configurable: true
@@ -538,22 +518,46 @@ var Myna;
         function Choice(rules) {
             _super.call(this, rules);
             this.type = "choice";
+            this.className = "Choice";
+            var length = rules.length;
+            var parsers = this.rules.map(function (r) { return r.parser; });
+            this.parser = function (p) {
+                for (var i = 0, len = length; i < len; ++i)
+                    if (parsers[i](p))
+                        return true;
+                return false;
+            };
+            var lexers = this.rules.map(function (r) { return r.lexer; });
+            this.lexer = function (p) {
+                for (var i = 0, len = length; i < len; ++i)
+                    if (lexers[i](p))
+                        return true;
+                return false;
+            };
+            // When none of the child rules create a node, we can use the lexer to parse
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
-        Choice.prototype.parseImplementation = function (p) {
-            for (var _i = 0, _a = this.rules; _i < _a.length; _i++) {
-                var r = _a[_i];
-                var result = r.parse(p);
-                if (result !== failed)
-                    return result;
-            }
-            return failed;
-        };
         Object.defineProperty(Choice.prototype, "definition", {
             get: function () {
                 var result = this.rules.map(function (r) { return r.toString(); }).join(" / ");
                 if (this.rules.length > 1)
                     result = "(" + result + ")";
                 return result;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Choice.prototype, "nonAdvancing", {
+            get: function () {
+                return this.rules.every(function (r) { return r.nonAdvancing; });
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Choice.prototype, "createsAstNode", {
+            get: function () {
+                return this._createAstNode || this.hasAstChildRule;
             },
             enumerable: true,
             configurable: true
@@ -567,31 +571,57 @@ var Myna;
     var Quantified = (function (_super) {
         __extends(Quantified, _super);
         function Quantified(rule, min, max) {
+            var _this = this;
             if (min === void 0) { min = 0; }
             if (max === void 0) { max = Infinity; }
             _super.call(this, [rule]);
             this.min = min;
             this.max = max;
             this.type = "quantified";
+            this.className = "Quantified";
+            var pChild = this.firstChild.parser;
+            this.parser = function (p) {
+                var originalCount = p.nodes.length;
+                var originalIndex = p.index;
+                for (var i = 0; i < max; ++i) {
+                    var index = p.index;
+                    // If parsing the rule fails, we return the last result, or failed 
+                    // if the minimum number of matches is not met. 
+                    if (!pChild(p)) {
+                        if (i >= min)
+                            return true;
+                        // Any created nodes need to be popped off the list 
+                        if (p.nodes.length !== originalCount)
+                            p.nodes.splice(-1, p.nodes.length - originalCount);
+                        // Assure that the parser is restored to its original position 
+                        p.index = originalIndex;
+                        return false;
+                    }
+                    // Check for progress, to assure we aren't hitting an infinite loop  
+                    // Without this it is possible to accidentally put a zeroOrMore with a predicate.
+                    // For example: myna.truePredicate.zeroOrMore would loop forever 
+                    debugAssert(max !== Infinity || p.index !== index, _this);
+                }
+                return true;
+            };
+            var lChild = this.firstChild.lexer;
+            this.lexer = function (p) {
+                var original = p.index;
+                for (var i = 0; i < max; ++i) {
+                    var index = p.index;
+                    if (!lChild(p)) {
+                        if (i >= min)
+                            return true;
+                        p.index = original;
+                        return false;
+                    }
+                }
+                return true;
+            };
+            // When none of the child rules create a node, we can use the lexer to parse
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
-        Quantified.prototype.parseImplementation = function (p) {
-            var result = p.index;
-            for (var i = 0; i < this.max; ++i) {
-                var tmp = this.firstChild.parse(p);
-                // If parsing the rule fails, we return the last result, or failed 
-                // if the minimum number of matches is not met. 
-                if (tmp === failed)
-                    return i >= this.min ? result : failed;
-                // Check for progress, to assure we aren't hitting an infinite loop  
-                // Without this it is possible to accidentally put a zeroOrMore with a predicate.
-                // For example: myna.truePredicate.zeroOrMore would loop forever 
-                if (this.max == Infinity)
-                    if (result === tmp)
-                        throw new Error("Infinite loop: unbounded quanitifed rule is not making progress");
-                result = tmp;
-            }
-            return result;
-        };
         Object.defineProperty(Quantified.prototype, "definition", {
             // Used for creating a human readable definition of the grammar.
             get: function () {
@@ -606,6 +636,13 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Quantified.prototype, "createsAstNode", {
+            get: function () {
+                return this._createAstNode || this.hasAstChildRule;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Quantified.prototype.cloneImplementation = function () { return new Quantified(this.firstChild, this.min, this.max); };
         return Quantified;
     }(Rule));
@@ -616,8 +653,12 @@ var Myna;
         function Advance() {
             _super.call(this, []);
             this.type = "advance";
+            this.className = "Advance";
+            this.lexer = function (p) {
+                return p.inRange ? ++p.index >= 0 : false;
+            };
+            this.parser = this.lexer;
         }
-        Advance.prototype.parseImplementation = function (p) { return p.inRange ? p.index + 1 : failed; };
         Object.defineProperty(Advance.prototype, "definition", {
             get: function () { return "<advance>"; },
             enumerable: true,
@@ -627,135 +668,61 @@ var Myna;
         return Advance;
     }(Rule));
     Myna.Advance = Advance;
-    // Uses a lookup table to find the next rule to parse next from the current token 
-    var Lookup = (function (_super) {
-        __extends(Lookup, _super);
-        function Lookup(lookup, onDefault) {
-            _super.call(this, []);
-            this.lookup = lookup;
-            this.onDefault = onDefault;
-            this.type = "lookup";
+    // Advances the parser by one token if the predicate is true.
+    var AdvanceIf = (function (_super) {
+        __extends(AdvanceIf, _super);
+        function AdvanceIf(condition) {
+            _super.call(this, [condition]);
+            this.type = "advanceIf";
+            this.className = "AdvanceIf";
+            var lexCondition = condition.lexer;
+            this.lexer = function (p) {
+                return p.inRange && lexCondition(p) ? ++p.index >= 0 : false;
+            };
+            this.parser = this.lexer;
         }
-        Lookup.prototype.parseImplementation = function (p) {
-            if (!p.inRange)
-                return failed;
-            var tkn = p.input[p.index];
-            var r = this.lookup[tkn];
-            if (r !== undefined)
-                return r.parse(p);
-            return this.onDefault.parse(p);
-        };
-        Object.defineProperty(Lookup.prototype, "definition", {
-            get: function () {
-                var _this = this;
-                return '{' + Object.keys(this.lookup).map(function (k) { return '"' + escapeChars(k) + '" :' + _this.lookup[k].toString(); }).join(',') + '}';
-            },
+        Object.defineProperty(AdvanceIf.prototype, "definition", {
+            get: function () { return "advanceif(" + this.firstChild.toString() + ")"; },
             enumerable: true,
             configurable: true
         });
-        Lookup.prototype.cloneImplementation = function () { return new Lookup(this.lookup, this.onDefault); };
-        return Lookup;
+        AdvanceIf.prototype.cloneImplementation = function () { return new AdvanceIf(this.firstChild); };
+        return AdvanceIf;
     }(Rule));
-    Myna.Lookup = Lookup;
-    // Creates a dictionary from a set of tokens, mapping each one to the same rule.     
-    function tokensToDictionary(tokens, rule) {
-        var d = {};
-        for (var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++) {
-            var t = tokens_1[_i];
-            d[t] = RuleTypeToRule(rule);
-        }
-        return d;
-    }
-    Myna.tokensToDictionary = tokensToDictionary;
-    // A specialization of the lookup 
-    var CharSet = (function (_super) {
-        __extends(CharSet, _super);
-        function CharSet(chars) {
-            _super.call(this, tokensToDictionary(chars.split(""), Myna.advance), Myna.falsePredicate);
-            this.chars = chars;
-            this.type = "charSet";
-        }
-        Object.defineProperty(CharSet.prototype, "definition", {
-            get: function () { return "[" + escapeChars(this.chars) + "]"; },
-            enumerable: true,
-            configurable: true
-        });
-        ;
-        CharSet.prototype.cloneImplementation = function () { return new CharSet(this.chars); };
-        return CharSet;
-    }(Lookup));
-    Myna.CharSet = CharSet;
-    // A specialization of the lookup 
-    var NegatedCharSet = (function (_super) {
-        __extends(NegatedCharSet, _super);
-        function NegatedCharSet(chars) {
-            _super.call(this, tokensToDictionary(chars.split(""), Myna.falsePredicate), Myna.truePredicate);
-            this.chars = chars;
-            this.type = "negatedCharSet";
-        }
-        Object.defineProperty(NegatedCharSet.prototype, "definition", {
-            get: function () { return "[^" + escapeChars(this.chars) + "]"; },
-            enumerable: true,
-            configurable: true
-        });
-        ;
-        NegatedCharSet.prototype.cloneImplementation = function () { return new NegatedCharSet(this.chars); };
-        return NegatedCharSet;
-    }(Lookup));
-    Myna.NegatedCharSet = NegatedCharSet;
-    // Creates a dictionary from a range of tokens, mapping each one to the same rule.
-    function rangeToDictionary(min, max, rule) {
-        if (min.length != 1 || max.length != 1)
-            throw new Error("rangeToDictionary requires characters as inputs");
-        var minChar = min.charCodeAt(0);
-        var maxChar = max.charCodeAt(0);
-        var d = {};
-        for (var x = minChar; x <= maxChar; ++x)
-            d[String.fromCharCode(x)] = rule;
-        return d;
-    }
-    Myna.rangeToDictionary = rangeToDictionary;
-    // Advances if the current token is within a range of characters, otherwise returns false
-    var CharRange = (function (_super) {
-        __extends(CharRange, _super);
-        function CharRange(min, max) {
-            _super.call(this, rangeToDictionary(min, max, Myna.advance), Myna.falsePredicate);
-            this.min = min;
-            this.max = max;
-            this.type = "charRange";
-        }
-        Object.defineProperty(CharRange.prototype, "definition", {
-            get: function () { return "[" + this.min + ".." + this.max + "]"; },
-            enumerable: true,
-            configurable: true
-        });
-        ;
-        CharRange.prototype.cloneImplementation = function () { return new CharRange(this.min, this.max); };
-        return CharRange;
-    }(Lookup));
-    Myna.CharRange = CharRange;
-    // Used to match a string in the input string 
+    Myna.AdvanceIf = AdvanceIf;
+    // Used to match a string in the input string, advances the token. 
     var Text = (function (_super) {
         __extends(Text, _super);
         function Text(text) {
             _super.call(this, []);
             this.text = text;
             this.type = "text";
+            this.className = "Text";
+            var length = text.length;
+            var vals = [];
+            for (var i = 0; i < length; ++i)
+                vals.push(text.charCodeAt(i));
+            this.lexer = function (p) {
+                if (!p.inRange)
+                    return false;
+                if (p.code !== vals[0])
+                    return false;
+                var index = p.index++;
+                for (var i = 1; i < length; ++i, ++p.index) {
+                    if (!p.inRange || p.code !== vals[i]) {
+                        p.index = index;
+                        return false;
+                    }
+                }
+                return true;
+            };
+            this.parser = this.lexer;
         }
-        Text.prototype.parseImplementation = function (p) {
-            if (p.index > p.input.length - this.text.length)
-                return failed;
-            for (var i = 0; i < this.text.length; ++i)
-                if (p.input[p.index + i] !== this.text[i])
-                    return failed;
-            return p.index + this.text.length;
-        };
         Object.defineProperty(Text.prototype, "definition", {
             get: function () { return '"' + escapeChars(this.text) + '"'; },
             enumerable: true,
             configurable: true
         });
-        ;
         Text.prototype.cloneImplementation = function () { return new Text(this.text); };
         return Text;
     }(Rule));
@@ -768,49 +735,121 @@ var Myna;
             _super.call(this, []);
             this.fn = fn;
             this.type = "delay";
+            this.className = "Delay";
+            var tmpParser = null;
+            this.parser = function (p) { return (tmpParser ? tmpParser : tmpParser = fn().parser)(p); };
+            var tmpLexer = null;
+            this.lexer = function (p) { return (tmpLexer ? tmpLexer : tmpLexer = fn().lexer)(p); };
         }
-        Delay.prototype.parseImplementation = function (p) { return this.fn().parse(p); };
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
-            get: function () { return "delay(" + this.fn() + ")"; },
+            get: function () { return "<delay>"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Delay.prototype, "createsAstNode", {
+            // It is assumed that a delay function creates an AST node,
+            get: function () {
+                return true;
+            },
             enumerable: true,
             configurable: true
         });
         return Delay;
     }(Rule));
     Myna.Delay = Delay;
-    //=======================================
-    // Zero length rules 
-    // A MatchRule that does not advance the input
-    var MatchRule = (function (_super) {
-        __extends(MatchRule, _super);
-        function MatchRule() {
-            _super.apply(this, arguments);
+    //====================================================================================================================
+    // Predicates don't advance the input 
+    // Used to identify rules that do not advance the input
+    var NonAdvancingRule = (function (_super) {
+        __extends(NonAdvancingRule, _super);
+        function NonAdvancingRule(rules) {
+            _super.call(this, rules);
+            this.type = "charSet";
         }
-        // Rules derived from a MatchRule will only provide an override 
-        // of the match function, so the parse is ovverriden and defined in terms of match.  
-        // The parser state is always restored. 
-        MatchRule.prototype.parseImplementation = function (p) {
-            // Remember the old parser state
-            var oldP = p.clone();
-            // The result of calling the derived parseImplementation
-            var result = this.match(p);
-            // Restore the old parser state 
-            p.copyFrom(oldP);
-            // Returns the position of the parser, or failed
-            return result ? p.index : failed;
-        };
-        return MatchRule;
+        Object.defineProperty(NonAdvancingRule.prototype, "nonAdvancing", {
+            get: function () {
+                return true;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return NonAdvancingRule;
     }(Rule));
-    Myna.MatchRule = MatchRule;
+    Myna.NonAdvancingRule = NonAdvancingRule;
+    // Returns true if the current token is in the token set. 
+    var CharSet = (function (_super) {
+        __extends(CharSet, _super);
+        function CharSet(chars) {
+            _super.call(this, []);
+            this.chars = chars;
+            this.type = "charSet";
+            this.className = "CharSet";
+            var vals = [];
+            var length = chars.length;
+            for (var i = 0; i < length; ++i)
+                vals[i] = chars.charCodeAt(i);
+            this.lexer = function (p) {
+                return p.inRange && vals.indexOf(p.code) >= 0;
+            };
+            this.parser = this.lexer;
+        }
+        Object.defineProperty(CharSet.prototype, "definition", {
+            get: function () { return "[" + escapeChars(this.chars) + "]"; },
+            enumerable: true,
+            configurable: true
+        });
+        ;
+        CharSet.prototype.cloneImplementation = function () { return new CharSet(this.chars); };
+        return CharSet;
+    }(NonAdvancingRule));
+    Myna.CharSet = CharSet;
+    // Returns true if the current token is within a range of characters, otherwise returns false
+    var CharRange = (function (_super) {
+        __extends(CharRange, _super);
+        function CharRange(min, max) {
+            _super.call(this, []);
+            this.min = min;
+            this.max = max;
+            this.type = "charRange";
+            this.className = "CharRange";
+            var minCode = min.charCodeAt(0);
+            var maxCode = max.charCodeAt(0);
+            this.lexer = function (p) {
+                var code = p.code;
+                return code >= minCode && code <= maxCode;
+            };
+            this.parser = this.lexer;
+        }
+        Object.defineProperty(CharRange.prototype, "definition", {
+            get: function () { return "[" + this.min + ".." + this.max + "]"; },
+            enumerable: true,
+            configurable: true
+        });
+        ;
+        CharRange.prototype.cloneImplementation = function () { return new CharRange(this.min, this.max); };
+        return CharRange;
+    }(NonAdvancingRule));
+    Myna.CharRange = CharRange;
     // Returns true only if the child rule fails to match.
     var Not = (function (_super) {
         __extends(Not, _super);
         function Not(rule) {
             _super.call(this, [rule]);
             this.type = "not";
+            this.className = "Not";
+            var childLexer = rule.lexer;
+            this.lexer = function (p) {
+                if (!p.inRange)
+                    return true;
+                var index = p.index;
+                if (!childLexer(p))
+                    return true;
+                p.index = index;
+                return false;
+            };
+            this.parser = this.lexer;
         }
-        Not.prototype.match = function (p) { return !this.firstChild.match(p); };
         Not.prototype.cloneImplementation = function () { return new Not(this.firstChild); };
         Object.defineProperty(Not.prototype, "definition", {
             get: function () { return "!" + this.firstChild.toString(); },
@@ -818,7 +857,7 @@ var Myna;
             configurable: true
         });
         return Not;
-    }(MatchRule));
+    }(NonAdvancingRule));
     Myna.Not = Not;
     // Returns true only if the child rule matches, but does not advance the parser
     var At = (function (_super) {
@@ -826,8 +865,17 @@ var Myna;
         function At(rule) {
             _super.call(this, [rule]);
             this.type = "at";
+            this.className = "At";
+            var childLexer = rule.lexer;
+            this.lexer = function (p) {
+                var index = p.index;
+                if (!childLexer(p))
+                    return false;
+                p.index = index;
+                return true;
+            };
+            this.parser = this.lexer;
         }
-        At.prototype.match = function (p) { return this.firstChild.match(p); };
         At.prototype.cloneImplementation = function () { return new At(this.firstChild); };
         Object.defineProperty(At.prototype, "definition", {
             get: function () { return "&" + this.firstChild.toString(); },
@@ -835,7 +883,7 @@ var Myna;
             configurable: true
         });
         return At;
-    }(MatchRule));
+    }(NonAdvancingRule));
     Myna.At = At;
     // Uses a function to return true or not based on the behavior of the predicate rule
     var Predicate = (function (_super) {
@@ -844,8 +892,10 @@ var Myna;
             _super.call(this, []);
             this.fn = fn;
             this.type = "predicate";
+            this.className = "Predicate";
+            this.lexer = fn;
+            this.parser = this.lexer;
         }
-        Predicate.prototype.match = function (p) { return this.fn(p); };
         Predicate.prototype.cloneImplementation = function () { return new Predicate(this.fn); };
         Object.defineProperty(Predicate.prototype, "definition", {
             get: function () { return "<predicate>"; },
@@ -853,78 +903,58 @@ var Myna;
             configurable: true
         });
         return Predicate;
-    }(MatchRule));
+    }(NonAdvancingRule));
     Myna.Predicate = Predicate;
-    // Returns true always 
-    var TruePredicate = (function (_super) {
-        __extends(TruePredicate, _super);
-        function TruePredicate() {
-            _super.call(this, []);
-            this.type = "true";
-        }
-        TruePredicate.prototype.match = function (p) { return true; };
-        TruePredicate.prototype.cloneImplementation = function () { return new TruePredicate(); };
-        Object.defineProperty(TruePredicate.prototype, "definition", {
-            get: function () { return "<true>"; },
-            enumerable: true,
-            configurable: true
-        });
-        return TruePredicate;
-    }(MatchRule));
-    Myna.TruePredicate = TruePredicate;
-    // Returns true if at the end of the input, or false otherwise
-    var AtEndPredicate = (function (_super) {
-        __extends(AtEndPredicate, _super);
-        function AtEndPredicate() {
-            _super.call(this, []);
-            this.type = "end";
-        }
-        AtEndPredicate.prototype.match = function (p) { return !p.inRange; };
-        AtEndPredicate.prototype.cloneImplementation = function () { return new AtEndPredicate(); };
-        Object.defineProperty(AtEndPredicate.prototype, "definition", {
-            get: function () { return "<end>"; },
-            enumerable: true,
-            configurable: true
-        });
-        return AtEndPredicate;
-    }(MatchRule));
-    Myna.AtEndPredicate = AtEndPredicate;
     //===============================================================
     // Rule creation function
     // Create a rule that matches the text 
-    function text(text) {
-        return new Text(text);
-    }
+    function text(text) { return new Text(text); }
     Myna.text = text;
-    // Matches a series of rules in order, and succeeds if they all do
+    // Creates a rule that matches a series of rules in order, and succeeds if they all do
     function seq() {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             rules[_i - 0] = arguments[_i];
         }
-        return new Sequence(rules.map(RuleTypeToRule));
+        var rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return truePredicate;
+        if (rs.length == 1)
+            return rs[0];
+        if (rs.length == 2 && rs[0].nonAdvancing && rs[1] instanceof Advance)
+            return new AdvanceIf(rs[0]);
+            */
+        return new Sequence(rs);
     }
     Myna.seq = seq;
-    // Tries to match each rule in order, and succeeds if one does 
+    // Creates a rule that tries to match each rule in order, and succeeds if at least one does 
     function choice() {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             rules[_i - 0] = arguments[_i];
         }
-        return new Choice(rules.map(RuleTypeToRule));
+        var rs = rules.map(RuleTypeToRule);
+        /*
+        if (rs.length == 0)
+            return falsePredicate;
+        if (rs.length == 1)
+            return rs[0];
+            */
+        return new Choice(rs);
     }
     Myna.choice = choice;
     // Enables Rules to be defined in terms of variables that are defined later on.
     // This enables recursive rule definitions.  
-    function delay(fxn) {
-        return new Delay(function () { return RuleTypeToRule(fxn()); });
-    }
+    function delay(fxn) { return new Delay(fxn); }
     Myna.delay = delay;
     // Parses successfully if the given rule does not match the input at the current location  
-    function not(rule) {
-        return new Not(RuleTypeToRule(rule));
-    }
+    function not(rule) { return new Not(RuleTypeToRule(rule)); }
     Myna.not = not;
+    ;
+    // Returns true if the rule successfully matches, but does not advance the parser index. 
+    function at(rule) { return new At(RuleTypeToRule(rule)); }
+    Myna.at = at;
     ;
     // Attempts to apply a rule between min and max number of times inclusive. If the maximum is set to Infinity, 
     // it will attempt to match as many times as it can, but throw an exception if the parser does not advance 
@@ -936,111 +966,95 @@ var Myna;
     Myna.quantified = quantified;
     // Attempts to apply the rule 0 or more times. Will always succeed unless the parser does not 
     // advance, in which case an exception is thrown.    
-    function zeroOrMore(rule) {
-        return quantified(rule).setType("zeroOrMore");
-    }
+    function zeroOrMore(rule) { return quantified(rule).setType("zeroOrMore"); }
     Myna.zeroOrMore = zeroOrMore;
     ;
     // Attempts to apply the rule 1 or more times. Will throw an exception if the parser does not advance.  
-    function oneOrMore(rule) {
-        return quantified(rule, 1).setType("oneOrMore");
-    }
+    function oneOrMore(rule) { return quantified(rule, 1).setType("oneOrMore"); }
     Myna.oneOrMore = oneOrMore;
     // Attempts to match a rule 0 or 1 times. Always succeeds.   
-    function opt(rule) {
-        return quantified(rule, 0, 1).setType("opt");
-    }
+    function opt(rule) { return quantified(rule, 0, 1).setType("optional"); }
     Myna.opt = opt;
-    ;
     // Attempts to apply a rule a precise number of times
-    function repeat(rule, count) {
-        return quantified(rule, count, count).setType("repeat");
-    }
+    function repeat(rule, count) { return quantified(rule, count, count).setType("repeat"); }
     Myna.repeat = repeat;
-    // Returns true if the rule successfully matches, but does not advance the parser index. 
-    function at(rule) {
-        return new At(RuleTypeToRule(rule));
-    }
-    Myna.at = at;
-    ;
-    // Looks up the rule to parse based on whether the token in the array of not.      
-    function lookup(tokens, rule, onDefault) {
-        if (onDefault === void 0) { onDefault = false; }
-        return new Lookup(tokensToDictionary(tokens, rule), RuleTypeToRule(onDefault));
-    }
-    Myna.lookup = lookup;
-    //===============================================================    
-    // Character set rules
-    // Returns true if one of the characters is present, but does not advance the parser position
-    function atChar(chars) { return at(char(chars)); }
+    // Returns true if one of the characters are present. Does not advances the parser position.
+    function atChar(chars) { return new CharSet(chars); }
     Myna.atChar = atChar;
-    // Returns true if none of the characters are present, but does not advance the parser position 
-    function notAtChar(chars) { return not(char(chars)); }
+    // Returns true if none of the characters are present. Does not advances the parser position.
+    function notAtChar(chars) { return atChar(chars).not; }
     Myna.notAtChar = notAtChar;
-    // Advances if none of the characters are present.
-    function charExcept(chars) { return notAtChar(chars).advance; }
-    Myna.charExcept = charExcept;
-    // Returns true if one of the characters are present, and advances the parser position
-    function char(chars) { return new CharSet(chars); }
+    // Advances parser if one of the characters are present.
+    function char(chars) { return atChar(chars).advance; }
     Myna.char = char;
+    // Advances parser if none of the characters are present.
+    function notChar(chars) { return notAtChar(chars).advance; }
+    Myna.notChar = notChar;
     // Advances if one of the characters are present, or returns false
-    function range(min, max) { return new CharRange(min, max); }
+    function atRange(min, max) { return new CharRange(min, max); }
+    Myna.atRange = atRange;
+    // Advances if one of the characters are present, or returns false
+    function range(min, max) { return atRange(min, max).advance; }
     Myna.range = range;
-    // Advance if on of the characters are not in the range
-    function exceptRange(min, max) { return range(min, max).not.then(Myna.advance); }
-    Myna.exceptRange = exceptRange;
-    //===============================================================    
-    // Advanced rule operators 
-    function delimited(rule, delimiter) { return opt(seq(rule, zeroOrMore(seq(delimiter, rule)))).setType("delimitedList"); }
+    // Returns true if on of the characters are not in the range, but does not advance the parser position
+    function notRange(min, max) { return range(min, max).not; }
+    Myna.notRange = notRange;
+    // Repeats a rule zero or more times, with a delimiter between each one. 
+    function delimited(rule, delimiter) { return opt(seq(rule, seq(delimiter, rule).zeroOrMore)).setType("delimitedList"); }
     Myna.delimited = delimited;
-    function except(condition, rule) { return seq(not(condition), rule).setType("except"); }
-    Myna.except = except;
-    function repeatWhileNot(body, condition) { return zeroOrMore(except(condition, body)).setType("whileNot"); }
+    // Executes the rule, if the condition is not true
+    function unless(rule, condition) { return seq(not(condition), rule).setType("unless"); }
+    Myna.unless = unless;
+    // Repeats the rule while the condition is not true
+    function repeatWhileNot(body, condition) { return unless(body, condition).zeroOrMore.setType("repeatWhileNot"); }
     Myna.repeatWhileNot = repeatWhileNot;
-    function repeatUntilPast(body, condition) { return seq(repeatWhileNot(body, condition), condition).setType("repeatUntilPast"); }
+    // Repeats the rule while the condition is not true, but must execute at least once 
+    function repeatOneOrMoreWhileNot(body, condition) { return not(condition).then(body).then(repeatWhileNot(body, condition)).setType("repeatOneOrMoreWhileNot"); }
+    Myna.repeatOneOrMoreWhileNot = repeatOneOrMoreWhileNot;
+    // Repeats the rule until just after the condition is true once 
+    function repeatUntilPast(body, condition) { return repeatWhileNot(body, condition).then(condition).setType("repeatUntilPast"); }
     Myna.repeatUntilPast = repeatUntilPast;
-    function advanceWhileNot(rule) { return not(rule).advance.zeroOrMore.setType("advanceWhileNot"); }
+    // Repeats the rule until just after the condition is true once but must execute at least once 
+    function repeatOneOrMoreUntilPast(body, condition) { return not(condition).then(body).then(repeatUntilPast(body, condition)).setType("repeatOneOrMoreUntilPast"); }
+    Myna.repeatOneOrMoreUntilPast = repeatOneOrMoreUntilPast;
+    // Advances the parse state while the rule is not true. 
+    function advanceWhileNot(rule) { return repeatWhileNot(Myna.advance, rule).setType("advanceWhileNot"); }
     Myna.advanceWhileNot = advanceWhileNot;
-    function advanceUntilPast(rule) { return seq(advanceWhileNot(rule), rule).setType("advanceUntilPast"); }
+    // Advances the parse state while the rule is not true but must execute ast least once 
+    function advanceOneOrMoreWhileNot(rule) { return repeatOneOrMoreWhileNot(Myna.advance, rule).setType("advanceOneOrMoreWhileNot"); }
+    Myna.advanceOneOrMoreWhileNot = advanceOneOrMoreWhileNot;
+    // Advance the parser until just after the rule is executed 
+    function advanceUntilPast(rule) { return repeatUntilPast(Myna.advance, rule).setType("advanceUntilPast"); }
     Myna.advanceUntilPast = advanceUntilPast;
-    function advanceUnless(rule) { return Myna.advance.butNot(rule).setType("advanceUnless"); }
+    // Advance the parser until just after the rule is executed, but must execute at least once  
+    function advanceOneOrMoreUntilPast(rule) { return repeatOneOrMoreUntilPast(Myna.advance, rule).setType("advanceOneOrMoreUntilPast"); }
+    Myna.advanceOneOrMoreUntilPast = advanceOneOrMoreUntilPast;
+    // Advances the parser unless the rule is true. 
+    function advanceUnless(rule) { return Myna.advance.unless(rule).setType("advanceUnless"); }
     Myna.advanceUnless = advanceUnless;
-    //===============================================================    
-    // Predicates and actions  
+    // Parses successfully if  the predictate passes
     function predicate(fn) { return new Predicate(fn); }
     Myna.predicate = predicate;
+    // Executes an action when arrived at and continues 
     function action(fn) { return predicate(function (p) { fn(p); return true; }).setType("action"); }
     Myna.action = action;
+    // Logs a message as an action 
     function log(msg) {
         if (msg === void 0) { msg = ""; }
         return action(function (p) { console.log(msg); }).setType("log");
     }
     Myna.log = log;
-    //==================================================================
-    // Assertions and errors 
-    var ParseError = (function (_super) {
-        __extends(ParseError, _super);
-        function ParseError(parser, message) {
-            _super.call(this, message);
-            this.parser = parser;
-            this.message = message;
-        }
-        return ParseError;
-    }(Error));
-    Myna.ParseError = ParseError;
-    function err(message) {
-        return action(function (p) { throw new ParseError(p, message); }).setType("err");
-    }
+    // Throw a ParseError if reached 
+    function err(message) { return action(function (p) { throw new ParseError(p, message); }).setType("err"); }
     Myna.err = err;
+    // Asserts that the rule is executed 
+    // This has to be embedded in a function because the rule might be in a circular definition.  
     function assert(rule) {
         return choice(rule, action(function (p) {
-            // This has to be embedded in a function because the rule might be in a circular definition.  
             throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule));
-        })).setType("assert");
+        }));
     }
     Myna.assert = assert;
-    //=======================================================================
-    // Guarded sequences. 
     // If first part of a guarded sequence passes then each subsequent rule must pass as well 
     // otherwise an exception occurs. This helps create parsers that fail fast, and thus provide
     // better feedback for badly formed input.      
@@ -1052,56 +1066,34 @@ var Myna;
         return seq(condition, seq.apply(void 0, rules.map(function (r) { return assert(r); }))).setType("guardedSeq");
     }
     Myna.guardedSeq = guardedSeq;
-    // Common guarded sequences 
-    function doubleQuoted(rule) { return guardedSeq("\"", rule, "\"").setType("doubleQuoted"); }
+    // Parses the given rule surrounded by double quotes 
+    function doubleQuoted(rule) { return seq("\"", rule, assert("\"")).setType("doubleQuoted"); }
     Myna.doubleQuoted = doubleQuoted;
-    function singleQuoted(rule) { return guardedSeq("'", rule, "'").setType("singleQuoted"); }
+    // Parses a double quoted string, taking into account special escape rules
+    function doubleQuotedString(escape) { return doubleQuoted(choice(escape, notChar('"').zeroOrMore)).setType("doubleQuotedString"); }
+    Myna.doubleQuotedString = doubleQuotedString;
+    // Parses the given rule surrounded by single quotes 
+    function singleQuoted(rule) { return seq("'", rule, assert("'")).setType("singleQuoted"); }
     Myna.singleQuoted = singleQuoted;
-    // Create an array rule by injecting another rule in between each pairs
-    function join(sep) {
-        var xs = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            xs[_i - 1] = arguments[_i];
-        }
-        var r = [];
-        for (var i = 0; i < xs.length; ++i) {
-            if (i > 0)
-                r.push(sep);
-            r.push(xs[i]);
-        }
-        return r;
-    }
-    Myna.join = join;
-    // Given a list of rules, maps the text to keywords 
-    function keywordMap() {
-        var rules = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i - 0] = arguments[_i];
-        }
-        return rules.map(function (r) { return typeof r == "string" ? keyword(r) : r; });
-    }
-    Myna.keywordMap = keywordMap;
-    // Add whitespace matching rule in between each other rule. 
-    function seqWs() {
-        var rules = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i - 0] = arguments[_i];
-        }
-        return seq.apply(void 0, join.apply(void 0, [Myna.ws].concat(rules)));
-    }
-    Myna.seqWs = seqWs;
-    // Common guarded sequences: with internal whitespace
-    function parenthesized(rule) { return guardedSeq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
+    // Parses a singe quoted string, taking into account special escape rules
+    function singleQuotedString(escape) { return singleQuoted(choice(escape, notChar("'").zeroOrMore)).setType("singleQuotedString"); }
+    Myna.singleQuotedString = singleQuotedString;
+    // Parses the given rule surrounded by parentheses, and consumes whitespace  
+    function parenthesized(rule) { return seq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
     Myna.parenthesized = parenthesized;
-    function braced(rule) { return guardedSeq("{", Myna.ws, rule, Myna.ws, "}").setType("braced"); }
+    // Parses the given rule surrounded by curly braces, and consumes whitespace 
+    function braced(rule) { return seq("{", Myna.ws, rule, Myna.ws, "}").setType("braced"); }
     Myna.braced = braced;
-    function bracketed(rule) { return guardedSeq("[", Myna.ws, rule, Myna.ws, "]").setType("bracketed"); }
+    // Parses the given rule surrounded by square brackets, and consumes whitespace 
+    function bracketed(rule) { return seq("[", Myna.ws, rule, Myna.ws, "]").setType("bracketed"); }
     Myna.bracketed = bracketed;
-    function tagged(rule) { return guardedSeq("<", Myna.ws, rule, Myna.ws, ">").setType("tagged"); }
+    // Parses the given rule surrounded by angle brackets, and consumes whitespace 
+    function tagged(rule) { return seq("<", Myna.ws, rule, Myna.ws, ">").setType("tagged"); }
     Myna.tagged = tagged;
     // A complete identifier, with no other letters or numbers
     function keyword(text) { return seq(text, not(Myna.identifierNext)).setType("keyword"); }
     Myna.keyword = keyword;
+    // Chooses one of a a list of identifiers
     function keywords() {
         var words = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -1112,36 +1104,68 @@ var Myna;
     Myna.keywords = keywords;
     //===============================================================    
     // Core grammar rules 
-    Myna.truePredicate = new TruePredicate();
-    Myna.falsePredicate = Myna.truePredicate.not;
-    Myna.end = new AtEndPredicate();
-    Myna.notEnd = Myna.end.not;
+    Myna.truePredicate = new Predicate(function (p) { return true; });
+    Myna.falsePredicate = new Predicate(function (p) { return false; });
+    Myna.end = new Predicate(function (p) { return !p.inRange; });
+    Myna.notEnd = new Predicate(function (p) { return p.inRange; });
     Myna.advance = new Advance();
     Myna.all = Myna.advance.zeroOrMore;
-    Myna.letterLower = range('a', 'z');
-    Myna.letterUpper = range('A', 'Z');
-    Myna.letter = choice(Myna.letterLower, Myna.letterUpper);
+    Myna.atLetterLower = atRange('a', 'z');
+    Myna.atLetterUpper = atRange('A', 'Z');
+    Myna.atLetter = choice(Myna.atLetterLower, Myna.atLetterUpper);
+    Myna.atDigit = atRange('0', '9');
+    Myna.atDigitNonZero = atRange('1', '9');
+    Myna.atHexDigit = choice(Myna.atDigit, atRange('a', 'f'), atRange('A', 'F'));
+    Myna.atBinaryDigit = atChar('01');
+    Myna.atOctalDigit = atRange('0', '7');
+    Myna.atAlphaNumeric = choice(Myna.atLetter, Myna.atDigit);
+    Myna.atUnderscore = atChar("_");
+    Myna.atSpace = atChar(" ");
+    Myna.atTab = atChar("\t");
+    Myna.atWs = atChar(" \t\r\n\u00A0\uFEFF");
+    Myna.letterLower = Myna.atLetterLower.advance;
+    Myna.letterUpper = Myna.atLetterUpper.advance;
+    Myna.letter = Myna.atLetter.advance;
     Myna.letters = Myna.letter.oneOrMore;
-    Myna.digit = range('0', '9');
+    Myna.digit = Myna.atDigit.advance;
+    Myna.digitNonZero = Myna.atDigitNonZero.advance;
     Myna.digits = Myna.digit.oneOrMore;
-    Myna.digitNonZero = range('1', '9');
-    Myna.integer = choice('0', seq(Myna.digitNonZero, Myna.digit.zeroOrMore));
-    Myna.hexDigit = choice(Myna.digit, range('a', 'f'), range('A', 'F'));
-    Myna.binaryDigit = char('01');
-    Myna.octalDigit = range('0', '7');
-    Myna.alphaNumeric = choice(Myna.letter, Myna.digit);
-    Myna.underscore = text("_");
-    Myna.identifierFirst = choice(Myna.letter, Myna.underscore);
-    Myna.identifierNext = choice(Myna.alphaNumeric, Myna.underscore);
+    Myna.integer = char('0').or(Myna.digits);
+    Myna.hexDigit = Myna.atHexDigit.advance;
+    Myna.binaryDigit = Myna.atBinaryDigit.advance;
+    Myna.octalDigit = Myna.atOctalDigit.advance;
+    Myna.alphaNumeric = Myna.atAlphaNumeric.advance;
+    Myna.underscore = Myna.atUnderscore.advance;
+    Myna.identifierFirst = choice(Myna.atLetter, Myna.atUnderscore).advance;
+    Myna.identifierNext = choice(Myna.atAlphaNumeric, Myna.atUnderscore).advance;
     Myna.identifier = seq(Myna.identifierFirst, Myna.identifierNext.zeroOrMore);
     Myna.hyphen = text("-");
     Myna.crlf = text("\r\n");
     Myna.newLine = choice(Myna.crlf, "\n");
     Myna.space = text(" ");
     Myna.tab = text("\t");
-    Myna.ws = char(" \t\r\n\u00A0\uFEFF").zeroOrMore;
-    Myna.wordChar = Myna.letter.or(char("-'"));
-    Myna.word = Myna.letter.then(Myna.wordChar.zeroOrMore);
+    // JSON definition of white-space 
+    Myna.ws = Myna.atWs.advance.zeroOrMore;
+    //===============================================================
+    // Parsing function 
+    // Returns an array of nodes created by parsing the given rule repeatedly until 
+    // it fails or the end of the input is arrived. One Astnode is created for each time 
+    // the token is parsed successfully, whether or not it explicitly has the "_createAstNode" 
+    // flag set explicitly. 
+    function tokenize(r, s) {
+        var result = this.parse(r.ast.zeroOrMore, s);
+        return result ? result.children : [];
+    }
+    Myna.tokenize = tokenize;
+    // Returns the root node of the abstract syntax tree created 
+    // by parsing the rule. 
+    function parse(r, s) {
+        var p = new ParseState(s, 0, []);
+        if (!r.ast.parser(p))
+            return null;
+        return p && p.nodes ? p.nodes[0] : null;
+    }
+    Myna.parse = parse;
     //===============================================================
     // Grammar functions 
     // The following are helper functions for grammar objects. A grammar is a loosely defined concept.
@@ -1179,7 +1203,7 @@ var Myna;
     // Initializes and register a grammar object and all of the rules. 
     // Sets names for all of the rules from the name of the field it is associated with combined with the 
     // name of the grammar. Each rule is stored in Myna.rules and each grammar is stored in Myna.grammars. 
-    function registerGrammar(grammarName, grammar) {
+    function registerGrammar(grammarName, grammar, defaultRule) {
         for (var k in grammar) {
             if (grammar[k] instanceof Rule) {
                 var rule = grammar[k];
@@ -1188,20 +1212,41 @@ var Myna;
             }
         }
         Myna.grammars[grammarName] = grammar;
+        if (defaultRule) {
+            Myna.parsers[grammarName] = function (text) { return parse(defaultRule, text); };
+        }
         return grammar;
     }
     Myna.registerGrammar = registerGrammar;
     //===========================================================================
     // Utility functions
+    // Replaces characters with the JSON escaped version
     function escapeChars(text) {
         var r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
     }
     Myna.escapeChars = escapeChars;
+    // Given a RuleType returns an instance of a Rule.
+    function RuleTypeToRule(rule) {
+        if (rule instanceof Rule)
+            return rule;
+        if (typeof (rule) === "string")
+            return text(rule);
+        if (typeof (rule) === "boolean")
+            return rule ? Myna.truePredicate : Myna.falsePredicate;
+        throw new Error("Invalid rule type: " + rule);
+    }
+    Myna.RuleTypeToRule = RuleTypeToRule;
+    // These should be commented out in the filnal version 
+    function debugAssert(condition, rule) {
+        if (!condition)
+            throw new Error("Error occured while parsing rule: " + rule.fullName);
+    }
+    Myna.debugAssert = debugAssert;
     //===========================================================================
     // Initialization
     // The entire module is a grammar because it is an object that exposes rules as properties
-    registerGrammar("core", Myna);
+    registerGrammar("core", Myna, null);
 })(Myna || (Myna = {}));
 if (typeof module === "object" && module.exports)
     module.exports = Myna;

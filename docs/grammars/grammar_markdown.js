@@ -10,24 +10,23 @@ function CreateMarkdownGrammar(myna)
     let m = myna;
 
     let g = new function()
-    {
-        let _this = this;
-        
+    {        
         // Allows the "inline" to be referenced before it is defined. 
         // This enables recursive definitions. 
+        let _this = this;
         this.inlineDelayed = m.delay(function() { return _this.inline; });            
         
         this.boundedInline = function(begin, end) {
             if (end == undefined) end = begin;
-            return m.seq(begin, this.inlineDelayed.butNot(end).zeroOrMore, end);
+            return m.seq(begin, this.inlineDelayed.unless(end).zeroOrMore, end);
         }
         
         // Plain text
         this.specialCharSet = '[]()*~`@#\\_!';
-        this.escaped = m.seq('\\', m.char(this.specialCharSet)).ast;
+        this.escaped = m.seq('\\', m.advance).ast;
         this.ws = m.char(' \t').oneOrMore;
         this.optWs = this.ws.opt;
-        this.nonSpecialChar = m.notChar(this.specialCharSet).butNot(m.newLine);
+        this.nonSpecialChar = m.notChar(this.specialCharSet).unless(m.newLine);
         this.specialChar = m.char(this.specialCharSet).ast;
         this.plainText = m.choice(m.digits, m.letters, this.ws, this.nonSpecialChar).oneOrMore.ast;
 
@@ -36,16 +35,16 @@ function CreateMarkdownGrammar(myna)
         this.boldItalic = m.choice(this.boundedInline('*_', '_*'), this.boundedInline('_*', '*_')).ast;
         this.italic = m.choice(this.boundedInline('*'), this.boundedInline('_')).ast;
         this.strike = this.boundedInline('~~').ast;
-        this.code = this.boundedInline('`').ast;
+        this.code = m.not('```').then(this.boundedInline('`')).ast;
         this.styledText = m.choice(this.bold, this.italic, this.strike, this.code);
 
         // Image instructions 
         this.url = m.choice(this.escaped, m.notChar(')')).zeroOrMore.ast;
-        this.altText =  m.choice(this.escaped, m.charExcept(']')).zeroOrMore.ast;
+        this.altText =  m.choice(this.escaped, m.notChar(']')).zeroOrMore.ast;
         this.image = m.seq('![', this.altText, ']', m.ws, '(', this.url, ')').ast;
 
         // Linked text
-        this.linkedText = this.inlineDelayed.butNot(']').zeroOrMore.ast;
+        this.linkedText = this.inlineDelayed.unless(']').zeroOrMore.ast;
         this.linkText = m.seq('[', this.linkedText, ']');
         this.linkUrl = m.seq('(', this.url, ')');
         this.link = m.seq(this.linkText, m.ws, this.linkUrl).ast;        
@@ -63,16 +62,18 @@ function CreateMarkdownGrammar(myna)
         this.quotedLineStart = m.seq(this.indent, '>');
         this.listStart = m.seq(this.indent, m.char('*-'), m.ws);
         this.headingLineStart = m.quantified('#', 1, 6).ast;
-        this.specialLineStart = m.choice(this.listStart, this.headingLineStart, this.quotedLineStart, this.numListStart);
+        this.codeBlockDelim = m.text("```");
+        this.specialLineStart = this.optWs.then(m.choice(this.listStart, this.headingLineStart, this.quotedLineStart, this.numListStart, this.codeBlockDelim));
 
         // Inline content 
         this.any = m.advance.ast;
-        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.plainText, this.any);
-        this.restOfLine = m.seq(this.inline.butNot(m.newLine).zeroOrMore, m.newLine.opt).ast;
-        this.simpleLine = m.seq(m.not(this.specialLineStart), this.restOfLine).ast;
-        this.paragraph = this.simpleLine.butNot(m.end).oneOrMore.ast;
+        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.plainText, this.any).unless(m.newLine);
+        this.lineEnd = m.newLine.or(m.assert(m.end));
+        this.restOfLine = m.seq(this.inline.zeroOrMore).then(this.lineEnd).ast;
+        this.simpleLine = m.seq(this.specialLineStart.not, m.notEnd, this.restOfLine).ast;
+        this.paragraph = this.simpleLine.oneOrMore.ast;
         
-        // Lists 
+        // Lists
         this.numberedListItem = m.seq(this.numListStart, this.optWs, this.restOfLine).ast;
         this.unorderedListItem = m.seq(this.listStart, this.optWs, this.restOfLine).ast;
         this.list = m.choice(this.numberedListItem, this.unorderedListItem).oneOrMore.ast;
@@ -81,10 +82,10 @@ function CreateMarkdownGrammar(myna)
         this.quotedLine = m.seq('>', this.optWs, this.restOfLine).ast;
         this.quote = this.quotedLine.oneOrMore.ast;    
 
-        // Code blocks
-        this.codeBlockContent = m.advanceUnless("```").zeroOrMore.ast;
-        this.codeBlockHint = m.advanceWhileNot(m.newLine).ast;
-        this.codeBlock = m.guardedSeq("```", this.optWs, this.codeBlockHint, m.newLine.opt, this.codeBlockContent, "```").ast;
+        // Code blocks        
+        this.codeBlockContent = m.advanceWhileNot(this.codeBlockDelim).ast;
+        this.codeBlockHint = m.advanceWhileNot(m.choice(m.newLine, this.codeBlockDelim)).ast;
+        this.codeBlock = m.guardedSeq(this.codeBlockDelim, this.codeBlockHint, m.newLine.opt, this.codeBlockContent, this.codeBlockDelim).ast;
 
         // Heading 
         this.heading = this.headingLineStart.then(this.optWs).then(this.restOfLine).ast;
@@ -94,7 +95,8 @@ function CreateMarkdownGrammar(myna)
         this.document = this.content.zeroOrMore;
     }
 
-    return m.registerGrammar("markdown", g);
+    // Register the grammar, providing a name and the default parse rule
+    return m.registerGrammar("markdown", g, g.document);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 

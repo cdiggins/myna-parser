@@ -33,8 +33,8 @@ function CreateArithmeticGrammar(myna)
         this.sum        = m.seq(this.product, this.addExpr.or(this.subExpr).zeroOrMore).ast;
     };
 
-    // Register the grammar with the moodule and give it a name 
-    return myna.registerGrammar("arithmetic", g);
+    // Register the grammar, providing a name and the default parse rule
+    return myna.registerGrammar("arithmetic", g, g.expr);
 };
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 

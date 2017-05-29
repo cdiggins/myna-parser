@@ -19,7 +19,9 @@ function RuleTester(myna, inputs, testRunner)
         let result = myna.failed;
         let err = undefined;    
         try {        
-            result = myna.parse(rule, text).end;
+            let node = myna.parse(rule, text);
+            if (node)
+                result = node.end;            
         }
         catch (e) {
             err = e;
