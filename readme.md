@@ -18,7 +18,7 @@ You can either download the latest `myna.js` file [via GitHub](https://github.co
 
 ## Using Myna 
 
-Myna parsers are defined as oen or more *rules*. Each rule defines how to recognize a syntactic phrase in the language you are parsing. 
+Myna parsers are defined as one or more *rules*. Each rule defines how to recognize a syntactic phrase in the language you are parsing. 
 Rules can be combined using functions like `seq` or `choice` which are known as *combinators*. 
 A collection of rule defined within a single object are called a *grammar*. 
 For example a simple grammar for parsing Comma Separated Values (CSV) could look like this:
