@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="The Myna open-source parsing library by Christopher Diggins. A robust, mature, and easy to use syntactic analysis library for JavaScript written in TypeScript.">
+<meta name="description" content="The Myna JavaScript parsing library. A performant and easy to use recursive-descent parsing library for JavaScript by Christopher Diggins.">
 <meta name="author" content="Christopher Diggins">
 <meta property="og:image" content="https://cdiggins.github.io/myna-parser/Common_Myna_Thumbnail.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -59,12 +60,9 @@ textarea {
     <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
         <li class="active"><a href="#">Home</a></li>
-        <li><a href="#contact">Author</a></li>
         <li><a href="https://github.com/cdiggins/myna-parser">GitHub</a></li>
         <li><a href="https://www.npmjs.com/package/myna-parser">NPM</a></li>
         </ul>        
-        <select id="rules" onChange="ruleChanged()">        
-        </select>
     </div><!--/.nav-collapse -->
     </div>
 </nav>
@@ -77,291 +75,75 @@ textarea {
  style="transform: scaleX(-1); float:right;" alt="Common Myna" 
  src="Common_Myna_Thumbnail.png"/></a>
 
-<h1>Myna - Recursive Descent Parsing Library for JavaScript</h1> 
-
+<h1>Myna - Recursive Descent Parsing Library for JavaScript</h1>
 <p>
-    Myna is a JavaScript library for <i><a href="https://en.wikipedia.org/wiki/Parsing">parsing</a></i> structured text.
-    Myna parsers are <a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parsers</a> that support 
-    both back-tracking and look-ahead (table-based) techniques and can recognize any <i>context-free grammar</i> (CFG).    
-</p>
+Myna is an easy to use recursive-descent parsing library for JavaScript (EcmaScript 5.1) written in TypeScript. 
+This web-site was made using Myna to:</p>
+<ol><li><a href = "https://github.com/cdiggins/myna-parser/blob/master/tools/myna_markdown_to_html.js">Parse and convert Markdown into HTML</a></li>
+<li><a href = "https://github.com/cdiggins/myna-parser/blob/master/tools/myna_mustache_expander.js">Parse and expand Mustache style templates</a></li>
+<li><a href = "https://github.com/cdiggins/myna-parser/blob/master/tools/myna_escape_html_chars.js">Convert HTML characters into escape codes</a></li>
+</ol>
 <p>
-    When a Myna parser successfully parses an iunput string it returns a tree structure called an abstract syntax tree (AST).
+Myna features: 
 </p>
+<ul><li>Myna is a JavaScript library not a code generator</li>
+<li>Parsing automatically creates an abstract syntax tree (AST) </li>
+<li>No separate tokenization phase</li>
+<li><a href = "https://sap.github.io/chevrotain/performance/">Competitive performance</a> with other libraries </li>
+<li>Many <a href = "https://github.com/cdiggins/myna-parser/tree/master/grammars">sample grammars</a> and <a href = "https://github.com/cdiggins/myna-parser/tree/master/tools">example tools</a>.</li>
+<li>Functions for generating a PEG representation of the grammar, or the AST schema </li>
+</ul>
 <p>
-    Myna is extensively tested and ships with several sample tools and grammars. The design goals emphasizes ease of use and completeness of functionality for 
-    use in actual tools. 
 </p>
+<h2>Using Myna </h2>
 <p>
-    For more information on Myna also consult the <a href="https://github.com/cdiggins/myna-parser/blob/master/readme.md">readme.md document 
-    on GitHub</a>.
+Below is an example of how to use Myna from Node.JS in a single self-contained example: 
 </p>
+<pre>// Load the Myna module and all grammars
+var m = require('myna-parser');
 
-<a name="demo"></a>
-<h2>Introduction to Myna - An Interactive Demo</h2>
+// Load the JSON grammar
+require('myna-parser/grammars/grammar_json')(m);
 
-<h3>Myna Grammars</h3>
+// Get the JSON parser 
+var parser = m.parsers.json; 
+
+// Define some input 
+var input = '{ "integer":42, "greeting":"hello", "truth":false, "array":[1,2,3] }';
+
+// Output the generated AST 
+console.log(parser(input).toString());
+</pre><p>
+
+</p>
+<h2>Writing a Grammar </h2>
 <p>
-    A <i>grammar</i> is a set of parsing rules. In Myna any object that has member
-    fields that are derived from the <code>Myna.Rule</code>
-    class can be considered a grammar. A grammar should be registered with the Myna
-    module using <code>Myna.registerGrammar</code>. This will automatically associate 
-    a name with each rule and store the grammar and its rules in the Myna module.
+The following example shows how to use Myna with a custom Grammar:
 </p>
+<pre>// Reference the Myna module
+var m = require('myna-parser');
 
-<h3>Extended PEG Grammar Representation</h3>
-<p>
-    The following is a representation of the grammar using an extended variation of a <i>PEG</i> 
-    (<a href="https://en.wikipedia.org/wiki/Parsing_expression_grammar"><i>Parsing Expression Grammar</i></a>). 
-    The Myna API extends the PEG formalism through the support of the following features:
-    <ul>
-        <li>table lookup operators</li>
-        <li>character sets (and negated character sets)</li>
-        <li>quantified matches (e.g. between n and m matches)</li>
-        <li>actions and predicates</li>
-    </ul>
-</p>
-<textarea spellcheck=false id="peg-grammar" rows="12">
-</textarea>
-
-<h3>Abstract Syntax Tree (AST)</h3>
-<p>
-    When certain rules in a grammar are successfully parsed they add a node to a parse-tree structure called an <i>abstract syntax tree</i>
-    or <i>AST</i> for short. Rules that generate 
-    nodes are copies of other rules created using the <code>.ast</code> property.
-</p>
-
-<div class="row">
-    <div class="col-sm-6">
-        <textarea spellcheck=false id="inputText" rows="12">
-        </textarea>
-    </div>
-    <div class="col-sm-6">
-        <textarea spellcheck=false id="outputAst" rows="12">
-        </textarea>
-    </div>
-</div>
-
-<h3>AST Schema</h3>
-<p>
-    Only a subset of rules generate nodes in the AST. This is what distinguishes an *abstract syntax tree* from it's cousin 
-    the *concrete syntax tree* (CST). As a result the tree structure has a similar shape to the grammar, but can be described 
-    using a simpler language and with fewer rules.      
-</p>
-
-<textarea spellcheck=false id="schema" rows="12">
-</textarea>
-
-<h3>Grammar Source Code</h3>
-
-<p>
-    Here is the source code for the grammar definition for the chosen rule.
-</p>
-
-<textarea spellcheck=false id="js-grammar" rows="40">
-</textarea>
-
-
-<a name="contact"></a>
-<h2>Contact</h2>
-
-<p>
-    Myna is written and developed by <a href="https://github.com/cdiggins">Christopher Diggins</a>. 
-    Use these links if you want to:
-    <ul>
-        <li><a href="https://github.com/cdiggins/myna-parser">browse the source code on GitHub</a></li>
-        <li><a href="https://github.com/cdiggins/myna-parser/issues">submit an issue, suggestion, request, or question</a></li>
-        <li><a href="mailto:cdiggins@gmail.com">talk to me directly</a></li>
-    </ul>
-</p>
-
-</div>
-<!-- /.container -->
-
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="js/ie10-viewport-bug-workaround.js"></script>
-
-<script src="myna.js"></script>
-<script src="grammars/grammar_csv.js"></script>
-<script src="grammars/grammar_json.js"></script>
-<script src="grammars/grammar_arithmetic.js"></script>
-<script src="grammars/grammar_markdown.js"></script>
-<script src="grammars/grammar_template.js"></script>
-
-<script>
-// Create each Grammar.  
-let grammars = [
-    CreateCsvGrammar(Myna),
-    CreateJsonGrammar(Myna),
-    CreateArithmeticGrammar(Myna),
-    CreateMarkdownGrammar(Myna),
-    CreateTemplateGrammar(Myna)
-    ];
-
-// Print a representation of the grammar in the console. 
-for (let g in grammars) {
-    console.log(Myna.grammarToString(g));
-}
- 
-</script>
-
-<script>
-let strategy = undefined; 
-let rules = [
-    'markdown.document',
-    'json.object',
-    'csv.file',
-    'arithmetic.expr', 
-    'template.document'
-];
-
-var testInputs = {
-
-markdown : 
-'# Biggest Heading\n\
-\n\
-This is a paragraph. \n\
-That is continued on another \n\
-line.\n\
-\n\
-## Another heading but smaller \n\
-\n\
-- unordered list item 1\n\
-- unordered list item 2\n\
-  - nested list item 1\n\
-  - nested list item 2\n\
-- unordered list item 3\n\
-\n\
-Here is a quote:\n\
-> Somebody famous said \n\
-> this\n\
-\n\
-Here is some *very __important__ text*. \n\
-~~I changed my mind about this~~.\n\
-',
-
-arithmetic : '(1 + 2) * 0.3 / 4.5 - (1 + 2 + 3)',
-
-csv : 'Field_A1,field A2,"field A3,has,commas"\nField_B1,field B2,"Field B3 is quoted also\n"',
-
-json : 
-'{\n\
-    "field1":42, \n\
-    "x" : "blabla",\n\
-    "field2": [\n\
-        12, 13, 14, "15", 1.6, {}\n\
-    ],\n\
-    "field 3" : { "a":1, "b":2 },\n\
-    "" : ""\n\
-}',
-
-template : 'This is a mustache template. Regular brackets (e.g. `{ }`) don\'t change anything.\nHowever a {{variable}} is something special\n\
- as is a {{#section}}section{{/section}}.\n{{!Comments are just ignored.}}.\nWe can include files {{> includeme.js}}.\n\
- Some variables can also be included without escaping.\nMethod 1 {{{unescaped_var}}} and Method 2 {{&unescaped_var}}.\n\
- There are also {{^section}}inverted sections{{/section}}.'
+// Construct a grammar object 
+var g = new function() 
+{
+    this.textdata   = m.notChar('\n\r"' + delimiter);    
+    this.quoted     = m.doubleQuoted(m.notChar('"').or('""').zeroOrMore);
+    this.field      = this.textdata.or(this.quoted).zeroOrMore.ast;
+    this.record     = this.field.delimited(delimiter).ast;
+    this.file       = this.record.delimited(m.newLine).ast;   
 }
 
-function textToOption(text) {
-    return "<option value='" + text + "'>" + text + "</option>"
-}
+// Let consumers of the Myna module access 
+m.registerGrammar("csv", g, g.file);
 
-function createRulesList() { 
-    let elem = document.getElementById("rules");
-    elem.innerHTML = rules.map(textToOption).join("\n");
-}
+// Get the parser 
+var parser = m.parsers.csv; 
+var input = 'a,1,"hello"\nb,2,"goodbye"';
+console.log(parser(input).toString());
+</pre><p>
 
-function getGrammarFileName(grammarName) {
-    return "grammars\\grammar_" + grammarName + ".js";
-}
+Only rules that are defined with the <code>.ast</code> property will create nodes in the output parse tree. This saves the work of having to convert from a Concrete Syntax Tree (CST) to an  Abstract Syntax Tree (AST).</p>
 
-function getGrammarFile(grammarName, onRead) {
-    httpRead(getGrammarFileName(grammarName), onRead);
-}
-
-function selectGrammar(grammarName) {    
-    let jsGrammarElem = document.getElementById("js-grammar");
-    getGrammarFile(grammarName, function(text) { 
-        jsGrammarElem.innerHTML = text; 
-    });
-
-    let pegGrammarElem = document.getElementById("peg-grammar");
-    let pegGrammar = Myna.grammarToString(grammarName);
-    pegGrammarElem.innerHTML = pegGrammar;
-
-    let schemaElem = document.getElementById("schema");
-    let schema = Myna.astSchemaToString(grammarName);
-    schemaElem.innerHTML = schema;
-}
-
-function setRule(name) {
-    let currentRule = Myna.allRules[name];
-    let grammarName = currentRule.grammarName;
-    selectGrammar(grammarName);
-    let elem = document.getElementById('inputText');
-    elem.value = testInputs[grammarName];
-    let inputElem = document.getElementById('inputText');
-    let outputElem = document.getElementById('outputAst');
-    try {
-        let ast = Myna.parse(currentRule, inputElem.value);
-        outputElem.value = astToString(ast);
-    }
-    catch (e) {
-        outputElem.value = "Error occured: " + e.message;
-    }
-}
-
-function ruleChanged() {
-    let select = document.getElementById('rules'); 
-    let value = select.options[select.selectedIndex].value;
-    if (value) 
-        setRule(value);    
-}
-
-function astToString(ast) {
-    if (!ast)
-        return "undefined";
-    result = "<" + ast.name + ">\n";
-    if (ast.children != null && ast.children.length > 0)
-        result += ast.children.map(astToString).join("\n");
-    else 
-        result += ast.allText;    
-    result += "</" + ast.name + ">\n";
-    return result;
-}
-
-function grammarToString(grammarName) {    
-    return Myna.grammarRules(grammarName).map(ruleToString).join('\n');
-}
-
-function httpRead(file, onRead) {
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", file, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && (xhr.status === 200 || xhr.status == 0))
-            onRead(xhr.responseText);            
-    };
-    xhr.send(null);
-}
-
-function onChooseInput(event) {
-    onChooseFile(event, function(event) { setInput(event.target.result); });
-}
-
-function onChooseFile(event, onLoadFileHandler) {
-    if (typeof window.FileReader !== 'function')
-        throw ("The file API isn't supported on this browser.");
-    let input = event.target;
-    if (!input)
-        throw ("The browser does not properly implement the event object");
-    if (!input.files)
-        throw ("This browser does not support the `files` property of the file input.");
-    if (!input.files[0])
-        return undefined;
-    fileRead(input.files[0], onLoadFileHandler);
-}
-
-createRulesList();
-setRule("template.document");
-</script>
 
 <!-- Google analytics -->
 <script>
