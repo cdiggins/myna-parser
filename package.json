@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "A text parsing (syntactic analysis) library.",
   "main": "myna.js",
+  "runkitExampleFilename": "../tests/test_node_example.js",  
   "scripts": {
     "build": "tsc",
     "full": "npm run build && npm run copyfiles && npm run makedist",
