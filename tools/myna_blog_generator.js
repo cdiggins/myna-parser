@@ -28,6 +28,9 @@ function readJsonFile(file) {
 }
 
 function generateBlogs(inputFolder, outputFolder, templateFile, articlesFile) {
+    if (!fs.existsSync(outputFolder))
+        fs.mkdirSync(dir);
+    
     // Read the template
     let template = fs.readFileSync(templateFile, 'utf-8');
 
