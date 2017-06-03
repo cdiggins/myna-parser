@@ -80,8 +80,10 @@ function markdownAstToHtml(ast, lines) {
             }
         case "paragraph":   
             return addTag("p", ast.children, true);
-        case "list":
+        case "unorderedList":
             return addTag("ul", ast.children, true);
+        case "orderedList":
+            return addTag("ol", ast.children, true);
         case "unorderedListItem":
             return addTag("li", ast.children, true);
         case "orderedListItem":

@@ -58,7 +58,7 @@ function CreateMarkdownGrammar(myna)
 
         // Beginning of sections 
         this.indent = m.zeroOrMore('  ').ast;
-        this.numListStart = m.seq(this.indent, m.digit.oneOrMore, '.');
+        this.numListStart = m.seq(this.indent, m.digit.oneOrMore, '.', m.ws);
         this.quotedLineStart = m.seq(this.indent, '>');
         this.listStart = m.seq(this.indent, m.char('*-'), m.ws);
         this.headingLineStart = m.quantified('#', 1, 6).ast;
@@ -74,9 +74,11 @@ function CreateMarkdownGrammar(myna)
         this.paragraph = this.simpleLine.oneOrMore.ast;
         
         // Lists
-        this.numberedListItem = m.seq(this.numListStart, this.optWs, this.restOfLine).ast;
+        this.orderedListItem = m.seq(this.numListStart, this.optWs, this.restOfLine).ast;
         this.unorderedListItem = m.seq(this.listStart, this.optWs, this.restOfLine).ast;
-        this.list = m.choice(this.numberedListItem, this.unorderedListItem).oneOrMore.ast;
+        this.orderedList = this.orderedListItem.oneOrMore.ast;
+        this.unorderedList = this.unorderedListItem.oneOrMore.ast;
+        this.list = m.choice(this.orderedList, this.unorderedList);
         
         // Quotes
         this.quotedLine = m.seq('>', this.optWs, this.restOfLine).ast;
