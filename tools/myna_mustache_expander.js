@@ -80,7 +80,7 @@ function expandAst(ast, data, lines) {
 }
 
 function expand(template, data) {
-    let ast = myna.parsers.template(templateRule);
+    let ast = myna.parsers.template(template);
     let lines = expandAst(ast, data);
     return lines.join("");
 }
