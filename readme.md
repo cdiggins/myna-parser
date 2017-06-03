@@ -18,15 +18,14 @@ You can either download the latest `myna.js` file [via GitHub](https://github.co
 
 ## Using Myna 
 
-Myna parsers are defined as oen or more *rules*. Each rule defines how to recognize a syntactic phrase in the language you are parsing. 
-Rules can be combined using functions like `seq` or `choice` which are known as *combinators*. 
-A collection of rule defined within a single object are called a *grammar*. 
-For example a simple grammar for parsing Comma Separated Values (CSV) could look like this:
+Below is an example of how to use Myna from Node.JS in a single self-contained example: 
 
 ```
-    let m = myna;
+    // Reference the Myna module
+    var m = require('myna-parser');
 
-    let g = new function() 
+    // Construct a grammar object 
+    var g = new function() 
     {
         this.textdata   = m.notChar('\n\r"' + delimiter);    
         this.quoted     = m.doubleQuoted(m.notChar('"').or('""').zeroOrMore);
@@ -34,17 +33,19 @@ For example a simple grammar for parsing Comma Separated Values (CSV) could look
         this.record     = this.field.delimited(delimiter).ast;
         this.file       = this.record.delimited(m.newLine).ast;   
     }
+
+    // Let consumers of the Myna module access 
+    m.registerGrammar("csv", g, g.file);
+
+    // Get the parser 
+    var parser = m.parsers.csv; 
+    
+    // Parse some input and print the AST
+    var input = 'a,1,"hello"\nb,2,"goodbye"';
+    console.log(parse(input));
 ```
 
-Once a grammar is constructed it suffices to register it with the Myna module providing a name, and a reference to the starting rule of the grammar:
-
-```
-    myna.registerGrammar("csv", g, g.file);
-```
-
-Once the grammar is registered with Myna a parse function is exposed that will take an input string and output a *parse tree*, also knowns as an *abstract syntax tree* or *AST* for short. In the case of the CSV example the parse function is `myna.parsers.csv`. 
-
-Only rules that are defined with the `.ast` property will generate nodes in the parse tree. 
+Only rules that are defined with the `.ast` property will create nodes in the output parse tree. This saves the work of having to convert from a Concrete Syntax Tree (CST) to an  Abstract Syntax Tree (AST).
 
 ## Myna Source Code and Dependencies
 
