@@ -214,11 +214,20 @@ function optimizeRule(r)
 }
 */
 
+function ruleStructure(r, indent, lines) 
+{
+    lines.push(indent + r.toString() + " : " + r.type);
+    r.rules.forEach(r2 => ruleStructure(r2, indent + "  ", lines));
+    return lines;
+}
+
 function optimizeRule(r) 
 {
+    r = r.copy;
+
     if (r instanceof m.Sequence)
     {
-        let tmp = [];
+        let rs = [];
 
         for (let i=0; i < r.rules.length; ++i) {
             let r2 = optimizeRule(r.rules[i]);
@@ -226,16 +235,27 @@ function optimizeRule(r)
             // Heuristic: Sequence flattening 
             // (a (b c)) => (a b c)
             if (!r2._createAstNode && r2 instanceof m.Sequence) 
-                tmp = tmp.concat(r2.rules); 
+                rs = rs.concat(r2.rules); 
             else 
-                tmp.push(r2);
+                rs.push(r2);
         }
 
-        r.rules = tmp;
+        // x? advance => advanceIf(x)
+        for (var i=rs.length-2; i >= 0; --i)
+            if (rs[i].nonAdvancing && rs[i+1] instanceof m.Advance) 
+                rs.splice(i, 2, new m.AdvanceIf(rs[i]));
+
+        // If we are down to one rule we return it.
+        if (rs.length == 1)        
+            return rs[0];
+
+        r.rules = rs;
+        return r;
     }
-    else if (r instanceof m.Choice)
+        
+    if (r instanceof m.Choice)
     {
-        let tmp = [];
+        let rs = [];
 
         for (let i=0; i < r.rules.length; ++i) {
             let r2 = optimizeRule(r.rules[i]);
@@ -243,28 +263,52 @@ function optimizeRule(r)
             // Heuristic: Choice flattening
             // (a\(b\c)) => (a\b\c)
             if (r2 instanceof m.Choice) 
-                tmp = tmp.concat(r2.rules);
+                rs = rs.concat(r2.rules);
             else 
-                tmp.push(r2);
+                rs.push(r2);
         }
 
         // Filter the new list of rules
-        for (let i = tmp.length-1; i >= 1; --i) {
-            let r1 = tmp[i-1];
-            let r2 = tmp[i];
+        for (let i = rs.length-1; i >= 1; --i) {
+            let r1 = rs[i-1];
+            let r2 = rs[i];
 
-            if (r1 instanceof CharSet && r2 instanceof CharSet)
+            if (r1 instanceof m.CharSet && r2 instanceof m.CharSet)
             {
                 let text = r1.text + r2.text;
-                tmp[i-1] = m.chars(text);
-                tmp.splice(i, 1);
+                rs[i-1] = m.chars(text);
+                rs.splice(i, 1);
             }
         }
+        
+        // Should really be: also check if they are sequences that start with "AdvanceIf"
+        if (rs.every((r) => r instanceof m.AdvanceIf)) {
+            let tmp = rs.map(r => r.firstChild);
+            return new m.AdvanceIfAny(tmp);
+        }
+        
+        // TODO: can I convert the things to lookups?         
 
-        // TODO: can I convert the things to lookups? 
+        // If we are down to one rule we return it.
+        if (rs.length == 1)        
+            return rs[0];
 
-        r.rules = tmp;
+        r.rules = rs;
+        return r;
     }
+
+    // Optimize "quantified" rules
+    if (r instanceof m.Quantified)
+    {
+        r.rules[0] = optimizeRule(r.rules[0]);
+
+        // m.AdvanceIf.opt is redundant. 
+        if (!r._createAstNode && r.min==0 && r.max==1 && r.rules[0] instanceof m.AdvanceIf)
+            return r.rules[0];
+
+        return r;
+    }
+
     return r;
 }
 
@@ -286,35 +330,36 @@ function timeParse(rule, input) {
 
 let o = jg.array;
 let o2 = optimizeRule(o.copy);
-/*
+
 {
-    let rs = m.ruleStructure(o); 
-    let txt = JSON.stringify(rs, null, 2);
+    //console.log("Unoptimized rule");
+    let txt = ruleStructure(o, "", []).join("\n");
     //console.log(txt);
-    fs.writeFileSync("e:\\tmp\\myna.json", txt);
+    fs.writeFileSync("e:\\tmp\\myna.txt", txt);
 }
 {
-    let rs = m.ruleStructure(o2); 
-    let txt = JSON.stringify(rs, null, 2);
+    //console.log("Optimized rule");
+    let txt = ruleStructure(o2, "", []).join("\n");
     //console.log(txt);
-    fs.writeFileSync("e:\\tmp\\myna_opt.json", txt);
+    fs.writeFileSync("e:\\tmp\\myna_opt.txt", txt);
 }
 
 //let ast = m.parse(o, input);
 //let ast2 = m.parse(o2, input);
 
 // TODO: compre the two ASTs. I need a function for converting an AST to a string. 
-*/
-console.log("Unoptimized");
-for (let i = 0; i < 3; ++i) {
-    timeParse(o, input);
+
+{
+    for (let i = 0; i < 10; ++i) {
+        console.log("Unoptimized");
+        timeParse(o, input);
+        console.log("Optimized");
+        timeParse(o2, input);
+    }
+    console.log("Native")
+    timeIt(function() { JSON.parse(input); });
 }
-console.log("Optimized");
-for (let i = 0; i < 3; ++i) {
-    timeParse(o2, input);
-}
-console.log("Native")
-timeIt(function() { JSON.parse(input); });
 
 // console.log(r);
+
 process.exit();
