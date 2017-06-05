@@ -1,6 +1,6 @@
 {
   "name": "myna-parser",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "A text parsing (syntactic analysis) library.",
   "main": "myna.js",
   "runkitExampleFilename": "tests/test_node_example-1.js",  
@@ -24,6 +24,7 @@
   "devDependencies": {
     "typescript": "~2.0",
     "copyfiles": "~1.0",
-    "uglify-js": "~2.7.5"
+    "uglify-js": "~2.7.5",
+    "mocha": "^3.4.2"
   }
 }
