@@ -6,6 +6,7 @@
   "runkitExampleFilename": "tests/test_node_example-1.js",  
   "scripts": {
     "build": "tsc",
+    "test": "mocha tests/mocha_runner.js",
     "full": "npm run build && npm run copyfiles && npm run makedist",
     "makedist": "uglifyjs myna.js -o dist/myna.min.js",
     "copyfiles": "copyfiles myna.ts myna.js examples/*.* tests/*.* grammars/*.js docs"
