@@ -9,7 +9,7 @@
 let m = require('../myna');
 let jg = require('../grammars/grammar_json')(m);
 let fs = require('fs');
-let input = require('../tests/1k_json.js');
+let input = require('../tests/input/1k_json.js');
 
 
 // (a b* b) => (a b*)
