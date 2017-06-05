@@ -30,52 +30,39 @@ var Myna;
             this.input = input;
             this.index = index;
             this.nodes = nodes;
-            this.index = index;
         }
-        Object.defineProperty(ParseState.prototype, "code", {
-            // Returns the code of the current token
-            get: function () {
-                return this.input.charCodeAt(this.index);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ParseState.prototype, "inRange", {
-            // Returns true if the index is within the input range. 
-            get: function () {
-                return this.index < this.input.length;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ParseState.prototype, "location", {
-            // Returns a string representation of the location. 
-            get: function () {
-                return this.index.toString();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ParseState.prototype, "debugContext", {
-            // Returns a string that helps debugging to figure out exactly where we are in the input string 
-            get: function () {
-                var contextWidth = 5;
-                var start = this.index - contextWidth - 1;
-                if (start < 0)
-                    start = 0;
-                var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
-                var end = this.index + contextWidth;
-                if (end >= this.input.length)
-                    end = this.input.length - 1;
-                var postfix = this.input.slice(this.index + 1, end);
-                return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
-            },
-            enumerable: true,
-            configurable: true
-        });
         return ParseState;
     }());
     Myna.ParseState = ParseState;
+    // Returns the code of the current token
+    function currentCode(ps) {
+        return ps.input.charCodeAt(ps.index);
+    }
+    Myna.currentCode = currentCode;
+    // Returns true if the index is within the input range. 
+    function inRange(ps) {
+        return ps.index < ps.input.length;
+    }
+    Myna.inRange = inRange;
+    // Returns a string representation of the location. 
+    function location(ps) {
+        return ps.index.toString();
+    }
+    Myna.location = location;
+    // Returns a string that helps debugging to figure out exactly where we are in the input string 
+    function debugContext(ps) {
+        var contextWidth = 5;
+        var start = ps.index - contextWidth - 1;
+        if (start < 0)
+            start = 0;
+        var prefix = (ps.index > 0) ? ps.input.slice(start, ps.index) : "";
+        var end = ps.index + contextWidth;
+        if (end >= ps.input.length)
+            end = ps.input.length - 1;
+        var postfix = ps.input.slice(ps.index + 1, end);
+        return prefix + ">>>" + ps.input[ps.index] + "<<<" + postfix;
+    }
+    Myna.debugContext = debugContext;
     //===========================================================================
     // class ParseError
     // Represents a parse error, and contains the parse state at the time of the error  
@@ -571,7 +558,6 @@ var Myna;
     var Quantified = (function (_super) {
         __extends(Quantified, _super);
         function Quantified(rule, min, max) {
-            var _this = this;
             if (min === void 0) { min = 0; }
             if (max === void 0) { max = Infinity; }
             _super.call(this, [rule]);
@@ -597,10 +583,6 @@ var Myna;
                         p.index = originalIndex;
                         return false;
                     }
-                    // Check for progress, to assure we aren't hitting an infinite loop  
-                    // Without this it is possible to accidentally put a zeroOrMore with a predicate.
-                    // For example: myna.truePredicate.zeroOrMore would loop forever 
-                    debugAssert(max !== Infinity || p.index !== index, _this);
                 }
                 return true;
             };
@@ -655,7 +637,7 @@ var Myna;
             this.type = "advance";
             this.className = "Advance";
             this.lexer = function (p) {
-                return p.inRange ? ++p.index >= 0 : false;
+                return inRange(p) ? ++p.index >= 0 : false;
             };
             this.parser = this.lexer;
         }
@@ -677,7 +659,7 @@ var Myna;
             this.className = "AdvanceIf";
             var lexCondition = condition.lexer;
             this.lexer = function (p) {
-                return p.inRange && lexCondition(p) ? ++p.index >= 0 : false;
+                return inRange(p) && lexCondition(p) ? ++p.index >= 0 : false;
             };
             this.parser = this.lexer;
         }
@@ -703,13 +685,13 @@ var Myna;
             for (var i = 0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = function (p) {
-                if (!p.inRange)
+                if (!inRange(p))
                     return false;
-                if (p.code !== vals[0])
+                if (currentCode(p) !== vals[0])
                     return false;
                 var index = p.index++;
                 for (var i = 1; i < length; ++i, ++p.index) {
-                    if (!p.inRange || p.code !== vals[i]) {
+                    if (!inRange(p) || currentCode(p) !== vals[i]) {
                         p.index = index;
                         return false;
                     }
@@ -790,7 +772,7 @@ var Myna;
             for (var i = 0; i < length; ++i)
                 vals[i] = chars.charCodeAt(i);
             this.lexer = function (p) {
-                return p.inRange && vals.indexOf(p.code) >= 0;
+                return inRange(p) && vals.indexOf(currentCode(p)) >= 0;
             };
             this.parser = this.lexer;
         }
@@ -816,7 +798,7 @@ var Myna;
             var minCode = min.charCodeAt(0);
             var maxCode = max.charCodeAt(0);
             this.lexer = function (p) {
-                var code = p.code;
+                var code = currentCode(p);
                 return code >= minCode && code <= maxCode;
             };
             this.parser = this.lexer;
@@ -840,7 +822,7 @@ var Myna;
             this.className = "Not";
             var childLexer = rule.lexer;
             this.lexer = function (p) {
-                if (!p.inRange)
+                if (!inRange(p))
                     return true;
                 var index = p.index;
                 if (!childLexer(p))
@@ -1106,8 +1088,8 @@ var Myna;
     // Core grammar rules 
     Myna.truePredicate = new Predicate(function (p) { return true; });
     Myna.falsePredicate = new Predicate(function (p) { return false; });
-    Myna.end = new Predicate(function (p) { return !p.inRange; });
-    Myna.notEnd = new Predicate(function (p) { return p.inRange; });
+    Myna.end = new Predicate(function (p) { return !inRange(p); });
+    Myna.notEnd = new Predicate(inRange);
     Myna.advance = new Advance();
     Myna.all = Myna.advance.zeroOrMore;
     Myna.atLetterLower = atRange('a', 'z');
@@ -1160,7 +1142,7 @@ var Myna;
     // Returns the root node of the abstract syntax tree created 
     // by parsing the rule. 
     function parse(r, s) {
-        var p = new ParseState(s, 0, []);
+        var p = { input: s, index: 0, nodes: [] };
         if (!r.ast.parser(p))
             return null;
         return p && p.nodes ? p.nodes[0] : null;

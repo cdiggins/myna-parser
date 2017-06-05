@@ -10,6 +10,8 @@
 // using an additional moduler loader library. Instead we have manual  
 // export code at the bottom of the file. 
 
+// NOTE: uncomment debugAssert when debugging 
+
 module Myna
 {   
     //====================================================================================
@@ -35,36 +37,36 @@ module Myna
             public index:number,
             public nodes:AstNode[])
         { 
-            this.index  = index;
-        }
-                
-        // Returns the code of the current token
-        get code() {
-            return this.input.charCodeAt(this.index);
-        }
-
-        // Returns true if the index is within the input range. 
-        get inRange() : boolean {
-            return this.index < this.input.length;
-        }
-
-        // Returns a string representation of the location. 
-        get location() : string {
-            return this.index.toString();
-        }
-        
-        // Returns a string that helps debugging to figure out exactly where we are in the input string 
-        get debugContext() : string {
-            var contextWidth = 5;
-            var start = this.index - contextWidth - 1;
-            if (start < 0) start = 0;
-            var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
-            var end = this.index + contextWidth;
-            if (end >= this.input.length) end = this.input.length - 1;
-            var postfix = this.input.slice(this.index + 1, end);
-            return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
-        }    
+        }                
     }
+
+    // Returns the code of the current token
+    export function currentCode(ps) {
+        return ps.input.charCodeAt(ps.index);
+    }
+
+    // Returns true if the index is within the input range. 
+    export function inRange(ps) : boolean {
+        return ps.index < ps.input.length;
+    }
+
+    // Returns a string representation of the location. 
+    export function location(ps) : string {
+        return ps.index.toString();
+    }
+        
+    // Returns a string that helps debugging to figure out exactly where we are in the input string 
+    export function debugContext(ps) : string {
+        var contextWidth = 5;
+        var start = ps.index - contextWidth - 1;
+        if (start < 0) start = 0;
+        var prefix = (ps.index > 0) ? ps.input.slice(start, ps.index) : "";
+        var end = ps.index + contextWidth;
+        if (end >= ps.input.length) end = ps.input.length - 1;
+        var postfix = ps.input.slice(ps.index + 1, end);
+        return prefix + ">>>" + ps.input[ps.index] + "<<<" + postfix;
+    }    
+    
 
     //===========================================================================
     // class ParseError
@@ -257,7 +259,7 @@ module Myna
             var r = this.copy;
             r._createAstNode = true;
             var parser = r.parser;
-            r.parser = (p : ParseState) =>{
+            r.parser = (p : ParseState) => {
                 var originalIndex = p.index; 
                 var originalNodes = p.nodes;
                 p.nodes = [];
@@ -424,14 +426,14 @@ module Myna
             super(rules);
             var length = rules.length;
             var parsers = this.rules.map(r => r.parser);
-            this.parser = (p : ParseState) =>{
+            this.parser = (p : ParseState) => {
                 for (var i = 0, len = length; i < len; ++i) 
                     if (parsers[i](p)) 
                         return true;
                 return false;
             };
             var lexers = this.rules.map(r => r.lexer);
-            this.lexer = (p : ParseState) =>{
+            this.lexer = (p : ParseState) => {
                 for (var i = 0, len = length; i < len; ++i) 
                     if (lexers[i](p)) 
                         return true;
@@ -470,7 +472,7 @@ module Myna
         constructor(rule:Rule, public min:number=0, public max:number=Infinity) { 
             super([rule]); 
             var pChild = this.firstChild.parser;
-            this.parser = (p : ParseState) =>{
+            this.parser = (p : ParseState) => {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
                 
@@ -500,7 +502,7 @@ module Myna
                 return true;
             };
             var lChild = this.firstChild.lexer;
-            this.lexer = (p : ParseState) =>{
+            this.lexer = (p : ParseState) => {
                 var original = p.index;
                 for (var i=0; i < max; ++i) {
                     var index = p.index;
@@ -514,7 +516,7 @@ module Myna
                     // Check for progress, to assure we aren't hitting an infinite loop  
                     // Without this it is possible to accidentally put a zeroOrMore with a predicate.
                     // For example: myna.truePredicate.zeroOrMore would loop forever 
-                    //debugAssert(max !== Infinity || p.index !== index, this);
+                    debugAssert(max !== Infinity || p.index !== index, this);
                 }            
                 return true;
             };
@@ -549,7 +551,7 @@ module Myna
         constructor() { 
             super([]); 
             this.lexer = (p : ParseState) => 
-                p.inRange ? ++p.index >= 0 : false;
+                inRange(p) ? ++p.index >= 0 : false;
             this.parser = this.lexer;
         }
         get definition() : string { return "<advance>"; }
@@ -565,7 +567,7 @@ module Myna
             super([condition]); 
             var lexCondition = condition.lexer;
             this.lexer = (p : ParseState) => 
-                p.inRange && lexCondition(p) ? ++p.index >= 0 : false;
+                inRange(p) && lexCondition(p) ? ++p.index >= 0 : false;
             this.parser = this.lexer;
         }
         get definition() : string { return "advanceif(" + this.firstChild.toString() + ")"; }
@@ -584,11 +586,11 @@ module Myna
             for (var i=0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = (p : ParseState) => {
-                if (!p.inRange) return false;
-                if (p.code !== vals[0]) return false;
+                if (!inRange(p)) return false;
+                if (currentCode(p) !== vals[0]) return false;
                 let index = p.index++;                
                 for (var i=1; i < length; ++i, ++p.index) {
-                    if (!p.inRange || p.code !== vals[i]) {
+                    if (!inRange(p) || currentCode(p) !== vals[i]) {
                         p.index = index;
                         return false;
                     }
@@ -648,7 +650,7 @@ module Myna
             for (var i=0; i < length; ++i)
                 vals[i] = chars.charCodeAt(i);
             this.lexer = (p : ParseState) => 
-                p.inRange && vals.indexOf(p.code) >= 0;
+                inRange(p) && vals.indexOf(currentCode(p)) >= 0;
             this.parser = this.lexer;
         }
         get definition() : string { return "[" + escapeChars(this.chars) + "]"};
@@ -664,7 +666,7 @@ module Myna
             let minCode = min.charCodeAt(0);
             let maxCode = max.charCodeAt(0);
             this.lexer = (p : ParseState) => { 
-                let code = p.code;
+                let code = currentCode(p);
                 return code >= minCode && code <= maxCode;
             }
             this.parser = this.lexer;
@@ -682,7 +684,7 @@ module Myna
             super([rule]); 
             var childLexer = rule.lexer; 
             this.lexer = (p : ParseState) => { 
-                if (!p.inRange) return true;
+                if (!inRange(p)) return true;
                 let index = p.index; 
                 if (!childLexer(p)) 
                     return true;
@@ -703,7 +705,7 @@ module Myna
         constructor(rule:Rule) { 
             super([rule]); 
             var childLexer = rule.lexer; 
-            this.lexer = (p : ParseState) =>{ 
+            this.lexer = (p : ParseState) => { 
                 let index = p.index; 
                 if (!childLexer(p)) 
                     return false;
@@ -859,7 +861,7 @@ module Myna
     // Asserts that the rule is executed 
     // This has to be embedded in a function because the rule might be in a circular definition.  
     export function assert(rule:RuleType) { 
-        return choice(rule, action((p : ParseState) =>{ 
+        return choice(rule, action((p : ParseState) => { 
             throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule)); 
         })); 
     }
@@ -904,10 +906,10 @@ module Myna
     //===============================================================    
     // Core grammar rules 
         
-    export var truePredicate    = new Predicate((p : ParseState) =>true);
-    export var falsePredicate   = new Predicate((p : ParseState) =>false);
-    export var end              = new Predicate((p : ParseState) =>!p.inRange);
-    export var notEnd           = new Predicate((p : ParseState) =>p.inRange);
+    export var truePredicate    = new Predicate((p : ParseState) => true);
+    export var falsePredicate   = new Predicate((p : ParseState) => false);
+    export var end              = new Predicate((p : ParseState) => !inRange(p));
+    export var notEnd           = new Predicate(inRange);
     export var advance          = new Advance();   
     export var all              = advance.zeroOrMore;
 
@@ -967,7 +969,7 @@ module Myna
     // by parsing the rule. 
     export function parse(r : Rule, s : string) : AstNode
     {
-        var p = new ParseState(s, 0, []);        
+        var p = { input:s, index:0, nodes:[] };
         if (!r.ast.parser(p)) 
             return null;
         return p && p.nodes ? p.nodes[0] : null;
