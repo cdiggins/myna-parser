@@ -10,6 +10,9 @@
 // using an additional moduler loader library. Instead we have manual  
 // export code at the bottom of the file. 
 
+// TODO: we know a-priori which rules are "non-advancing".
+// This can allow us to use optimized parser and lexer functions for the following rules: Sequence, Quantified, Optional.  
+
 module Myna
 {   
     //====================================================================================
@@ -353,34 +356,40 @@ module Myna
         type = "seq";
         className = "Sequence";
 
-        constructor(rules:Rule[]) { 
-            super(rules); 
-            var length = rules.length;
-            var parsers = this.rules.map(r => r.parser);
+        constructor(public rule1:Rule, public rule2:Rule) { 
+            super([rule1, rule2]);
+            var parser1 = rule1.parser;
+            var parser2 = rule2.parser;
+            var lexer1 = rule1.lexer;
+            var lexer2 = rule2.lexer;
             this.parser = (p : ParseState) => {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
-                for (let parser of parsers) {
-                    if (parser(p) === false) {                        
-                        // Any created nodes need to be popped off the list 
-                        if (p.nodes.length !== originalCount) 
-                            p.nodes.splice(-1, p.nodes.length - originalCount);
-                        // Assure that the parser is restored to its original position 
-                        p.index = originalIndex;
-                        return false;
-                    }
+                
+                if (parser1(p) === false)
+                    // The first parser will restore everything automatically 
+                    return false; 
+                
+                if (parser2(p) === false) {                        
+                    // Any created nodes need to be popped off the list 
+                    if (p.nodes.length !== originalCount) 
+                        p.nodes.splice(-1, p.nodes.length - originalCount);
+                    // Assure that the parser is restored to its original position 
+                    p.index = originalIndex;
+                    return false;
                 }
                 return true;
             };
-            var lexers = this.rules.map(r => r.lexer);
             this.lexer = (p : ParseState) => {
                 var original = p.index;
-                for (let lexer of lexers) {
-                    if (lexer(p) === false) {
-                        p.index = original;
-                        return false;
-                    }
+                if (lexer1(p) === false)
+                    return false;
+                
+                if (lexer2(p) === false) {                        
+                    p.index = original;
+                    return false;
                 }
+
                 return true;
             }
             // When none of the child rules create a node, we can use the lexer to parse
@@ -403,7 +412,7 @@ module Myna
             return this._createAstNode || this.hasAstChildRule;
         }
 
-        cloneImplementation() : Rule { return new Sequence(this.rules); }
+        cloneImplementation() : Rule { return new Sequence(this.rule1, this.rule2); }
     }
     
     // Tries to match each rule in order until one succeeds. Succeeds if any of the sub-rules succeed. 
@@ -412,22 +421,17 @@ module Myna
         type = "choice";
         className = "Choice";
 
-        constructor(rules:Rule[]) { 
-            super(rules);
-            var length = rules.length;
-            var parsers = this.rules.map(r => r.parser);
+        constructor(public rule1:Rule, public rule2:Rule) { 
+            super([rule1, rule2]);
+            var parser1 = rule1.parser;
+            var parser2 = rule2.parser;
+            var lexer1 = rule1.lexer;
+            var lexer2 = rule2.lexer;
             this.parser = (p : ParseState) => {
-                for (let parser of parsers)
-                    if (parser(p) === true) 
-                        return true;
-                return false;
+                return parser1(p) || parser2(p);
             };
-            var lexers = this.rules.map(r => r.lexer);
             this.lexer = (p : ParseState) => {
-                for (let lexer of lexers)
-                    if (lexer(p) === true) 
-                        return true;
-                return false;
+                return lexer1(p) || lexer2(p);
             }
             // When none of the child rules create a node, we can use the lexer to parse
             if (!this.createsAstNode)
@@ -449,7 +453,7 @@ module Myna
             return this._createAstNode || this.hasAstChildRule;
         }
 
-        cloneImplementation() : Rule { return new Choice(this.rules); }
+        cloneImplementation() : Rule { return new Choice(this.rule1, this.rule2); }
     }
 
     // A generalization of several rules such as zeroOrMore (0+), oneOrMore (1+), opt(0 or 1),
@@ -540,20 +544,12 @@ module Myna
             super(rule, 0, 1); 
             var pChild = this.firstChild.parser;
             this.parser = (p : ParseState) => {
-                var originalIndex = p.index;
-                var originalCount = p.nodes.length;
-                if (pChild(p) === false) {
-                    p.index = originalIndex;
-                    if (p.nodes.length !== originalCount) 
-                        p.nodes.splice(-1, p.nodes.length - originalCount);
-                }
+                pChild(p);
                 return true;
             };
             var lChild = this.firstChild.lexer;
             this.lexer = (p : ParseState) => {
-                var originalIndex = p.index;
-                if (lChild(p) === false)
-                    p.index = originalIndex;
+                lChild(p);
                 return true;
             };
             // When none of the child rules create a node, we can use the lexer to parse
@@ -592,28 +588,13 @@ module Myna
         constructor(condition:Rule) { 
             super([condition]); 
             var lexCondition = condition.lexer;
-            this.lexer = (p : ParseState) => 
-                p.index < p.length && lexCondition(p) === true ? ++p.index >= 0 : false;
+            this.lexer = (p : ParseState) => {
+                return lexCondition(p) && p.index < p.length ? ++p.index !== 0 : false;
+            }
             this.parser = this.lexer;
         }
         get definition() : string { return "advanceIf(" + this.firstChild.toString() + ")"; }
         cloneImplementation() : Rule { return new AdvanceIf(this.firstChild); }                
-    }
-
-    // Advances the parser by one token if any of the predicates are true.
-    export class AdvanceIfAny extends Rule
-    {
-        type = "advanceIfAny";
-        className = "AdvanceIfAny";
-        constructor(conditions:Rule[]) { 
-            super(conditions); 
-            var lexConditions = conditions.map(c => c.lexer);
-            this.lexer = (p : ParseState) => 
-                p.index < p.length && lexConditions.some(pred => pred(p)) ? ++p.index >= 0 : false;
-            this.parser = this.lexer;
-        }
-        get definition() : string { return "advanceIfAny(" + this.rules.join(",") + ")"; }
-        cloneImplementation() : Rule { return new AdvanceIfAny(this.rules); }                
     }
 
     // Used to match a string in the input string, advances the token. 
@@ -628,7 +609,8 @@ module Myna
             for (var i=0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = (p : ParseState) => {
-                let index = p.index;                
+                let index = p.index; 
+                // TODO: consider pulling the sub-string out of the text.        
                 for (let val of vals)
                     if (p.input.charCodeAt(index++) !== val) 
                         return false;
@@ -688,6 +670,8 @@ module Myna
             for (var i=0; i < length; ++i)
                 vals[i] = chars.charCodeAt(i);
             this.lexer = (p : ParseState) => 
+                // TODO: Try this instead, could be faster.
+                // chars.indexOf(p.input[p.index]) >= 0;
                 vals.indexOf(p.input.charCodeAt(p.index)) >= 0;
             this.parser = this.lexer;
         }
@@ -778,14 +762,28 @@ module Myna
 
     // Creates a rule that matches a series of rules in order, and succeeds if they all do
     export function seq(...rules:RuleType[]) { 
-        let rs = rules.map(RuleTypeToRule);
-        return new Sequence(rs); 
+        var rs = rules.map(RuleTypeToRule);
+        if (rs.length == 0) throw new Error("At least one rule is expected when calling `seq`");
+        if (rs.length == 1) return rs[0];
+        var rule1 = rs[0];
+        var rule2 = seq(...rs.slice(1));
+        if (rule1.nonAdvancing && rule2 instanceof Advance)
+            return new AdvanceIf(rule1);
+        else
+            return new Sequence(rule1, rule2);
     }
 
     // Creates a rule that tries to match each rule in order, and succeeds if at least one does 
-    export function choice(...rules:RuleType[]) : Choice { 
-        let rs = rules.map(RuleTypeToRule);
-        return new Choice(rs); 
+    export function choice(...rules:RuleType[]) { 
+        var rs = rules.map(RuleTypeToRule);
+        if (rs.length == 0) throw new Error("At least one rule is expected when calling `choice`");
+        if (rs.length == 1) return rs[0];
+        var rule1 = rs[0];
+        var rule2 = choice(...rs.slice(1));
+        if (rule1 instanceof AdvanceIf && rule2 instanceof AdvanceIf)
+            return new AdvanceIf(choice(rule1.firstChild, rule2.firstChild));
+        else
+            return new Choice(rule1, rule2);
     }        
 
     // Enables Rules to be defined in terms of variables that are defined later on.
@@ -801,9 +799,10 @@ module Myna
     // Attempts to apply a rule between min and max number of times inclusive. If the maximum is set to Infinity, 
     // it will attempt to match as many times as it can, but throw an exception if the parser does not advance 
     export function quantified(rule:RuleType, min:number=0, max:number=Infinity) { 
-        return (min === 0 && max === 1) 
-            ? new Optional(RuleTypeToRule(rule))
-            : new Quantified(RuleTypeToRule(rule), min, max);  
+        if (min === 0 && max === 1) 
+            return new Optional(RuleTypeToRule(rule));
+        else
+            return new Quantified(RuleTypeToRule(rule), min, max);  
     }
 
     // Attempts to apply the rule 0 or more times. Will always succeed unless the parser does not 

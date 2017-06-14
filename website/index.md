@@ -2,7 +2,7 @@
 
 Myna is an easy to use recursive-descent parsing library for JavaScript (EcmaScript 5.1) written in TypeScript. 
 
-This web-site was made using Myna tools to:
+This web-site was [made using Myna tools](https://github.com/cdiggins/myna-parser/blob/master/tools/myna_build_site.js) to:
 
 1. [Parse and convert Markdown into HTML](https://github.com/cdiggins/myna-parser/blob/master/tools/myna_markdown_to_html.js)
 1. [Parse and expand Mustache style templates](https://github.com/cdiggins/myna-parser/blob/master/tools/myna_mustache_expander.js)

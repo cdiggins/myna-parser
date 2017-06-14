@@ -12,6 +12,8 @@ var __extends = (this && this.__extends) || function (d, b) {
 // the Myna module otherwise the module won't be usable from browsers without 
 // using an additional moduler loader library. Instead we have manual  
 // export code at the bottom of the file. 
+// TODO: we know a-priori which rules are "non-advancing".
+// This can allow us to use optimized parser and lexer functions for the following rules: Sequence, Quantified, Optional.  
 var Myna;
 (function (Myna) {
     //====================================================================================
@@ -30,24 +32,9 @@ var Myna;
             this.input = input;
             this.index = index;
             this.nodes = nodes;
-            this.index = index;
+            this.length = 0;
+            this.length = this.input.length;
         }
-        Object.defineProperty(ParseState.prototype, "code", {
-            // Returns the code of the current token
-            get: function () {
-                return this.input.charCodeAt(this.index);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ParseState.prototype, "inRange", {
-            // Returns true if the index is within the input range. 
-            get: function () {
-                return this.index < this.input.length;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(ParseState.prototype, "location", {
             // Returns a string representation of the location. 
             get: function () {
@@ -448,35 +435,39 @@ var Myna;
     // Matches a series of rules in order. Succeeds only if all sub-rules succeed. 
     var Sequence = (function (_super) {
         __extends(Sequence, _super);
-        function Sequence(rules) {
-            _super.call(this, rules);
+        function Sequence(rule1, rule2) {
+            _super.call(this, [rule1, rule2]);
+            this.rule1 = rule1;
+            this.rule2 = rule2;
             this.type = "seq";
             this.className = "Sequence";
-            var length = rules.length;
-            var parsers = this.rules.map(function (r) { return r.parser; });
+            var parser1 = rule1.parser;
+            var parser2 = rule2.parser;
+            var lexer1 = rule1.lexer;
+            var lexer2 = rule2.lexer;
             this.parser = function (p) {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
-                for (var i = 0, len = length; i < len; ++i) {
-                    if (!parsers[i](p)) {
-                        // Any created nodes need to be popped off the list 
-                        if (p.nodes.length !== originalCount)
-                            p.nodes.splice(-1, p.nodes.length - originalCount);
-                        // Assure that the parser is restored to its original position 
-                        p.index = originalIndex;
-                        return false;
-                    }
+                if (parser1(p) === false)
+                    // The first parser will restore everything automatically 
+                    return false;
+                if (parser2(p) === false) {
+                    // Any created nodes need to be popped off the list 
+                    if (p.nodes.length !== originalCount)
+                        p.nodes.splice(-1, p.nodes.length - originalCount);
+                    // Assure that the parser is restored to its original position 
+                    p.index = originalIndex;
+                    return false;
                 }
                 return true;
             };
-            var lexers = this.rules.map(function (r) { return r.lexer; });
             this.lexer = function (p) {
                 var original = p.index;
-                for (var i = 0, len = length; i < len; ++i) {
-                    if (!lexers[i](p)) {
-                        p.index = original;
-                        return false;
-                    }
+                if (lexer1(p) === false)
+                    return false;
+                if (lexer2(p) === false) {
+                    p.index = original;
+                    return false;
                 }
                 return true;
             };
@@ -508,31 +499,28 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        Sequence.prototype.cloneImplementation = function () { return new Sequence(this.rules); };
+        Sequence.prototype.cloneImplementation = function () { return new Sequence(this.rule1, this.rule2); };
         return Sequence;
     }(Rule));
     Myna.Sequence = Sequence;
     // Tries to match each rule in order until one succeeds. Succeeds if any of the sub-rules succeed. 
     var Choice = (function (_super) {
         __extends(Choice, _super);
-        function Choice(rules) {
-            _super.call(this, rules);
+        function Choice(rule1, rule2) {
+            _super.call(this, [rule1, rule2]);
+            this.rule1 = rule1;
+            this.rule2 = rule2;
             this.type = "choice";
             this.className = "Choice";
-            var length = rules.length;
-            var parsers = this.rules.map(function (r) { return r.parser; });
+            var parser1 = rule1.parser;
+            var parser2 = rule2.parser;
+            var lexer1 = rule1.lexer;
+            var lexer2 = rule2.lexer;
             this.parser = function (p) {
-                for (var i = 0, len = length; i < len; ++i)
-                    if (parsers[i](p))
-                        return true;
-                return false;
+                return parser1(p) || parser2(p);
             };
-            var lexers = this.rules.map(function (r) { return r.lexer; });
             this.lexer = function (p) {
-                for (var i = 0, len = length; i < len; ++i)
-                    if (lexers[i](p))
-                        return true;
-                return false;
+                return lexer1(p) || lexer2(p);
             };
             // When none of the child rules create a node, we can use the lexer to parse
             if (!this.createsAstNode)
@@ -562,7 +550,7 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        Choice.prototype.cloneImplementation = function () { return new Choice(this.rules); };
+        Choice.prototype.cloneImplementation = function () { return new Choice(this.rule1, this.rule2); };
         return Choice;
     }(Rule));
     Myna.Choice = Choice;
@@ -571,7 +559,6 @@ var Myna;
     var Quantified = (function (_super) {
         __extends(Quantified, _super);
         function Quantified(rule, min, max) {
-            var _this = this;
             if (min === void 0) { min = 0; }
             if (max === void 0) { max = Infinity; }
             _super.call(this, [rule]);
@@ -579,6 +566,8 @@ var Myna;
             this.max = max;
             this.type = "quantified";
             this.className = "Quantified";
+            if (max === Infinity && rule.nonAdvancing)
+                throw new Error("Rule would create an infinite loop");
             var pChild = this.firstChild.parser;
             this.parser = function (p) {
                 var originalCount = p.nodes.length;
@@ -587,7 +576,7 @@ var Myna;
                     var index = p.index;
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
-                    if (!pChild(p)) {
+                    if (pChild(p) === false) {
                         if (i >= min)
                             return true;
                         // Any created nodes need to be popped off the list 
@@ -597,10 +586,6 @@ var Myna;
                         p.index = originalIndex;
                         return false;
                     }
-                    // Check for progress, to assure we aren't hitting an infinite loop  
-                    // Without this it is possible to accidentally put a zeroOrMore with a predicate.
-                    // For example: myna.truePredicate.zeroOrMore would loop forever 
-                    debugAssert(max !== Infinity || p.index !== index, _this);
                 }
                 return true;
             };
@@ -609,7 +594,7 @@ var Myna;
                 var original = p.index;
                 for (var i = 0; i < max; ++i) {
                     var index = p.index;
-                    if (!lChild(p)) {
+                    if (lChild(p) === false) {
                         if (i >= min)
                             return true;
                         p.index = original;
@@ -647,6 +632,39 @@ var Myna;
         return Quantified;
     }(Rule));
     Myna.Quantified = Quantified;
+    // Matches a child rule zero or once. 
+    var Optional = (function (_super) {
+        __extends(Optional, _super);
+        function Optional(rule) {
+            _super.call(this, rule, 0, 1);
+            this.type = "optional";
+            this.className = "Optional";
+            var pChild = this.firstChild.parser;
+            this.parser = function (p) {
+                pChild(p);
+                return true;
+            };
+            var lChild = this.firstChild.lexer;
+            this.lexer = function (p) {
+                lChild(p);
+                return true;
+            };
+            // When none of the child rules create a node, we can use the lexer to parse
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
+        }
+        Object.defineProperty(Optional.prototype, "definition", {
+            // Used for creating a human readable definition of the grammar.
+            get: function () {
+                return this.firstChild.toString() + "?";
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Optional.prototype.cloneImplementation = function () { return new Optional(this.firstChild); };
+        return Optional;
+    }(Quantified));
+    Myna.Optional = Optional;
     // Advances the parser by one token unless at the end
     var Advance = (function (_super) {
         __extends(Advance, _super);
@@ -655,7 +673,7 @@ var Myna;
             this.type = "advance";
             this.className = "Advance";
             this.lexer = function (p) {
-                return p.inRange ? ++p.index >= 0 : false;
+                return p.index < p.length ? ++p.index >= 0 : false;
             };
             this.parser = this.lexer;
         }
@@ -677,12 +695,12 @@ var Myna;
             this.className = "AdvanceIf";
             var lexCondition = condition.lexer;
             this.lexer = function (p) {
-                return p.inRange && lexCondition(p) ? ++p.index >= 0 : false;
+                return lexCondition(p) && p.index < p.length ? ++p.index !== 0 : false;
             };
             this.parser = this.lexer;
         }
         Object.defineProperty(AdvanceIf.prototype, "definition", {
-            get: function () { return "advanceif(" + this.firstChild.toString() + ")"; },
+            get: function () { return "advanceIf(" + this.firstChild.toString() + ")"; },
             enumerable: true,
             configurable: true
         });
@@ -703,17 +721,14 @@ var Myna;
             for (var i = 0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = function (p) {
-                if (!p.inRange)
-                    return false;
-                if (p.code !== vals[0])
-                    return false;
-                var index = p.index++;
-                for (var i = 1; i < length; ++i, ++p.index) {
-                    if (!p.inRange || p.code !== vals[i]) {
-                        p.index = index;
+                var index = p.index;
+                // TODO: consider pulling the sub-string out of the text.        
+                for (var _i = 0, vals_1 = vals; _i < vals_1.length; _i++) {
+                    var val = vals_1[_i];
+                    if (p.input.charCodeAt(index++) !== val)
                         return false;
-                    }
                 }
+                p.index = index;
                 return true;
             };
             this.parser = this.lexer;
@@ -790,7 +805,9 @@ var Myna;
             for (var i = 0; i < length; ++i)
                 vals[i] = chars.charCodeAt(i);
             this.lexer = function (p) {
-                return p.inRange && vals.indexOf(p.code) >= 0;
+                // TODO: Try this instead, could be faster.
+                // chars.indexOf(p.input[p.index]) >= 0;
+                return vals.indexOf(p.input.charCodeAt(p.index)) >= 0;
             };
             this.parser = this.lexer;
         }
@@ -816,7 +833,7 @@ var Myna;
             var minCode = min.charCodeAt(0);
             var maxCode = max.charCodeAt(0);
             this.lexer = function (p) {
-                var code = p.code;
+                var code = p.input.charCodeAt(p.index);
                 return code >= minCode && code <= maxCode;
             };
             this.parser = this.lexer;
@@ -840,10 +857,10 @@ var Myna;
             this.className = "Not";
             var childLexer = rule.lexer;
             this.lexer = function (p) {
-                if (!p.inRange)
+                if (p.index >= p.length)
                     return true;
                 var index = p.index;
-                if (!childLexer(p))
+                if (childLexer(p) === false)
                     return true;
                 p.index = index;
                 return false;
@@ -869,7 +886,7 @@ var Myna;
             var childLexer = rule.lexer;
             this.lexer = function (p) {
                 var index = p.index;
-                if (!childLexer(p))
+                if (childLexer(p) === false)
                     return false;
                 p.index = index;
                 return true;
@@ -917,15 +934,16 @@ var Myna;
             rules[_i - 0] = arguments[_i];
         }
         var rs = rules.map(RuleTypeToRule);
-        /*
         if (rs.length == 0)
-            return truePredicate;
+            throw new Error("At least one rule is expected when calling `seq`");
         if (rs.length == 1)
             return rs[0];
-        if (rs.length == 2 && rs[0].nonAdvancing && rs[1] instanceof Advance)
-            return new AdvanceIf(rs[0]);
-            */
-        return new Sequence(rs);
+        var rule1 = rs[0];
+        var rule2 = seq.apply(void 0, rs.slice(1));
+        if (rule1.nonAdvancing && rule2 instanceof Advance)
+            return new AdvanceIf(rule1);
+        else
+            return new Sequence(rule1, rule2);
     }
     Myna.seq = seq;
     // Creates a rule that tries to match each rule in order, and succeeds if at least one does 
@@ -935,13 +953,16 @@ var Myna;
             rules[_i - 0] = arguments[_i];
         }
         var rs = rules.map(RuleTypeToRule);
-        /*
         if (rs.length == 0)
-            return falsePredicate;
+            throw new Error("At least one rule is expected when calling `choice`");
         if (rs.length == 1)
             return rs[0];
-            */
-        return new Choice(rs);
+        var rule1 = rs[0];
+        var rule2 = choice.apply(void 0, rs.slice(1));
+        if (rule1 instanceof AdvanceIf && rule2 instanceof AdvanceIf)
+            return new AdvanceIf(choice(rule1.firstChild, rule2.firstChild));
+        else
+            return new Choice(rule1, rule2);
     }
     Myna.choice = choice;
     // Enables Rules to be defined in terms of variables that are defined later on.
@@ -961,7 +982,10 @@ var Myna;
     function quantified(rule, min, max) {
         if (min === void 0) { min = 0; }
         if (max === void 0) { max = Infinity; }
-        return new Quantified(RuleTypeToRule(rule), min, max);
+        if (min === 0 && max === 1)
+            return new Optional(RuleTypeToRule(rule));
+        else
+            return new Quantified(RuleTypeToRule(rule), min, max);
     }
     Myna.quantified = quantified;
     // Attempts to apply the rule 0 or more times. Will always succeed unless the parser does not 
@@ -1106,8 +1130,8 @@ var Myna;
     // Core grammar rules 
     Myna.truePredicate = new Predicate(function (p) { return true; });
     Myna.falsePredicate = new Predicate(function (p) { return false; });
-    Myna.end = new Predicate(function (p) { return !p.inRange; });
-    Myna.notEnd = new Predicate(function (p) { return p.inRange; });
+    Myna.end = new Predicate(function (p) { return p.index >= p.length; });
+    Myna.notEnd = new Predicate(function (p) { return p.index < p.length; });
     Myna.advance = new Advance();
     Myna.all = Myna.advance.zeroOrMore;
     Myna.atLetterLower = atRange('a', 'z');

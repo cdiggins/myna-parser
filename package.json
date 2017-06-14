@@ -1,13 +1,14 @@
 {
   "name": "myna-parser",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "A text parsing (syntactic analysis) library.",
   "main": "myna.js",
   "runkitExampleFilename": "tests/test_node_example-1.js",  
   "scripts": {
     "build": "tsc",
     "test": "mocha tests/mocha_runner.js",
-    "full": "npm run build && npm run copyfiles && npm run makedist",
+    "full": "npm run build && npm test && npm run makesite && npm run copyfiles && npm run makedist",
+    "makesite": "node tools/myna_build_site.js",
     "makedist": "uglifyjs myna.js -o dist/myna.min.js",
     "copyfiles": "copyfiles myna.ts myna.js examples/*.* tests/*.* grammars/*.js docs"
   },
