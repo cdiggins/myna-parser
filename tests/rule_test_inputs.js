@@ -9,6 +9,7 @@ function RuleTestInputs(myna)
     let mdg = m.grammars.markdown;
     let tg = m.grammars.template;
     let lg = m.grammars.lucene;
+    let gg = m.grammars.glsl;
 
     let records = [
             'Stock Name,Country of Listing,Ticker,Margin Rate,Go Short?,Limited Risk Premium',
