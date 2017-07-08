@@ -1,16 +1,16 @@
 {
   "name": "myna-parser",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A text parsing (syntactic analysis) library.",
   "main": "myna.js",
-  "runkitExampleFilename": "tests/test_node_example-1.js",  
+  "runkitExampleFilename": "tests/test_node_example-1.js",
   "scripts": {
     "build": "tsc",
     "test": "mocha tests/mocha_runner.js",
-    "full": "npm run build && npm test && npm run makesite && npm run copyfiles && npm run makedist",
     "makesite": "node tools/myna_build_site.js",
     "makedist": "uglifyjs myna.js -o dist/myna.min.js",
-    "copyfiles": "copyfiles myna.ts myna.js examples/*.* tests/*.* grammars/*.js docs"
+    "copyfiles": "copyfiles myna.ts myna.js examples/*.* tests/*.* grammars/*.js docs",
+    "full": "npm run build && npm test && npm run makesite && npm run copyfiles && npm run makedist"
   },
   "homepage": "https://github.com/cdiggins/myna-parser",
   "bugs": "https://github.com/cdiggins/myna-parser/issues",
@@ -25,8 +25,8 @@
   },
   "devDependencies": {
     "typescript": "~2.0",
-    "copyfiles": "~1.0",
     "uglify-js": "~2.7.5",
-    "mocha": "^3.4.2"
+    "copyfiles": "~1.0",
+    "mocha": "~3.4.2"
   }
 }

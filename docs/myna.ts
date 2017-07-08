@@ -59,6 +59,34 @@ module Myna
             var postfix = this.input.slice(this.index + 1, end);
             return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
         }    
+
+        // Returns the line number
+        get lineNumber() : number {
+            var r1 = 0;
+            var r2 = 1;
+            for (var i=0; i < this.index; ++i) {
+                if (this.input.charCodeAt(i) == 13) r1++;
+                if (this.input.charCodeAt(i) == 10) r2++;
+            }
+            return r1 > r2 ? r1 : r2;
+        }
+
+        // Return the column number on the current line
+        get columnNumber() : number {
+            var r = 0;
+            for (var i=0; i < this.index; ++i) {
+                if (this.input.charCodeAt(i) == 13) { 
+                    r = 0;
+                }
+                else if (this.input.charCodeAt(i) == 10) {
+                    r = 0;
+                }
+                else {
+                    r++;
+                }
+            }
+            return r;
+        }
     }
 
     //===========================================================================
@@ -288,31 +316,37 @@ module Myna
 
         // Returns a string that describes the AST nodes created by this rule.
         // Will throw an exception if this is not a valid AST rule (this.isAstRule != true)
-        get astRuleDefn() : string {    
+        astRuleDefn(inSeq:boolean=false, inChoice:boolean=false) : string {    
             var rules = this.rules.filter(r => r.createsAstNode);        
             if (!rules.length)
                 return this.name;
             if (rules.length == 1) {
-                var result = rules[0].astRuleNameOrDefn;
+                var result = rules[0].astRuleNameOrDefn(inSeq, inChoice);
                 if (this instanceof Quantified)
                     result += "[" + this.min + "," + this.max + "]";     
                 return result;
             }
-            if (this instanceof Sequence)
-                return "seq(" + rules.map(r => r.astRuleNameOrDefn).join(",") + ")";
+            if (this instanceof Sequence) {                
+                var tmp = rules.map(r => r.astRuleNameOrDefn(true, false)).join(",");
+                if (inSeq) return tmp;
+                return "seq(" + tmp + ")";
+            }
 
-            if (this instanceof Choice)
-                return "choice(" + rules.map(r => r.astRuleNameOrDefn).join(",") + ")";
+            if (this instanceof Choice) {
+                var tmp = rules.map(r => r.astRuleNameOrDefn(false, true)).join(",");
+                if (inChoice) return tmp;                
+                return "choice(" + tmp + ")";
+            }
                 
             throw new Error("Internal error: not a valid AST rule");
         }
 
         // Returns a string that is either the name of the AST parse node, or a definition 
         // (schema) describing the makeup of the rules. 
-        get astRuleNameOrDefn() : string {
+        astRuleNameOrDefn(inSeq:boolean = false, inChoice:boolean = false) : string {
             if (this._createAstNode) 
                 return this.name;
-            return this.astRuleDefn;
+            return this.astRuleDefn(inSeq, inChoice);
         }
 
         //======================================================
@@ -490,24 +524,24 @@ module Myna
                     }
 
                     // Check for progress, to assure we aren't hitting an infinite loop  
-                    //debugAssert(max !== Infinity || p.index !== index, this);
+                    debugAssert(max !== Infinity || p.index !== originalIndex, this);
                 }            
                 return true;
             };
             var lChild = this.firstChild.lexer;
             this.lexer = (p : ParseState) => {
-                var original = p.index;
+                var originalIndex = p.index;
                 for (var i=0; i < max; ++i) {
                     var index = p.index;
                     if (lChild(p) === false) {
                         if (i >= min) 
                             return true;
-                        p.index = original;
+                        p.index = originalIndex;
                         return false;
                     }
 
                     // Check for progress, to assure we aren't hitting an infinite loop  
-                    //debugAssert(max !== Infinity || p.index !== index, this);
+                    debugAssert(max !== Infinity || p.index !== originalIndex, this);
                 }            
                 return true;
             };
@@ -887,7 +921,7 @@ module Myna
     // Asserts that the rule is executed 
     // This has to be embedded in a function because the rule might be in a circular definition.  
     export function assert(rule:RuleType) { 
-        return choice(rule, action((p : ParseState) => { 
+        return choice(rule, action((p : ParseState) => {             
             throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule)); 
         })); 
     }
@@ -1034,7 +1068,7 @@ module Myna
 
     // Creates a string representation of the AST schema generated by parsing the grammar 
     export function astSchemaToString(grammarName:string) : string {
-        return grammarAstRules(grammarName).map(r => r.name + " <- " + r.astRuleDefn).join('\n');
+        return grammarAstRules(grammarName).map(r => r.name + " <- " + r.astRuleDefn()).join('\n');
     }
 
     // Initializes and register a grammar object and all of the rules. 

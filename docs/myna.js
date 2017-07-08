@@ -60,6 +60,42 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(ParseState.prototype, "lineNumber", {
+            // Returns the line number
+            get: function () {
+                var r1 = 0;
+                var r2 = 1;
+                for (var i = 0; i < this.index; ++i) {
+                    if (this.input.charCodeAt(i) == 13)
+                        r1++;
+                    if (this.input.charCodeAt(i) == 10)
+                        r2++;
+                }
+                return r1 > r2 ? r1 : r2;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ParseState.prototype, "columnNumber", {
+            // Return the column number on the current line
+            get: function () {
+                var r = 0;
+                for (var i = 0; i < this.index; ++i) {
+                    if (this.input.charCodeAt(i) == 13) {
+                        r = 0;
+                    }
+                    else if (this.input.charCodeAt(i) == 10) {
+                        r = 0;
+                    }
+                    else {
+                        r++;
+                    }
+                }
+                return r;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return ParseState;
     }());
     Myna.ParseState = ParseState;
@@ -327,39 +363,43 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Rule.prototype, "astRuleDefn", {
-            // Returns a string that describes the AST nodes created by this rule.
-            // Will throw an exception if this is not a valid AST rule (this.isAstRule != true)
-            get: function () {
-                var rules = this.rules.filter(function (r) { return r.createsAstNode; });
-                if (!rules.length)
-                    return this.name;
-                if (rules.length == 1) {
-                    var result = rules[0].astRuleNameOrDefn;
-                    if (this instanceof Quantified)
-                        result += "[" + this.min + "," + this.max + "]";
-                    return result;
-                }
-                if (this instanceof Sequence)
-                    return "seq(" + rules.map(function (r) { return r.astRuleNameOrDefn; }).join(",") + ")";
-                if (this instanceof Choice)
-                    return "choice(" + rules.map(function (r) { return r.astRuleNameOrDefn; }).join(",") + ")";
-                throw new Error("Internal error: not a valid AST rule");
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Rule.prototype, "astRuleNameOrDefn", {
-            // Returns a string that is either the name of the AST parse node, or a definition 
-            // (schema) describing the makeup of the rules. 
-            get: function () {
-                if (this._createAstNode)
-                    return this.name;
-                return this.astRuleDefn;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        // Returns a string that describes the AST nodes created by this rule.
+        // Will throw an exception if this is not a valid AST rule (this.isAstRule != true)
+        Rule.prototype.astRuleDefn = function (inSeq, inChoice) {
+            if (inSeq === void 0) { inSeq = false; }
+            if (inChoice === void 0) { inChoice = false; }
+            var rules = this.rules.filter(function (r) { return r.createsAstNode; });
+            if (!rules.length)
+                return this.name;
+            if (rules.length == 1) {
+                var result = rules[0].astRuleNameOrDefn(inSeq, inChoice);
+                if (this instanceof Quantified)
+                    result += "[" + this.min + "," + this.max + "]";
+                return result;
+            }
+            if (this instanceof Sequence) {
+                var tmp = rules.map(function (r) { return r.astRuleNameOrDefn(true, false); }).join(",");
+                if (inSeq)
+                    return tmp;
+                return "seq(" + tmp + ")";
+            }
+            if (this instanceof Choice) {
+                var tmp = rules.map(function (r) { return r.astRuleNameOrDefn(false, true); }).join(",");
+                if (inChoice)
+                    return tmp;
+                return "choice(" + tmp + ")";
+            }
+            throw new Error("Internal error: not a valid AST rule");
+        };
+        // Returns a string that is either the name of the AST parse node, or a definition 
+        // (schema) describing the makeup of the rules. 
+        Rule.prototype.astRuleNameOrDefn = function (inSeq, inChoice) {
+            if (inSeq === void 0) { inSeq = false; }
+            if (inChoice === void 0) { inChoice = false; }
+            if (this._createAstNode)
+                return this.name;
+            return this.astRuleDefn(inSeq, inChoice);
+        };
         Object.defineProperty(Rule.prototype, "opt", {
             //======================================================
             // Extensions to support method/property chaining. 
@@ -559,6 +599,7 @@ var Myna;
     var Quantified = (function (_super) {
         __extends(Quantified, _super);
         function Quantified(rule, min, max) {
+            var _this = this;
             if (min === void 0) { min = 0; }
             if (max === void 0) { max = Infinity; }
             _super.call(this, [rule]);
@@ -586,20 +627,24 @@ var Myna;
                         p.index = originalIndex;
                         return false;
                     }
+                    // Check for progress, to assure we aren't hitting an infinite loop  
+                    debugAssert(max !== Infinity || p.index !== originalIndex, _this);
                 }
                 return true;
             };
             var lChild = this.firstChild.lexer;
             this.lexer = function (p) {
-                var original = p.index;
+                var originalIndex = p.index;
                 for (var i = 0; i < max; ++i) {
                     var index = p.index;
                     if (lChild(p) === false) {
                         if (i >= min)
                             return true;
-                        p.index = original;
+                        p.index = originalIndex;
                         return false;
                     }
+                    // Check for progress, to assure we aren't hitting an infinite loop  
+                    debugAssert(max !== Infinity || p.index !== originalIndex, _this);
                 }
                 return true;
             };
@@ -1221,7 +1266,7 @@ var Myna;
     Myna.grammarToString = grammarToString;
     // Creates a string representation of the AST schema generated by parsing the grammar 
     function astSchemaToString(grammarName) {
-        return grammarAstRules(grammarName).map(function (r) { return r.name + " <- " + r.astRuleDefn; }).join('\n');
+        return grammarAstRules(grammarName).map(function (r) { return r.name + " <- " + r.astRuleDefn(); }).join('\n');
     }
     Myna.astSchemaToString = astSchemaToString;
     // Initializes and register a grammar object and all of the rules. 

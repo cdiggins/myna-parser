@@ -9,6 +9,7 @@ function RuleTestInputs(myna)
     let mdg = m.grammars.markdown;
     let tg = m.grammars.template;
     let lg = m.grammars.lucene;
+    let gg = m.grammars.glsl;
 
     let records = [
             'Stock Name,Country of Listing,Ticker,Margin Rate,Go Short?,Limited Risk Premium',
@@ -17,7 +18,32 @@ function RuleTestInputs(myna)
             ];
     let file = records.join("\n");        
 
+    var func = `float rand1 (in float v) { 						
+        return fract(sin(v) * 437585.);
+    }`;
+
     return [
+        // GLSL grammar
+        [gg.ws, ['', ' ', '\t', '\n', '/* */', ' /* \n */ ', '// abc\n', '// abc'], ['a', ' a ']],
+        [gg.expr, ['4','42','4.','4.0','4.2'], ['1.4.2']],
+        [gg.bool, ['true','false'], ['True','fal se']],
+        [gg.expr, ['4 + 2','14+12','14\t+2','14/* meh */+// abc \n12','1+4 + 12'], ['1+4+']],
+        [gg.expr, ['(1)','((1)+(4+2))', '(3.0-2.0*f)', 'f*f*(3.0-2.0*f)', 'f = f*f*(3.0-2.0*f)'], ['(1', '1)', '(1+', '+1)']],
+        [gg.expr, ['-w', '- w', '- w * 0.4','w =  - w * 0.4', 'camTar.y = cameraPos.y = max((h*.25)+3.5, 1.5+sin(iGlobalTime*5.)*.5)'], []],
+        [gg.expr, ['fn(1)', 'fn(fn(1),2)', 'x[12]', 'x[(1)](42)[a]', 'x.f', 'x.n(1)', 'f(x, 123, a[42](8, x))', 'mix( rg.x, rg.y, f.z )'], []],
+        [gg.qualifiers, ['invariant', 'varying', 'mediump', 'invariant attribute lowp'], ['highp const']],
+        [gg.varDecl, ['int x;', 'int x=1;', 'float x[1];', 'float x[1] = x;', 'varying int x = 2;', 'int x, y;', 'int x = 1, y = 42;', 'invariant varying mediump vec3 color;'], 
+            ['int x', 'int x==2']],
+        [gg.structDef, ['struct S {};', 'struct S {} s;', 'struct S {} s[3];', 'struct S { int a; };', 'struct S { int a; float b; };'], ['struct {};']],
+        [gg.statement, ['break;', ';', 'continue;', '{}', 'return;', 'return 42;', 'if (true) {} else {}', 'do {} while (true)', 'while (true) { }', 'for (int i=0; i < 42; ++i) { }'], []],
+        [gg.statement, ['int x;', 'x = 42;', 'x += 23;', 'f();', 'f(x, 123, a[42](8, x));', 'p.x += 42;', 'p.x *= iResolution.x/iResolution.y;'], []],        
+        [gg.statement, ['x = 42;', 'x = 42;\r\n', 'f(123); ', '{\r\n  x = 42; \r\n f(123); }'], []],
+        [gg.statement, ['vec2 p = -1.0 + 2.0 * fragCoord.xy / iResolution.xy;', '{ vec2 p = -1.0 + 2.0 * fragCoord.xy / iResolution.xy;\r\n  p.x *= iResolution.x/iResolution.y; }'], []],
+        [gg.statement, ['f = f*f*(3.0-2.0*f);', 'return;', 'return 42;', 'return mix( rg.x, rg.y, f.z );'], []],
+        [gg.statement, ['#ifndef HIGH_QUALITY_NOISE', '#ifndef HIGH_QUALITY_NOISE\n', '#endif	'], []],
+        [gg.funcDef, ["float f() { }", "float f () { }", "float f() { return fract(sin(v) * 437585.); }", "float rand1(in float x) {}", "float f() { return fract(sin(v) * 437585.); }", 
+            "float rand1 (in float v) { 						    return fract(sin(v) * 437585.);}", func], []],
+
         // Myna primitive tests 
         [m.letterLower, ['a', 'm', 'z'], ['A', '?', '0', ' ']],
         [m.letterUpper, ['A', 'M', 'Z'], ['a', '?', '0', ' ']],
@@ -235,7 +261,8 @@ function RuleTestInputs(myna)
             'jakarta apache', 'title:{Aida TO Carmen}', 'mod_date:[20020101 TO 20030101]', '"jakarta apache"~10', 'roam~0.8', 'roam~', 'title:"Do it right" AND right',
             'title:"The Right Way" AND text:go', 'foo:{bar TO baz}', 'foo:[bar TO baz]', 'fizz AND (buzz OR baz)', 'fizz (buzz baz)', 'fizz || buzz', 'fizz && buzz',
             'fizz NOT buzz', 'fizz OR buzz', 'fizz AND buzz', 'fizz ! buzz', 'fizz buzz', 'foo:+"fizz buzz"', 'foo:-"fizz buzz"', 'foo:+bar', 'foo:-bar', 'foo:"fizz buzz"',
-            'sub.foo:bar', 'foo:2015-01-01', 'foo:bar', '+"fizz buzz"', '-"fizz buzz"', 'published_at:>now+5d', 'created_at:>now-5d', ' Test:Foo', ' \r\n'], []]
+            'sub.foo:bar', 'foo:2015-01-01', 'foo:bar', '+"fizz buzz"', '-"fizz buzz"', 'published_at:>now+5d', 'created_at:>now-5d', ' Test:Foo', ' \r\n'], []],
+        
     ];
 }
 
