@@ -19,6 +19,7 @@
             "name": "Attach to Process",
             "port": 5858,
             "outFiles": [],
+            "timeout": 30000,
             "sourceMaps": true
         }
     ]
