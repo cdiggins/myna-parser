@@ -69,8 +69,9 @@ function CreateMarkdownGrammar(myna)
         this.any = m.advance.ast;
         this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.plainText, this.any).unless(m.newLine);
         this.lineEnd = m.newLine.or(m.assert(m.end));
+        this.emptyLine = m.char(' \t').zeroOrMore.then(m.newLine).ast;
         this.restOfLine = m.seq(this.inline.zeroOrMore).then(this.lineEnd).ast;
-        this.simpleLine = m.seq(this.specialLineStart.not, m.notEnd, this.restOfLine).ast;
+        this.simpleLine = m.seq(this.emptyLine.not, this.specialLineStart.not, m.notEnd, this.restOfLine).ast;
         this.paragraph = this.simpleLine.oneOrMore.ast;
         
         // Lists
@@ -93,7 +94,7 @@ function CreateMarkdownGrammar(myna)
         this.heading = this.headingLineStart.then(this.optWs).then(this.restOfLine).ast;
 
         // A section 
-        this.content = m.choice(this.heading, this.list, this.quote, this.codeBlock, this.paragraph); 
+        this.content = m.choice(this.heading, this.list, this.quote, this.codeBlock, this.paragraph, this.emptyLine); 
         this.document = this.content.zeroOrMore;
     }
 
