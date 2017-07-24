@@ -58,7 +58,7 @@ module Myna
             if (end >= this.input.length) end = this.input.length - 1;
             var postfix = this.input.slice(this.index + 1, end);
             return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
-        }    
+        }
 
         // Returns the line number
         get lineNumber() : number {
