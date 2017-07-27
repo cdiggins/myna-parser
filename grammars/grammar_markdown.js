@@ -39,14 +39,14 @@ function CreateMarkdownGrammar(myna)
         this.styledText = m.choice(this.bold, this.italic, this.strike, this.code);
 
         // Image instructions 
-        this.url = m.choice(this.escaped, m.notChar(')')).zeroOrMore.ast;
+        this.linkedUrl = m.choice(this.escaped, m.notChar(')')).zeroOrMore.ast;
         this.altText =  m.choice(this.escaped, m.notChar(']')).zeroOrMore.ast;
-        this.image = m.seq('![', this.altText, ']', m.ws, '(', this.url, ')').ast;
+        this.image = m.seq('![', this.altText, ']', m.ws, '(', this.linkedUrl, ')').ast;
 
         // Linked text
         this.linkedText = this.inlineDelayed.unless(']').zeroOrMore.ast;
         this.linkText = m.seq('[', this.linkedText, ']');
-        this.linkUrl = m.seq('(', this.url, ')');
+        this.linkUrl = m.seq('(', this.linkedUrl, ')');
         this.link = m.seq(this.linkText, m.ws, this.linkUrl).ast;        
 
         // Mention
@@ -58,6 +58,7 @@ function CreateMarkdownGrammar(myna)
 
         // Beginning of sections 
         this.indent = m.zeroOrMore('  ').ast;
+        this.inlineUrl = m.seq(m.choice("http://", "mailto:"), m.advanceWhileNot(this.ws)).ast;
         this.numListStart = m.seq(this.indent, m.digit.oneOrMore, '.', m.ws);
         this.quotedLineStart = m.seq(this.indent, '>');
         this.listStart = m.seq(this.indent, m.char('*-'), m.ws);
@@ -67,7 +68,7 @@ function CreateMarkdownGrammar(myna)
 
         // Inline content 
         this.any = m.advance.ast;
-        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.plainText, this.any).unless(m.newLine);
+        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.inlineUrl, this.plainText, this.any).unless(m.newLine);
         this.lineEnd = m.newLine.or(m.assert(m.end));
         this.emptyLine = m.char(' \t').zeroOrMore.then(m.newLine).ast;
         this.restOfLine = m.seq(this.inline.zeroOrMore).then(this.lineEnd).ast;

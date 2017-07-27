@@ -1,10 +1,7 @@
 'use strict';
 
-// Load the Myna module 
-let myna = require('../myna');
-
-// Load the Myna markdown grammar module 
-require('../grammars/grammar_markdown')(myna);
+var myna = require('../myna');
+var mdGrammar = require('../grammars/grammar_markdown')(myna);
 
 // Returns the HTML for a start tag
 function startTag(tag, attr) {
@@ -22,15 +19,15 @@ function endTag(tag) {
     return "</" + tag + ">";
 }
 
-// Returns 
-function markdownAstToHtml(ast, lines) {
+// Returns HTML from a MarkDown AST
+function mdAstToHtml(ast, lines) {
     if (lines == undefined)
         lines = [];
 
     // Adds each element of the array as markdown 
     function addArray(ast) {
         for (let child of ast)
-            markdownAstToHtml(child, lines);
+            mdAstToHtml(child, lines);
         return lines;
     }
 
@@ -40,7 +37,7 @@ function markdownAstToHtml(ast, lines) {
         if (ast instanceof Array)
             addArray(ast); 
         else
-            markdownAstToHtml(ast, lines);
+            mdAstToHtml(ast, lines);
         lines.push(endTag(tag));
         if (newLine)
             lines.push('\r\n');
@@ -88,6 +85,8 @@ function markdownAstToHtml(ast, lines) {
             return addTag("li", ast.children, true);
         case "orderedListItem":
             return addTag("li", ast.children, true);
+        case "inlineUrl":
+            return addTag(ast.allText, ast.allText);
         case "bold":
             return addTag("b", ast.children);
         case "italic":
@@ -106,19 +105,18 @@ function markdownAstToHtml(ast, lines) {
             if (ast.isLeaf)
                 lines.push(ast.allText);
             else 
-                ast.children.forEach(function(c) { markdownAstToHtml(c, lines); });
+                ast.children.forEach(function(c) { mdAstToHtml(c, lines); });
     }
     return lines;
 }
 
-// Outputs a parse tree given a string 
-function markdownToHtml(input) {
+// Converts Markdown text to HTML
+function mdToHtml(input) {
     let rule = myna.allRules['markdown.document'];
     let ast = myna.parse(rule, input);
-    let lines = markdownAstToHtml(ast, []);    
-    return lines.join("");
+    return mdAstToHtml(ast, []).join("");
 }
 
 // Export the function for use with Node.js
 if (typeof module === "object" && module.exports) 
-    module.exports = markdownToHtml;
+    module.exports = mdToHtml;

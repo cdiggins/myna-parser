@@ -1,6 +1,6 @@
 {
   "name": "myna-parser",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "A text parsing (syntactic analysis) library.",
   "main": "myna.js",
   "runkitExampleFilename": "tests/test_node_example-1.js",
