@@ -150,3 +150,15 @@ console.log("==========");
 {
     console.log(expand("<h1>Today{{! ignore me }}.</h1>", {}));
 }
+
+console.log("==========");
+console.log("Example 9");
+console.log("==========");
+{
+    console.log("Expect AX, ABC")
+    var h = { a:"A", b:"X", test:{ b:"B", c:"C" }};
+    console.log(expand(
+        "{{a}}{{b}}{{c}}, {{#test}}{{a}}{{b}}{{c}}{{/test}}", h));
+}
+
+process.exit();

@@ -15,6 +15,15 @@ let escapeHtmlChars = require('../tools/myna_escape_html_chars');
 // Get the document parsing rules  
 let templateRule = grammar.document;
 
+function mergeObjects(a, b) {
+    var r = { };
+    for (var k in a)
+        r[k] = a[k];
+    for (var k in b)
+        r[k] = b[k];
+    return r;
+}
+
 // Given an AST node, a data object, and an optional array of string, converts the nodes 
 // expanding the reserved characters. 
 function expandAst(ast, data, lines) {
@@ -53,10 +62,10 @@ function expandAst(ast, data, lines) {
             }
             else if (val instanceof Array) {
                 for (let x of val)
-                    expandAst(content, x, lines);
+                    expandAst(content, mergeObjects(data, x), lines);
             }                
             else {
-                expandAst(content, val, lines);
+                expandAst(content, mergeObjects(data, val), lines);
             }
             return lines;
 
