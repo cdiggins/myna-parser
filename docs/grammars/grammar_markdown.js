@@ -36,7 +36,7 @@ function CreateMarkdownGrammar(myna)
         this.italic = m.choice(this.boundedInline('*'), this.boundedInline('_')).ast;
         this.strike = this.boundedInline('~~').ast;
         this.code = m.not('```').then(this.boundedInline('`')).ast;
-        this.styledText = m.choice(this.bold, this.italic, this.strike, this.code);
+        this.styledText = m.choice(this.bold, this.italic, this.strike);
 
         // Image instructions 
         this.linkedUrl = m.choice(this.escaped, m.notChar(')')).zeroOrMore.ast;
@@ -68,7 +68,7 @@ function CreateMarkdownGrammar(myna)
 
         // Inline content 
         this.any = m.advance.ast;
-        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.escaped, this.inlineUrl, this.plainText, this.any).unless(m.newLine);
+        this.inline = m.choice(this.comment, this.image, this.link, this.mention, this.styledText, this.code, this.escaped, this.inlineUrl, this.plainText, this.any).unless(m.newLine);
         this.lineEnd = m.newLine.or(m.assert(m.end));
         this.emptyLine = m.char(' \t').zeroOrMore.then(m.newLine).ast;
         this.restOfLine = m.seq(this.inline.zeroOrMore).then(this.lineEnd).ast;
