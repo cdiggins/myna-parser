@@ -12,7 +12,7 @@
 // - `&` or `{` indicate an unescaped variable 
 // - `>` indicates a *partial* which is effectively a file include with run-time expansion.
 
-function CreateTemplateGrammar(myna, start, end) {
+function CreateMustacheGrammar(myna, start, end) {
     if (start == undefined)
         start = "{{";
     if (end == undefined)
@@ -51,9 +51,9 @@ function CreateTemplateGrammar(myna, start, end) {
     }
 
     // Register the grammar, providing a name and the default parse rule
-    return m.registerGrammar("template", g, g.document);
+    return m.registerGrammar("mustache", g, g.document);
 }
 
 // Export the grammar for usage by Node.js and CommonJs compatible module loaders 
 if (typeof module === "object" && module.exports) 
-    module.exports = CreateTemplateGrammar;
+    module.exports = CreateMustacheGrammar;

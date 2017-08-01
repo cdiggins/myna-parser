@@ -1,5 +1,10 @@
 // Exposes a function for expanding mustache and CTemplate style templates.
 // http://mustache.github.io/mustache.5.html
+// 
+// Difference with Mustache:
+// * Partials are not supported, 
+// * Changing the delimiter is not supported 
+// * Variable expansion continues recursively until all variables are expanded. 
 
 'use strict';
 
@@ -7,7 +12,7 @@
 let myna = require('../myna');
 
 // Create the template grammar and give it Myna
-let grammar = require('../grammars/grammar_template')(myna);
+let grammar = require('../grammars/grammar_mustache')(myna);
 
 // Escape HTML characters into their special representations
 let escapeHtmlChars = require('../tools/myna_escape_html_chars');
@@ -15,6 +20,8 @@ let escapeHtmlChars = require('../tools/myna_escape_html_chars');
 // Get the document parsing rules  
 let templateRule = grammar.document;
 
+// Creates a new object containing the properties of the first object and the second object. 
+// If any value has the same key in both values, the second object overrides the first. 
 function mergeObjects(a, b) {
     var r = { };
     for (var k in a)
@@ -76,22 +83,30 @@ function expandAst(ast, data, lines) {
 
         case "escapedVar":
             if (val) 
-                lines.push(escapeHtmlChars(String(val)));
+                lines.push(
+                    expand(escapeHtmlChars(String(val)), data));
             return lines;
         
         case "unescapedVar":
             if (val) 
-                lines.push(String(val));
+                lines.push(
+                    expand(String(val), data));
             return lines;
     }
             
     throw "Unrecognized AST node " + ast.rule.name;
 }
 
+// Expands text containing CTemplate delimiters "{{" using the data object 
 function expand(template, data) {
-    let ast = myna.parsers.template(template);
-    let lines = expandAst(ast, data);
-    return lines.join("");
+    if (template.indexOf("{{") >= 0) {
+        let ast = myna.parsers.mustache(template);
+        let lines = expandAst(ast, data);
+        return lines.join("");
+    } 
+    else {
+        return template;
+    }
 }
 
 // Export the function for use with Node.js

@@ -25,6 +25,7 @@ testExpand("{{a}}", { a:"<>"}, "&lt;&gt;");
 testExpand("{{{a}}}", { a:"<>"}, "<>");
 testExpand("{{&a}}", { a:"<>"}, "<>");
 testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  true");
+testExpand("{{a}}{{b}}{{c}},{{#test}}{{a}}{{b}}{{c}}{{/test}}", { a:"A", b:"X", test:{ b:"B", c:"C" }}, "AX,ABC");
 
 console.log("==========");
 console.log("Example 1");
@@ -155,10 +156,7 @@ console.log("==========");
 console.log("Example 9");
 console.log("==========");
 {
-    console.log("Expect AX, ABC")
-    var h = { a:"A", b:"X", test:{ b:"B", c:"C" }};
-    console.log(expand(
-        "{{a}}{{b}}{{c}}, {{#test}}{{a}}{{b}}{{c}}{{/test}}", h));
+    console.log(expand("{{text}}", { today : "Tuesday", text : "Today is {{today}}" }));
 }
 
 process.exit();

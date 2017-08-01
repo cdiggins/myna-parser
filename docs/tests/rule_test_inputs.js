@@ -7,7 +7,7 @@ function RuleTestInputs(myna)
     let jg = m.grammars.json;
     let cg = m.grammars.csv;
     let mdg = m.grammars.markdown;
-    let tg = m.grammars.template;
+    let tg = m.grammars.mustache;
     let lg = m.grammars.lucene;
     let gg = m.grammars.glsl;
 
