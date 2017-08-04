@@ -61,7 +61,7 @@ function CreateMarkdownGrammar(myna)
         this.inlineUrl = m.seq(m.choice("http://", "mailto:"), m.advanceWhileNot(this.ws)).ast;
         this.numListStart = m.seq(this.indent, m.digit.oneOrMore, '.', m.ws);
         this.quotedLineStart = m.seq(this.indent, '>');
-        this.listStart = m.seq(this.indent, m.char('*-'), m.ws);
+        this.listStart = m.seq(this.indent, m.char('-').or(m.seq('*', m.not('*'))), m.ws);
         this.headingLineStart = m.quantified('#', 1, 6).ast;
         this.codeBlockDelim = m.text("```");
         this.specialLineStart = this.optWs.then(m.choice(this.listStart, this.headingLineStart, this.quotedLineStart, this.numListStart, this.codeBlockDelim));

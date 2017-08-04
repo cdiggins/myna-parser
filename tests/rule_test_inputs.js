@@ -216,6 +216,7 @@ function RuleTestInputs(myna)
         [mdg.code,      ['`code`', '`*codebold*`'], ['*`boldcode`*']],
         [mdg.quote,     ['>\n', '> simple\n', '> line 1\n> line *2*\n', '> no newline'], [' > not valid\n']], 
         [mdg.list,      ['* test\n* test\n', '- test\n  - nested\n    - nested again\n', '- item1\n* item2\n', '1. item\n2.item\n  34. item\n'], [' - test\n']],
+        [mdg.unorderedListItem, ['* test', '*', '* test ', '- test', '-*test', '-*test*'], [' *', '** list', '_-test']],
         [mdg.simpleLine,['abc','abc\n','a *b*\n'], ['', '\n']], // '', ' ', '\t', '\n', '  \t\n', '- abc\n'
         [mdg.paragraph, ['abc', 'abc\n', 'abc\nabc', 'abc\nabc\n', 'line 1\nline 2\n', 'some *thing* is happening'], ['', '- test\n']],
         [mdg.emptyLine, ['\n', ' \n', ' \t\n'], [' ', 'abc']],
