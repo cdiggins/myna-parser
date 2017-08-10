@@ -25,6 +25,48 @@ var Myna;
     // A lookup table of parsing functions for each registered grammar  
     Myna.parsers = {};
     //===========================================================================
+    // class ParseLocation
+    // Used to indicate the location of the parser to the user in a pleasant way.
+    var ParseLocation = (function () {
+        function ParseLocation(input, index) {
+            this.input = input;
+            this.index = index;
+            this.lineNum = 0;
+            this.colNum = 0;
+            this.lineStart = 0;
+            this.lineEnd = 0;
+            var r1 = 0;
+            var r2 = 1;
+            for (var i = 0; i < this.index; ++i) {
+                if (this.input.charCodeAt(i) == 13) {
+                    this.lineStart = i;
+                    r1++;
+                }
+                if (this.input.charCodeAt(i) == 10) {
+                    this.lineStart = i;
+                    r2++;
+                }
+            }
+            for (this.lineEnd = this.index; this.lineEnd < this.input.length; ++this.lineEnd) {
+                if (this.input.charCodeAt(this.lineEnd) == 13 || this.input.charCodeAt(this.lineEnd) == 10)
+                    break;
+            }
+            this.lineNum = r1 > r2 ? r1 : r2;
+            this.colNum = this.index - this.lineStart;
+            this.lineText = this.input.substring(this.lineStart, this.lineEnd);
+            this.pointerText = Array(this.colNum).join(' ') + "^";
+        }
+        ParseLocation.prototype.toString = function () {
+            return "Index " + this.index
+                + ", Line " + this.lineNum
+                + ", Column " + this.colNum
+                + "\n" + this.lineText
+                + "\n" + this.pointerText;
+        };
+        return ParseLocation;
+    }());
+    Myna.ParseLocation = ParseLocation;
+    //===========================================================================
     // class ParseState
     // This stores the state of the parser and is passed to the parse and match functions.
     var ParseState = (function () {
@@ -36,62 +78,9 @@ var Myna;
             this.length = this.input.length;
         }
         Object.defineProperty(ParseState.prototype, "location", {
-            // Returns a string representation of the location. 
+            // Returns an object that representation of the location. 
             get: function () {
-                return this.index.toString();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ParseState.prototype, "debugContext", {
-            // Returns a string that helps debugging to figure out exactly where we are in the input string 
-            get: function () {
-                var contextWidth = 5;
-                var start = this.index - contextWidth - 1;
-                if (start < 0)
-                    start = 0;
-                var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
-                var end = this.index + contextWidth;
-                if (end >= this.input.length)
-                    end = this.input.length - 1;
-                var postfix = this.input.slice(this.index + 1, end);
-                return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ParseState.prototype, "lineNumber", {
-            // Returns the line number
-            get: function () {
-                var r1 = 0;
-                var r2 = 1;
-                for (var i = 0; i < this.index; ++i) {
-                    if (this.input.charCodeAt(i) == 13)
-                        r1++;
-                    if (this.input.charCodeAt(i) == 10)
-                        r2++;
-                }
-                return r1 > r2 ? r1 : r2;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ParseState.prototype, "columnNumber", {
-            // Return the column number on the current line
-            get: function () {
-                var r = 0;
-                for (var i = 0; i < this.index; ++i) {
-                    if (this.input.charCodeAt(i) == 13) {
-                        r = 0;
-                    }
-                    else if (this.input.charCodeAt(i) == 10) {
-                        r = 0;
-                    }
-                    else {
-                        r++;
-                    }
-                }
-                return r;
+                return new ParseLocation(this.input, this.index);
             },
             enumerable: true,
             configurable: true
@@ -99,19 +88,6 @@ var Myna;
         return ParseState;
     }());
     Myna.ParseState = ParseState;
-    //===========================================================================
-    // class ParseError
-    // Represents a parse error, and contains the parse state at the time of the error  
-    var ParseError = (function (_super) {
-        __extends(ParseError, _super);
-        function ParseError(parser, message) {
-            _super.call(this, message);
-            this.parser = parser;
-            this.message = message;
-        }
-        return ParseError;
-    }(Error));
-    Myna.ParseError = ParseError;
     // Represents a node in the generated parse tree. These nodes are returned by the Rule.parse function. If a Rule 
     // has the "_createAstNode" field set to true (because you created the rule using the ".ast" property), then the 
     // generated node will also be added to the constructed parse tree.   
@@ -1113,16 +1089,17 @@ var Myna;
         return action(function (p) { console.log(msg); }).setType("log");
     }
     Myna.log = log;
-    // Throw a ParseError if reached 
-    function err(message) { return action(function (p) { throw new ParseError(p, message); }).setType("err"); }
+    // Throw a Error if reached 
+    function err(message) {
+        return action(function (p) {
+            var e = new Error(message + '\n' + p.location.toString());
+            throw e;
+        }).setType("err");
+    }
     Myna.err = err;
     // Asserts that the rule is executed 
     // This has to be embedded in a function because the rule might be in a circular definition.  
-    function assert(rule) {
-        return choice(rule, action(function (p) {
-            throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule));
-        }));
-    }
+    function assert(rule) { return choice(rule, err("Expected: " + RuleTypeToRule(rule))); }
     Myna.assert = assert;
     // If first part of a guarded sequence passes then each subsequent rule must pass as well 
     // otherwise an exception occurs. This helps create parsers that fail fast, and thus provide
@@ -1136,28 +1113,28 @@ var Myna;
     }
     Myna.guardedSeq = guardedSeq;
     // Parses the given rule surrounded by double quotes 
-    function doubleQuoted(rule) { return seq("\"", rule, assert("\"")).setType("doubleQuoted"); }
+    function doubleQuoted(rule) { return guardedSeq("\"", rule, assert("\"")).setType("doubleQuoted"); }
     Myna.doubleQuoted = doubleQuoted;
     // Parses a double quoted string, taking into account special escape rules
     function doubleQuotedString(escape) { return doubleQuoted(choice(escape, notChar('"').zeroOrMore)).setType("doubleQuotedString"); }
     Myna.doubleQuotedString = doubleQuotedString;
     // Parses the given rule surrounded by single quotes 
-    function singleQuoted(rule) { return seq("'", rule, assert("'")).setType("singleQuoted"); }
+    function singleQuoted(rule) { return guardedSeq("'", rule, assert("'")).setType("singleQuoted"); }
     Myna.singleQuoted = singleQuoted;
     // Parses a singe quoted string, taking into account special escape rules
     function singleQuotedString(escape) { return singleQuoted(choice(escape, notChar("'").zeroOrMore)).setType("singleQuotedString"); }
     Myna.singleQuotedString = singleQuotedString;
     // Parses the given rule surrounded by parentheses, and consumes whitespace  
-    function parenthesized(rule) { return seq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
+    function parenthesized(rule) { return guardedSeq("(", Myna.ws, rule, Myna.ws, ")").setType("parenthesized"); }
     Myna.parenthesized = parenthesized;
     // Parses the given rule surrounded by curly braces, and consumes whitespace 
-    function braced(rule) { return seq("{", Myna.ws, rule, Myna.ws, "}").setType("braced"); }
+    function braced(rule) { return guardedSeq("{", Myna.ws, rule, Myna.ws, "}").setType("braced"); }
     Myna.braced = braced;
     // Parses the given rule surrounded by square brackets, and consumes whitespace 
-    function bracketed(rule) { return seq("[", Myna.ws, rule, Myna.ws, "]").setType("bracketed"); }
+    function bracketed(rule) { return guardedSeq("[", Myna.ws, rule, Myna.ws, "]").setType("bracketed"); }
     Myna.bracketed = bracketed;
     // Parses the given rule surrounded by angle brackets, and consumes whitespace 
-    function tagged(rule) { return seq("<", Myna.ws, rule, Myna.ws, ">").setType("tagged"); }
+    function tagged(rule) { return guardedSeq("<", Myna.ws, rule, Myna.ws, ">").setType("tagged"); }
     Myna.tagged = tagged;
     // A complete identifier, with no other letters or numbers
     function keyword(text) { return seq(text, not(Myna.identifierNext)).setType("keyword"); }

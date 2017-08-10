@@ -27,9 +27,59 @@ module Myna
     // A lookup table of parsing functions for each registered grammar  
     export var parsers = {}
 
+
+    //===========================================================================
+    // class ParseLocation
+
+    // Used to indicate the location of the parser to the user in a pleasant way.
+    export class ParseLocation 
+    {
+        lineNum:number = 0;
+        colNum:number = 0;
+        lineStart:number = 0;
+        lineEnd:number = 0;
+        lineText:string;
+        pointerText:string;
+
+        constructor(
+            public input:string,
+            public index:number)
+        {
+            var r1 = 0;
+            var r2 = 1;
+            for (var i=0; i < this.index; ++i) {
+                if (this.input.charCodeAt(i) == 13) { 
+                    this.lineStart = i;
+                    r1++;
+                }
+                if (this.input.charCodeAt(i) == 10) {
+                    this.lineStart = i;
+                    r2++;
+                }
+            }
+            for (this.lineEnd=this.index; this.lineEnd < this.input.length; ++this.lineEnd) 
+            {
+                if (this.input.charCodeAt(this.lineEnd) == 13 || this.input.charCodeAt(this.lineEnd) == 10)
+                    break;
+            }
+            this.lineNum = r1 > r2 ? r1 : r2;
+            this.colNum = this.index - this.lineStart;
+            this.lineText = this.input.substring(this.lineStart, this.lineEnd);
+            this.pointerText = Array(this.colNum).join(' ') + "^";
+        }
+
+        toString() : string {
+            return "Index " + this.index 
+                + ", Line " + this.lineNum 
+                + ", Column " + this.colNum 
+                + "\n" + this.lineText 
+                + "\n" + this.pointerText;
+        }
+    }
+
     //===========================================================================
     // class ParseState
-    
+
     // This stores the state of the parser and is passed to the parse and match functions.
     export class ParseState
     {
@@ -43,59 +93,9 @@ module Myna
             this.length = this.input.length;
         }
                 
-        // Returns a string representation of the location. 
-        get location() : string {
-            return this.index.toString();
-        }
-        
-        // Returns a string that helps debugging to figure out exactly where we are in the input string 
-        get debugContext() : string {
-            var contextWidth = 5;
-            var start = this.index - contextWidth - 1;
-            if (start < 0) start = 0;
-            var prefix = (this.index > 0) ? this.input.slice(start, this.index) : "";
-            var end = this.index + contextWidth;
-            if (end >= this.input.length) end = this.input.length - 1;
-            var postfix = this.input.slice(this.index + 1, end);
-            return prefix + ">>>" + this.input[this.index] + "<<<" + postfix;
-        }
-
-        // Returns the line number
-        get lineNumber() : number {
-            var r1 = 0;
-            var r2 = 1;
-            for (var i=0; i < this.index; ++i) {
-                if (this.input.charCodeAt(i) == 13) r1++;
-                if (this.input.charCodeAt(i) == 10) r2++;
-            }
-            return r1 > r2 ? r1 : r2;
-        }
-
-        // Return the column number on the current line
-        get columnNumber() : number {
-            var r = 0;
-            for (var i=0; i < this.index; ++i) {
-                if (this.input.charCodeAt(i) == 13) { 
-                    r = 0;
-                }
-                else if (this.input.charCodeAt(i) == 10) {
-                    r = 0;
-                }
-                else {
-                    r++;
-                }
-            }
-            return r;
-        }
-    }
-
-    //===========================================================================
-    // class ParseError
-
-    // Represents a parse error, and contains the parse state at the time of the error  
-    export class ParseError extends Error  {
-        constructor(public parser:ParseState, public message:string) {
-            super(message);
+        // Returns an object that representation of the location. 
+        get location() : ParseLocation {
+            return new ParseLocation(this.input, this.index);
         }
     }
     
@@ -915,16 +915,15 @@ module Myna
     // Logs a message as an action 
     export function log(msg:string = "") { return action(p=> { console.log(msg); }).setType("log"); }
 
-    // Throw a ParseError if reached 
-    export function err(message) {  return action(p=> { throw new ParseError(p, message); }).setType("err");  }
+    // Throw a Error if reached 
+    export function err(message) {  return action(p => { 
+        var e = new Error(message + '\n' + p.location.toString()); 
+        throw e;
+    }).setType("err");  }
 
     // Asserts that the rule is executed 
     // This has to be embedded in a function because the rule might be in a circular definition.  
-    export function assert(rule:RuleType) { 
-        return choice(rule, action((p : ParseState) => {             
-            throw new ParseError(p, "assertion failed, expected: " + RuleTypeToRule(rule)); 
-        })); 
-    }
+    export function assert(rule:RuleType) { return choice(rule, err("Expected: " + RuleTypeToRule(rule))); }
     
     // If first part of a guarded sequence passes then each subsequent rule must pass as well 
     // otherwise an exception occurs. This helps create parsers that fail fast, and thus provide
@@ -934,28 +933,28 @@ module Myna
     }
     
     // Parses the given rule surrounded by double quotes 
-    export function doubleQuoted(rule:RuleType) { return seq("\"", rule, assert("\"")).setType("doubleQuoted"); }
+    export function doubleQuoted(rule:RuleType) { return guardedSeq("\"", rule, assert("\"")).setType("doubleQuoted"); }
 
     // Parses a double quoted string, taking into account special escape rules
     export function doubleQuotedString(escape:RuleType) { return doubleQuoted(choice(escape, notChar('"').zeroOrMore)).setType("doubleQuotedString"); }
 
     // Parses the given rule surrounded by single quotes 
-    export function singleQuoted(rule:RuleType) { return seq("'", rule, assert("'")).setType("singleQuoted"); }
+    export function singleQuoted(rule:RuleType) { return guardedSeq("'", rule, assert("'")).setType("singleQuoted"); }
 
     // Parses a singe quoted string, taking into account special escape rules
     export function singleQuotedString(escape:RuleType) { return singleQuoted(choice(escape, notChar("'").zeroOrMore)).setType("singleQuotedString"); }
 
     // Parses the given rule surrounded by parentheses, and consumes whitespace  
-    export function parenthesized(rule:RuleType) { return seq("(", ws, rule, ws, ")").setType("parenthesized"); }
+    export function parenthesized(rule:RuleType) { return guardedSeq("(", ws, rule, ws, ")").setType("parenthesized"); }
 
     // Parses the given rule surrounded by curly braces, and consumes whitespace 
-    export function braced(rule:RuleType) { return seq("{", ws, rule, ws, "}").setType("braced"); }
+    export function braced(rule:RuleType) { return guardedSeq("{", ws, rule, ws, "}").setType("braced"); }
 
     // Parses the given rule surrounded by square brackets, and consumes whitespace 
-    export function bracketed(rule:RuleType) { return seq("[", ws, rule, ws, "]").setType("bracketed"); }
+    export function bracketed(rule:RuleType) { return guardedSeq("[", ws, rule, ws, "]").setType("bracketed"); }
 
     // Parses the given rule surrounded by angle brackets, and consumes whitespace 
-    export function tagged(rule:RuleType) { return seq("<", ws, rule, ws, ">").setType("tagged"); }
+    export function tagged(rule:RuleType) { return guardedSeq("<", ws, rule, ws, ">").setType("tagged"); }
          
     // A complete identifier, with no other letters or numbers
     export function keyword(text:string) { return seq(text, not(identifierNext)).setType("keyword"); }

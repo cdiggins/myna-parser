@@ -27,9 +27,7 @@ testExpand("{{&a}}", { a:"<>"}, "<>");
 testExpand("{{a}} {{b}} {{c}} {{d}}", { a:10, b:"hello", d:true}, "10 hello  true");
 testExpand("{{a}}{{b}}{{c}},{{#test}}{{a}}{{b}}{{c}}{{/test}}", { a:"A", b:"X", test:{ b:"B", c:"C" }}, "AX,ABC");
 
-console.log("==========");
 console.log("Example 1");
-console.log("==========");
 {
     let t = [
         "Hello {{name}}", 
@@ -49,9 +47,7 @@ console.log("==========");
     console.log(expand(t, h));
 }
 
-console.log("==========");
 console.log("Example 3");
-console.log("==========");
 {
     let t = [
         "* {{name}}",
@@ -68,9 +64,7 @@ console.log("==========");
     console.log(expand(t, h));
 }
 
-console.log("===========");
 console.log("Example 4");
-console.log("===========");
 {
     let t = [
         "Shown.",
@@ -86,9 +80,7 @@ console.log("===========");
     console.log(expand(t, h));
 }
 
-console.log("==========");
 console.log("Example 5");
-console.log("==========");
 {
     let t = [
         "{{#repo}}",
@@ -107,9 +99,7 @@ console.log("==========");
     console.log(expand(t, h));
 }
 
-console.log("==========");
 console.log("Example 6");
-console.log("==========");
 {
     let t = [
         "{{#person?}}",
@@ -125,9 +115,7 @@ console.log("==========");
     console.log(expand(t, h));
 }
 
-console.log("==========");
 console.log("Example 7");
-console.log("==========");
 {
     let t = [
         "{{#repo}}",
@@ -145,18 +133,15 @@ console.log("==========");
     console.log(expand(t, h));
 }
 
-console.log("==========");
 console.log("Example 8");
-console.log("==========");
 {
     console.log(expand("<h1>Today{{! ignore me }}.</h1>", {}));
 }
 
-console.log("==========");
 console.log("Example 9");
-console.log("==========");
 {
     console.log(expand("{{text}}", { today : "Tuesday", text : "Today is {{today}}" }));
 }
 
 process.exit();
+
