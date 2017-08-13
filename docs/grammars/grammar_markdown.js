@@ -26,6 +26,7 @@ function CreateMarkdownGrammar(myna)
         this.escaped = m.seq('\\', m.advance).ast;
         this.ws = m.char(' \t').oneOrMore;
         this.optWs = this.ws.opt;
+        this.wsOrNewLine = this.ws.or(m.newLine);
         this.nonSpecialChar = m.notChar(this.specialCharSet).unless(m.newLine);
         this.specialChar = m.char(this.specialCharSet).ast;
         this.plainText = m.choice(m.digits, m.letters, this.ws, this.nonSpecialChar).oneOrMore.ast;
@@ -58,7 +59,7 @@ function CreateMarkdownGrammar(myna)
 
         // Beginning of sections 
         this.indent = m.zeroOrMore('  ').ast;
-        this.inlineUrl = m.seq(m.choice("http://", "mailto:"), m.advanceWhileNot(this.ws)).ast;
+        this.inlineUrl = m.seq(m.choice("http://", "https://", "mailto:"), m.advanceWhileNot(this.wsOrNewLine)).ast;
         this.numListStart = m.seq(this.indent, m.digit.oneOrMore, '.', m.ws);
         this.quotedLineStart = m.seq(this.indent, '>');
         this.listStart = m.seq(this.indent, m.char('-').or(m.seq('*', m.not('*'))), m.ws);

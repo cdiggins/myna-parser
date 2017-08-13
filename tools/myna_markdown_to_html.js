@@ -44,9 +44,15 @@ function mdAstToHtml(ast, lines) {
         return lines;
     }
 
-    function addLink(url, ast) {
+    function addLink(url, astOrText) {
         lines.push(startTag('a', { href:url }));
-        addArray(ast.children);
+        if (astOrText) {
+            if (astOrText.children)
+                addArray(astOrText.children);
+            else
+               lines.push(astOrText);
+        }        
+        
         lines.push(endTag('a')) ;
         return lines;
     }
@@ -86,7 +92,7 @@ function mdAstToHtml(ast, lines) {
         case "orderedListItem":
             return addTag("li", ast.children, true);
         case "inlineUrl":
-            return addTag(ast.allText, ast.allText);
+            return addLink(ast.allText, ast.allText);
         case "bold":
             return addTag("b", ast.children);
         case "italic":
