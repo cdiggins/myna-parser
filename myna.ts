@@ -985,6 +985,7 @@ module Myna
     export var atSpace            = atChar(" ");
     export var atTab              = atChar("\t");    
     export var atWs               = atChar(" \t\r\n\u00A0\uFEFF");
+    export var atIdentifierNext   = choice(atAlphaNumeric, atUnderscore);
 
     export var letterLower      = atLetterLower.advance;
     export var letterUpper      = atLetterUpper.advance;
