@@ -13,10 +13,10 @@ function noise(x)
 }
 // popping activation record 0:noise1:2
 // local variables: 
-// variable p, unique name 0:noise1:2:p, index 179, declared at line 12, column 9
-// variable f, unique name 0:noise1:2:f, index 180, declared at line 13, column 9
-// variable uv, unique name 0:noise1:2:uv, index 181, declared at line 16, column 6
-// variable rg, unique name 0:noise1:2:rg, index 182, declared at line 17, column 6
+// variable p, unique name 0:noise1:2:p, index 180, declared at line 12, column 9
+// variable f, unique name 0:noise1:2:f, index 181, declared at line 13, column 9
+// variable uv, unique name 0:noise1:2:uv, index 182, declared at line 16, column 6
+// variable rg, unique name 0:noise1:2:rg, index 183, declared at line 17, column 6
 // references:
 // floor at line 12, column 13
 // x at line 12, column 19
@@ -39,7 +39,7 @@ function noise(x)
 // f at line 18, column 25
 // popping activation record 0:noise1
 // local variables: 
-// variable x, unique name 0:noise1:x, index 178, declared at line 10, column 21
+// variable x, unique name 0:noise1:x, index 179, declared at line 10, column 21
 // references:
 // pushing activation record 0:texcube3
 function texcube(sam, p, n)
@@ -54,10 +54,10 @@ function texcube(sam, p, n)
 }
 // popping activation record 0:texcube3:4
 // local variables: 
-// variable m, unique name 0:texcube3:4:m, index 187, declared at line 23, column 9
-// variable x, unique name 0:texcube3:4:x, index 188, declared at line 24, column 6
-// variable y, unique name 0:texcube3:4:y, index 189, declared at line 25, column 6
-// variable z, unique name 0:texcube3:4:z, index 190, declared at line 26, column 6
+// variable m, unique name 0:texcube3:4:m, index 188, declared at line 23, column 9
+// variable x, unique name 0:texcube3:4:x, index 189, declared at line 24, column 6
+// variable y, unique name 0:texcube3:4:y, index 190, declared at line 25, column 6
+// variable z, unique name 0:texcube3:4:z, index 191, declared at line 26, column 6
 // references:
 // abs at line 23, column 13
 // n at line 23, column 18
@@ -78,9 +78,9 @@ function texcube(sam, p, n)
 // m at line 27, column 26
 // popping activation record 0:texcube3
 // local variables: 
-// variable sam, unique name 0:texcube3:sam, index 184, declared at line 21, column 24
-// variable p, unique name 0:texcube3:p, index 185, declared at line 21, column 37
-// variable n, unique name 0:texcube3:n, index 186, declared at line 21, column 48
+// variable sam, unique name 0:texcube3:sam, index 185, declared at line 21, column 24
+// variable p, unique name 0:texcube3:p, index 186, declared at line 21, column 37
+// variable n, unique name 0:texcube3:n, index 187, declared at line 21, column 48
 // references:
 // pushing activation record 0:mapTerrain5
 function mapTerrain(p)
@@ -103,11 +103,11 @@ function mapTerrain(p)
 }
 // popping activation record 0:mapTerrain5:6
 // local variables: 
-// variable time, unique name 0:mapTerrain5:6:time, index 193, declared at line 35, column 7
-// variable ft, unique name 0:mapTerrain5:6:ft, index 194, declared at line 36, column 7
-// variable it, unique name 0:mapTerrain5:6:it, index 195, declared at line 37, column 7
-// variable spe, unique name 0:mapTerrain5:6:spe, index 196, declared at line 40, column 7
-// variable f, unique name 0:mapTerrain5:6:f, index 197, declared at line 42, column 7
+// variable time, unique name 0:mapTerrain5:6:time, index 194, declared at line 35, column 7
+// variable ft, unique name 0:mapTerrain5:6:ft, index 195, declared at line 36, column 7
+// variable it, unique name 0:mapTerrain5:6:it, index 196, declared at line 37, column 7
+// variable spe, unique name 0:mapTerrain5:6:spe, index 197, declared at line 40, column 7
+// variable f, unique name 0:mapTerrain5:6:f, index 198, declared at line 42, column 7
 // references:
 // p at line 32, column 1
 // p at line 33, column 1
@@ -140,7 +140,7 @@ function mapTerrain(p)
 // f at line 46, column 13
 // popping activation record 0:mapTerrain5
 // local variables: 
-// variable p, unique name 0:mapTerrain5:p, index 192, declared at line 30, column 23
+// variable p, unique name 0:mapTerrain5:p, index 193, declared at line 30, column 23
 // references:
 var gro : vec3  = vec3(0.0);
 // pushing activation record 0:map7
@@ -155,8 +155,8 @@ function map(c)
 }
 // popping activation record 0:map7:8
 // local variables: 
-// variable p, unique name 0:map7:8:p, index 201, declared at line 53, column 6
-// variable f, unique name 0:map7:8:f, index 202, declared at line 55, column 7
+// variable p, unique name 0:map7:8:p, index 202, declared at line 53, column 6
+// variable f, unique name 0:map7:8:f, index 203, declared at line 55, column 7
 // references:
 // c at line 53, column 10
 // mapTerrain at line 55, column 11
@@ -173,7 +173,7 @@ function map(c)
 // f at line 59, column 14
 // popping activation record 0:map7
 // local variables: 
-// variable c, unique name 0:map7:c, index 200, declared at line 51, column 18
+// variable c, unique name 0:map7:c, index 201, declared at line 51, column 18
 // references:
 var lig : vec3  = normalize(vec3(-0.4, 0.3, 0.7));
 // pushing activation record 0:castRay9
@@ -225,7 +225,7 @@ function castRay(ro, rd, oVos, oDir)
     // rs at line 78, column 20
     // popping activation record 0:castRay9:10:for11
     // local variables: 
-    // variable i, unique name 0:castRay9:10:for11:i, index 215, declared at line 73, column 10
+    // variable i, unique name 0:castRay9:10:for11:i, index 216, declared at line 73, column 10
     // references:
     // i at line 73, column 15
     // i at line 73, column 22
@@ -240,16 +240,16 @@ function castRay(ro, rd, oVos, oDir)
 }
 // popping activation record 0:castRay9:10
 // local variables: 
-// variable pos, unique name 0:castRay9:10:pos, index 209, declared at line 66, column 6
-// variable ri, unique name 0:castRay9:10:ri, index 210, declared at line 67, column 6
-// variable rs, unique name 0:castRay9:10:rs, index 211, declared at line 68, column 6
-// variable dis, unique name 0:castRay9:10:dis, index 212, declared at line 69, column 6
-// variable res, unique name 0:castRay9:10:res, index 213, declared at line 71, column 7
-// variable mm, unique name 0:castRay9:10:mm, index 214, declared at line 72, column 6
-// variable nor, unique name 0:castRay9:10:nor, index 216, declared at line 81, column 6
-// variable vos, unique name 0:castRay9:10:vos, index 217, declared at line 82, column 6
-// variable mini, unique name 0:castRay9:10:mini, index 218, declared at line 85, column 6
-// variable t, unique name 0:castRay9:10:t, index 219, declared at line 86, column 7
+// variable pos, unique name 0:castRay9:10:pos, index 210, declared at line 66, column 6
+// variable ri, unique name 0:castRay9:10:ri, index 211, declared at line 67, column 6
+// variable rs, unique name 0:castRay9:10:rs, index 212, declared at line 68, column 6
+// variable dis, unique name 0:castRay9:10:dis, index 213, declared at line 69, column 6
+// variable res, unique name 0:castRay9:10:res, index 214, declared at line 71, column 7
+// variable mm, unique name 0:castRay9:10:mm, index 215, declared at line 72, column 6
+// variable nor, unique name 0:castRay9:10:nor, index 217, declared at line 81, column 6
+// variable vos, unique name 0:castRay9:10:vos, index 218, declared at line 82, column 6
+// variable mini, unique name 0:castRay9:10:mini, index 219, declared at line 85, column 6
+// variable t, unique name 0:castRay9:10:t, index 220, declared at line 86, column 7
 // references:
 // floor at line 66, column 12
 // ro at line 66, column 18
@@ -282,10 +282,10 @@ function castRay(ro, rd, oVos, oDir)
 // res at line 91, column 10
 // popping activation record 0:castRay9
 // local variables: 
-// variable ro, unique name 0:castRay9:ro, index 205, declared at line 64, column 23
-// variable rd, unique name 0:castRay9:rd, index 206, declared at line 64, column 35
-// variable oVos, unique name 0:castRay9:oVos, index 207, declared at line 64, column 48
-// variable oDir, unique name 0:castRay9:oDir, index 208, declared at line 64, column 63
+// variable ro, unique name 0:castRay9:ro, index 206, declared at line 64, column 23
+// variable rd, unique name 0:castRay9:rd, index 207, declared at line 64, column 35
+// variable oVos, unique name 0:castRay9:oVos, index 208, declared at line 64, column 48
+// variable oDir, unique name 0:castRay9:oDir, index 209, declared at line 64, column 63
 // references:
 // pushing activation record 0:path14
 function path(t, ya)
@@ -298,7 +298,7 @@ function path(t, ya)
 }
 // popping activation record 0:path14:15
 // local variables: 
-// variable p, unique name 0:path14:15:p, index 223, declared at line 96, column 9
+// variable p, unique name 0:path14:15:p, index 224, declared at line 96, column 9
 // references:
 // sin at line 96, column 20
 // t at line 96, column 30
@@ -317,8 +317,8 @@ function path(t, ya)
 // p at line 99, column 46
 // popping activation record 0:path14
 // local variables: 
-// variable t, unique name 0:path14:t, index 221, declared at line 94, column 17
-// variable ya, unique name 0:path14:ya, index 222, declared at line 94, column 26
+// variable t, unique name 0:path14:t, index 222, declared at line 94, column 17
+// variable ya, unique name 0:path14:ya, index 223, declared at line 94, column 26
 // references:
 // pushing activation record 0:setCamera16
 function setCamera(ro, ta, cr)
@@ -333,10 +333,10 @@ function setCamera(ro, ta, cr)
 }
 // popping activation record 0:setCamera16:17
 // local variables: 
-// variable cw, unique name 0:setCamera16:17:cw, index 228, declared at line 104, column 6
-// variable cp, unique name 0:setCamera16:17:cp, index 229, declared at line 105, column 6
-// variable cu, unique name 0:setCamera16:17:cu, index 230, declared at line 106, column 6
-// variable cv, unique name 0:setCamera16:17:cv, index 231, declared at line 107, column 6
+// variable cw, unique name 0:setCamera16:17:cw, index 229, declared at line 104, column 6
+// variable cp, unique name 0:setCamera16:17:cp, index 230, declared at line 105, column 6
+// variable cu, unique name 0:setCamera16:17:cu, index 231, declared at line 106, column 6
+// variable cv, unique name 0:setCamera16:17:cv, index 232, declared at line 107, column 6
 // references:
 // normalize at line 104, column 11
 // ta at line 104, column 21
@@ -360,9 +360,9 @@ function setCamera(ro, ta, cr)
 // cw at line 108, column 26
 // popping activation record 0:setCamera16
 // local variables: 
-// variable ro, unique name 0:setCamera16:ro, index 225, declared at line 102, column 24
-// variable ta, unique name 0:setCamera16:ta, index 226, declared at line 102, column 36
-// variable cr, unique name 0:setCamera16:cr, index 227, declared at line 102, column 46
+// variable ro, unique name 0:setCamera16:ro, index 226, declared at line 102, column 24
+// variable ta, unique name 0:setCamera16:ta, index 227, declared at line 102, column 36
+// variable cr, unique name 0:setCamera16:cr, index 228, declared at line 102, column 46
 // references:
 // pushing activation record 0:maxcomp18
 function maxcomp(v)
@@ -383,7 +383,7 @@ function maxcomp(v)
 // v at line 113, column 38
 // popping activation record 0:maxcomp18
 // local variables: 
-// variable v, unique name 0:maxcomp18:v, index 233, declared at line 111, column 23
+// variable v, unique name 0:maxcomp18:v, index 234, declared at line 111, column 23
 // references:
 // pushing activation record 0:isEdge20
 function isEdge(uv, va, vb, vc, vd)
@@ -397,9 +397,9 @@ function isEdge(uv, va, vb, vc, vd)
 }
 // popping activation record 0:isEdge20:21
 // local variables: 
-// variable st, unique name 0:isEdge20:21:st, index 240, declared at line 118, column 9
-// variable wb, unique name 0:isEdge20:21:wb, index 241, declared at line 121, column 9
-// variable wc, unique name 0:isEdge20:21:wc, index 242, declared at line 126, column 9
+// variable st, unique name 0:isEdge20:21:st, index 241, declared at line 118, column 9
+// variable wb, unique name 0:isEdge20:21:wb, index 242, declared at line 121, column 9
+// variable wc, unique name 0:isEdge20:21:wc, index 243, declared at line 126, column 9
 // references:
 // uv at line 118, column 20
 // smoothstep at line 121, column 14
@@ -430,11 +430,11 @@ function isEdge(uv, va, vb, vc, vd)
 // wc at line 130, column 27
 // popping activation record 0:isEdge20
 // local variables: 
-// variable uv, unique name 0:isEdge20:uv, index 235, declared at line 116, column 22
-// variable va, unique name 0:isEdge20:va, index 236, declared at line 116, column 31
-// variable vb, unique name 0:isEdge20:vb, index 237, declared at line 116, column 40
-// variable vc, unique name 0:isEdge20:vc, index 238, declared at line 116, column 49
-// variable vd, unique name 0:isEdge20:vd, index 239, declared at line 116, column 58
+// variable uv, unique name 0:isEdge20:uv, index 236, declared at line 116, column 22
+// variable va, unique name 0:isEdge20:va, index 237, declared at line 116, column 31
+// variable vb, unique name 0:isEdge20:vb, index 238, declared at line 116, column 40
+// variable vc, unique name 0:isEdge20:vc, index 239, declared at line 116, column 49
+// variable vd, unique name 0:isEdge20:vd, index 240, declared at line 116, column 58
 // references:
 // pushing activation record 0:calcOcc22
 function calcOcc(uv, va, vb, vc, vd)
@@ -448,9 +448,9 @@ function calcOcc(uv, va, vb, vc, vd)
 }
 // popping activation record 0:calcOcc22:23
 // local variables: 
-// variable st, unique name 0:calcOcc22:23:st, index 249, declared at line 135, column 9
-// variable wa, unique name 0:calcOcc22:23:wa, index 250, declared at line 138, column 9
-// variable wb, unique name 0:calcOcc22:23:wb, index 251, declared at line 141, column 9
+// variable st, unique name 0:calcOcc22:23:st, index 250, declared at line 135, column 9
+// variable wa, unique name 0:calcOcc22:23:wa, index 251, declared at line 138, column 9
+// variable wb, unique name 0:calcOcc22:23:wb, index 252, declared at line 141, column 9
 // references:
 // uv at line 135, column 20
 // vec4 at line 138, column 14
@@ -481,11 +481,11 @@ function calcOcc(uv, va, vb, vc, vd)
 // wb at line 147, column 32
 // popping activation record 0:calcOcc22
 // local variables: 
-// variable uv, unique name 0:calcOcc22:uv, index 244, declared at line 133, column 23
-// variable va, unique name 0:calcOcc22:va, index 245, declared at line 133, column 32
-// variable vb, unique name 0:calcOcc22:vb, index 246, declared at line 133, column 41
-// variable vc, unique name 0:calcOcc22:vc, index 247, declared at line 133, column 50
-// variable vd, unique name 0:calcOcc22:vd, index 248, declared at line 133, column 59
+// variable uv, unique name 0:calcOcc22:uv, index 245, declared at line 133, column 23
+// variable va, unique name 0:calcOcc22:va, index 246, declared at line 133, column 32
+// variable vb, unique name 0:calcOcc22:vb, index 247, declared at line 133, column 41
+// variable vc, unique name 0:calcOcc22:vc, index 248, declared at line 133, column 50
+// variable vd, unique name 0:calcOcc22:vd, index 249, declared at line 133, column 59
 // references:
 // pushing activation record 0:render24
 function render(ro, rd)
@@ -566,43 +566,43 @@ function render(ro, rd)
     }
     // popping activation record 0:render24:25:26
     // local variables: 
-    // variable nor, unique name 0:render24:25:26:nor, index 259, declared at line 159, column 13
-    // variable pos, unique name 0:render24:25:26:pos, index 260, declared at line 160, column 13
-    // variable uvw, unique name 0:render24:25:26:uvw, index 261, declared at line 161, column 13
-    // variable v1, unique name 0:render24:25:26:v1, index 262, declared at line 163, column 7
-    // variable v2, unique name 0:render24:25:26:v2, index 263, declared at line 164, column 10
-    // variable v3, unique name 0:render24:25:26:v3, index 264, declared at line 165, column 10
-    // variable v4, unique name 0:render24:25:26:v4, index 265, declared at line 166, column 10
-    // variable v5, unique name 0:render24:25:26:v5, index 266, declared at line 167, column 7
-    // variable v6, unique name 0:render24:25:26:v6, index 267, declared at line 168, column 13
-    // variable v7, unique name 0:render24:25:26:v7, index 268, declared at line 169, column 10
-    // variable v8, unique name 0:render24:25:26:v8, index 269, declared at line 170, column 10
-    // variable v9, unique name 0:render24:25:26:v9, index 270, declared at line 171, column 10
-    // variable v10, unique name 0:render24:25:26:v10, index 271, declared at line 172, column 10
-    // variable v11, unique name 0:render24:25:26:v11, index 272, declared at line 173, column 10
-    // variable v12, unique name 0:render24:25:26:v12, index 273, declared at line 174, column 10
-    // variable v13, unique name 0:render24:25:26:v13, index 274, declared at line 175, column 11
-    // variable v14, unique name 0:render24:25:26:v14, index 275, declared at line 176, column 10
-    // variable v15, unique name 0:render24:25:26:v15, index 276, declared at line 177, column 10
-    // variable v16, unique name 0:render24:25:26:v16, index 277, declared at line 178, column 10
-    // variable vc, unique name 0:render24:25:26:vc, index 278, declared at line 180, column 7
-    // variable vd, unique name 0:render24:25:26:vd, index 279, declared at line 181, column 10
-    // variable va, unique name 0:render24:25:26:va, index 280, declared at line 182, column 10
-    // variable vb, unique name 0:render24:25:26:vb, index 281, declared at line 183, column 10
-    // variable uv, unique name 0:render24:25:26:uv, index 282, declared at line 185, column 7
-    // variable www, unique name 0:render24:25:26:www, index 283, declared at line 188, column 14
-    // variable wir, unique name 0:render24:25:26:wir, index 284, declared at line 190, column 13
-    // variable vvv, unique name 0:render24:25:26:vvv, index 285, declared at line 191, column 14
-    // variable dif, unique name 0:render24:25:26:dif, index 286, declared at line 199, column 14
-    // variable bac, unique name 0:render24:25:26:bac, index 287, declared at line 200, column 14
-    // variable sky, unique name 0:render24:25:26:sky, index 288, declared at line 201, column 14
-    // variable amb, unique name 0:render24:25:26:amb, index 289, declared at line 202, column 14
-    // variable occ, unique name 0:render24:25:26:occ, index 290, declared at line 203, column 14
-    // variable lin, unique name 0:render24:25:26:lin, index 291, declared at line 213, column 13
-    // variable lineglow, unique name 0:render24:25:26:lineglow, index 292, declared at line 219, column 14
-    // variable linCol, unique name 0:render24:25:26:linCol, index 293, declared at line 229, column 13
-    // variable col2, unique name 0:render24:25:26:col2, index 294, declared at line 239, column 13
-    // variable mi, unique name 0:render24:25:26:mi, index 295, declared at line 240, column 14
+    // variable nor, unique name 0:render24:25:26:nor, index 260, declared at line 159, column 13
+    // variable pos, unique name 0:render24:25:26:pos, index 261, declared at line 160, column 13
+    // variable uvw, unique name 0:render24:25:26:uvw, index 262, declared at line 161, column 13
+    // variable v1, unique name 0:render24:25:26:v1, index 263, declared at line 163, column 7
+    // variable v2, unique name 0:render24:25:26:v2, index 264, declared at line 164, column 10
+    // variable v3, unique name 0:render24:25:26:v3, index 265, declared at line 165, column 10
+    // variable v4, unique name 0:render24:25:26:v4, index 266, declared at line 166, column 10
+    // variable v5, unique name 0:render24:25:26:v5, index 267, declared at line 167, column 7
+    // variable v6, unique name 0:render24:25:26:v6, index 268, declared at line 168, column 13
+    // variable v7, unique name 0:render24:25:26:v7, index 269, declared at line 169, column 10
+    // variable v8, unique name 0:render24:25:26:v8, index 270, declared at line 170, column 10
+    // variable v9, unique name 0:render24:25:26:v9, index 271, declared at line 171, column 10
+    // variable v10, unique name 0:render24:25:26:v10, index 272, declared at line 172, column 10
+    // variable v11, unique name 0:render24:25:26:v11, index 273, declared at line 173, column 10
+    // variable v12, unique name 0:render24:25:26:v12, index 274, declared at line 174, column 10
+    // variable v13, unique name 0:render24:25:26:v13, index 275, declared at line 175, column 11
+    // variable v14, unique name 0:render24:25:26:v14, index 276, declared at line 176, column 10
+    // variable v15, unique name 0:render24:25:26:v15, index 277, declared at line 177, column 10
+    // variable v16, unique name 0:render24:25:26:v16, index 278, declared at line 178, column 10
+    // variable vc, unique name 0:render24:25:26:vc, index 279, declared at line 180, column 7
+    // variable vd, unique name 0:render24:25:26:vd, index 280, declared at line 181, column 10
+    // variable va, unique name 0:render24:25:26:va, index 281, declared at line 182, column 10
+    // variable vb, unique name 0:render24:25:26:vb, index 282, declared at line 183, column 10
+    // variable uv, unique name 0:render24:25:26:uv, index 283, declared at line 185, column 7
+    // variable www, unique name 0:render24:25:26:www, index 284, declared at line 188, column 14
+    // variable wir, unique name 0:render24:25:26:wir, index 285, declared at line 190, column 13
+    // variable vvv, unique name 0:render24:25:26:vvv, index 286, declared at line 191, column 14
+    // variable dif, unique name 0:render24:25:26:dif, index 287, declared at line 199, column 14
+    // variable bac, unique name 0:render24:25:26:bac, index 288, declared at line 200, column 14
+    // variable sky, unique name 0:render24:25:26:sky, index 289, declared at line 201, column 14
+    // variable amb, unique name 0:render24:25:26:amb, index 290, declared at line 202, column 14
+    // variable occ, unique name 0:render24:25:26:occ, index 291, declared at line 203, column 14
+    // variable lin, unique name 0:render24:25:26:lin, index 292, declared at line 213, column 13
+    // variable lineglow, unique name 0:render24:25:26:lineglow, index 293, declared at line 219, column 14
+    // variable linCol, unique name 0:render24:25:26:linCol, index 294, declared at line 229, column 13
+    // variable col2, unique name 0:render24:25:26:col2, index 295, declared at line 239, column 13
+    // variable mi, unique name 0:render24:25:26:mi, index 296, declared at line 240, column 14
     // references:
     // dir at line 159, column 20
     // sign at line 159, column 24
@@ -862,10 +862,10 @@ function render(ro, rd)
 }
 // popping activation record 0:render24:25
 // local variables: 
-// variable col, unique name 0:render24:25:col, index 255, declared at line 152, column 9
-// variable vos, unique name 0:render24:25:vos, index 256, declared at line 155, column 6
-// variable dir, unique name 0:render24:25:dir, index 257, declared at line 155, column 11
-// variable t, unique name 0:render24:25:t, index 258, declared at line 156, column 7
+// variable col, unique name 0:render24:25:col, index 256, declared at line 152, column 9
+// variable vos, unique name 0:render24:25:vos, index 257, declared at line 155, column 6
+// variable dir, unique name 0:render24:25:dir, index 258, declared at line 155, column 11
+// variable t, unique name 0:render24:25:t, index 259, declared at line 156, column 7
 // references:
 // vec3 at line 152, column 15
 // castRay at line 156, column 11
@@ -881,8 +881,8 @@ function render(ro, rd)
 // col at line 248, column 11
 // popping activation record 0:render24
 // local variables: 
-// variable ro, unique name 0:render24:ro, index 253, declared at line 150, column 21
-// variable rd, unique name 0:render24:rd, index 254, declared at line 150, column 33
+// variable ro, unique name 0:render24:ro, index 254, declared at line 150, column 21
+// variable rd, unique name 0:render24:rd, index 255, declared at line 150, column 33
 // references:
 // pushing activation record 0:mainImage27
 function mainImage(fragColor, fragCoord)
@@ -909,17 +909,17 @@ function mainImage(fragColor, fragCoord)
 }
 // popping activation record 0:mainImage27:28
 // local variables: 
-// variable q, unique name 0:mainImage27:28:q, index 299, declared at line 254, column 6
-// variable p, unique name 0:mainImage27:28:p, index 300, declared at line 255, column 9
-// variable mo, unique name 0:mainImage27:28:mo, index 301, declared at line 258, column 9
-// variable time, unique name 0:mainImage27:28:time, index 302, declared at line 261, column 7
-// variable cr, unique name 0:mainImage27:28:cr, index 303, declared at line 263, column 7
-// variable ro, unique name 0:mainImage27:28:ro, index 304, declared at line 264, column 6
-// variable ta, unique name 0:mainImage27:28:ta, index 305, declared at line 265, column 6
-// variable cam, unique name 0:mainImage27:28:cam, index 306, declared at line 268, column 9
-// variable r2, unique name 0:mainImage27:28:r2, index 307, declared at line 271, column 10
-// variable rd, unique name 0:mainImage27:28:rd, index 308, declared at line 273, column 9
-// variable col, unique name 0:mainImage27:28:col, index 309, declared at line 275, column 9
+// variable q, unique name 0:mainImage27:28:q, index 300, declared at line 254, column 6
+// variable p, unique name 0:mainImage27:28:p, index 301, declared at line 255, column 9
+// variable mo, unique name 0:mainImage27:28:mo, index 302, declared at line 258, column 9
+// variable time, unique name 0:mainImage27:28:time, index 303, declared at line 261, column 7
+// variable cr, unique name 0:mainImage27:28:cr, index 304, declared at line 263, column 7
+// variable ro, unique name 0:mainImage27:28:ro, index 305, declared at line 264, column 6
+// variable ta, unique name 0:mainImage27:28:ta, index 306, declared at line 265, column 6
+// variable cam, unique name 0:mainImage27:28:cam, index 307, declared at line 268, column 9
+// variable r2, unique name 0:mainImage27:28:r2, index 308, declared at line 271, column 10
+// variable rd, unique name 0:mainImage27:28:rd, index 309, declared at line 273, column 9
+// variable col, unique name 0:mainImage27:28:col, index 310, declared at line 275, column 9
 // references:
 // fragCoord at line 254, column 10
 // iResolution at line 254, column 25
@@ -973,8 +973,8 @@ function mainImage(fragColor, fragCoord)
 // col at line 280, column 19
 // popping activation record 0:mainImage27
 // local variables: 
-// variable fragColor, unique name 0:mainImage27:fragColor, index 297, declared at line 251, column 25
-// variable fragCoord, unique name 0:mainImage27:fragCoord, index 298, declared at line 251, column 44
+// variable fragColor, unique name 0:mainImage27:fragColor, index 298, declared at line 251, column 25
+// variable fragCoord, unique name 0:mainImage27:fragCoord, index 299, declared at line 251, column 44
 // references:
 // pushing activation record 0:mainVR29
 function mainVR(fragColor, fragCoord, fragRayOri, fragRayDir)
@@ -991,12 +991,12 @@ function mainVR(fragColor, fragCoord, fragRayOri, fragRayDir)
 }
 // popping activation record 0:mainVR29:30
 // local variables: 
-// variable time, unique name 0:mainVR29:30:time, index 315, declared at line 285, column 7
-// variable cr, unique name 0:mainVR29:30:cr, index 316, declared at line 287, column 10
-// variable ro, unique name 0:mainVR29:30:ro, index 317, declared at line 288, column 6
-// variable ta, unique name 0:mainVR29:30:ta, index 318, declared at line 289, column 6
-// variable cam, unique name 0:mainVR29:30:cam, index 319, declared at line 291, column 9
-// variable col, unique name 0:mainVR29:30:col, index 320, declared at line 293, column 9
+// variable time, unique name 0:mainVR29:30:time, index 316, declared at line 285, column 7
+// variable cr, unique name 0:mainVR29:30:cr, index 317, declared at line 287, column 10
+// variable ro, unique name 0:mainVR29:30:ro, index 318, declared at line 288, column 6
+// variable ta, unique name 0:mainVR29:30:ta, index 319, declared at line 289, column 6
+// variable cam, unique name 0:mainVR29:30:cam, index 320, declared at line 291, column 9
+// variable col, unique name 0:mainVR29:30:col, index 321, declared at line 293, column 9
 // references:
 // iGlobalTime at line 285, column 18
 // path at line 288, column 11
@@ -1020,9 +1020,9 @@ function mainVR(fragColor, fragCoord, fragRayOri, fragRayDir)
 // col at line 295, column 22
 // popping activation record 0:mainVR29
 // local variables: 
-// variable fragColor, unique name 0:mainVR29:fragColor, index 311, declared at line 283, column 22
-// variable fragCoord, unique name 0:mainVR29:fragCoord, index 312, declared at line 283, column 41
-// variable fragRayOri, unique name 0:mainVR29:fragRayOri, index 313, declared at line 283, column 60
-// variable fragRayDir, unique name 0:mainVR29:fragRayDir, index 314, declared at line 283, column 80
+// variable fragColor, unique name 0:mainVR29:fragColor, index 312, declared at line 283, column 22
+// variable fragCoord, unique name 0:mainVR29:fragCoord, index 313, declared at line 283, column 41
+// variable fragRayOri, unique name 0:mainVR29:fragRayOri, index 314, declared at line 283, column 60
+// variable fragRayDir, unique name 0:mainVR29:fragRayDir, index 315, declared at line 283, column 80
 // references:
 // undefined variables 

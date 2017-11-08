@@ -1,3 +1,8 @@
+// The createAstVisitor function creates a file of code that contains a Visitor object specialized 
+// for walking the parse tree created from a grammar. 
+// 
+// This can be useful when constructing code for parsing special types of grammars  
+
 function createAstVisitorFunction(rule, lines) {
     lines.push("  this.visit_" + rule.name + " = function(ast, stack, state) {");
     lines.push("    // " + rule.astRuleDefn());
@@ -14,7 +19,7 @@ function createAstVisitor(myna, grammarName) {
         "    this['visit_' + child.name](child, state);",
         "  }",        
         "  this.visitChildren = function(ast, state) {",
-        "    for (var child ofd ast.children)",
+        "    for (var child of ast.children)",
         "      this.visitNode(child, state);",
         "  }"        
         ];

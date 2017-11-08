@@ -19,14 +19,14 @@ function snoise(uv, res)
 }
 // popping activation record 0:snoise1:2
 // local variables: 
-// variable s, unique name 0:snoise1:2:s, index 180, declared at line 6, column 12
-// variable uv0, unique name 0:snoise1:2:uv0, index 181, declared at line 10, column 6
-// variable uv1, unique name 0:snoise1:2:uv1, index 182, declared at line 11, column 6
-// variable f, unique name 0:snoise1:2:f, index 183, declared at line 13, column 6
-// variable v, unique name 0:snoise1:2:v, index 184, declared at line 15, column 6
-// variable r, unique name 0:snoise1:2:r, index 185, declared at line 18, column 6
-// variable r0, unique name 0:snoise1:2:r0, index 186, declared at line 19, column 7
-// variable r1, unique name 0:snoise1:2:r1, index 187, declared at line 22, column 7
+// variable s, unique name 0:snoise1:2:s, index 181, declared at line 6, column 12
+// variable uv0, unique name 0:snoise1:2:uv0, index 182, declared at line 10, column 6
+// variable uv1, unique name 0:snoise1:2:uv1, index 183, declared at line 11, column 6
+// variable f, unique name 0:snoise1:2:f, index 184, declared at line 13, column 6
+// variable v, unique name 0:snoise1:2:v, index 185, declared at line 15, column 6
+// variable r, unique name 0:snoise1:2:r, index 186, declared at line 18, column 6
+// variable r0, unique name 0:snoise1:2:r0, index 187, declared at line 19, column 7
+// variable r1, unique name 0:snoise1:2:r1, index 188, declared at line 22, column 7
 // references:
 // vec3 at line 6, column 16
 // uv at line 8, column 1
@@ -96,8 +96,8 @@ function snoise(uv, res)
 // f at line 24, column 20
 // popping activation record 0:snoise1
 // local variables: 
-// variable uv, unique name 0:snoise1:uv, index 178, declared at line 4, column 18
-// variable res, unique name 0:snoise1:res, index 179, declared at line 4, column 28
+// variable uv, unique name 0:snoise1:uv, index 179, declared at line 4, column 18
+// variable res, unique name 0:snoise1:res, index 180, declared at line 4, column 28
 // references:
 var freqs : float [4];
 // pushing activation record 0:mainImage3
@@ -136,7 +136,7 @@ function mainImage(fragColor, fragCoord)
     }
     // popping activation record 0:mainImage3:4:for5:6
     // local variables: 
-    // variable power, unique name 0:mainImage3:4:for5:6:power, index 210, declared at line 59, column 8
+    // variable power, unique name 0:mainImage3:4:for5:6:power, index 211, declared at line 59, column 8
     // references:
     // pow at line 59, column 16
     // float at line 59, column 26
@@ -161,7 +161,7 @@ function mainImage(fragColor, fragCoord)
     // newTime2 at line 61, column 100
     // popping activation record 0:mainImage3:4:for5
     // local variables: 
-    // variable i, unique name 0:mainImage3:4:for5:i, index 209, declared at line 58, column 10
+    // variable i, unique name 0:mainImage3:4:for5:i, index 210, declared at line 58, column 10
     // references:
     // i at line 58, column 15
     // i at line 58, column 21
@@ -192,10 +192,10 @@ function mainImage(fragColor, fragCoord)
     }
     // popping activation record 0:mainImage3:4:7
     // local variables: 
-    // variable newUv, unique name 0:mainImage3:4:7:newUv, index 219, declared at line 79, column 9
-    // variable texSample, unique name 0:mainImage3:4:7:texSample, index 220, declared at line 84, column 7
-    // variable uOff, unique name 0:mainImage3:4:7:uOff, index 221, declared at line 85, column 8
-    // variable starUV, unique name 0:mainImage3:4:7:starUV, index 222, declared at line 86, column 7
+    // variable newUv, unique name 0:mainImage3:4:7:newUv, index 220, declared at line 79, column 9
+    // variable texSample, unique name 0:mainImage3:4:7:texSample, index 221, declared at line 84, column 7
+    // variable uOff, unique name 0:mainImage3:4:7:uOff, index 222, declared at line 85, column 8
+    // variable starUV, unique name 0:mainImage3:4:7:starUV, index 223, declared at line 86, column 7
     // references:
     // corona at line 78, column 2
     // pow at line 78, column 14
@@ -230,32 +230,32 @@ function mainImage(fragColor, fragCoord)
 }
 // popping activation record 0:mainImage3:4
 // local variables: 
-// variable brightness, unique name 0:mainImage3:4:brightness, index 192, declared at line 36, column 7
-// variable radius, unique name 0:mainImage3:4:radius, index 193, declared at line 37, column 7
-// variable invRadius, unique name 0:mainImage3:4:invRadius, index 194, declared at line 38, column 7
-// variable orange, unique name 0:mainImage3:4:orange, index 195, declared at line 40, column 6
-// variable orangeRed, unique name 0:mainImage3:4:orangeRed, index 196, declared at line 41, column 6
-// variable time, unique name 0:mainImage3:4:time, index 197, declared at line 42, column 7
-// variable aspect, unique name 0:mainImage3:4:aspect, index 198, declared at line 43, column 7
-// variable uv, unique name 0:mainImage3:4:uv, index 199, declared at line 44, column 6
-// variable p, unique name 0:mainImage3:4:p, index 200, declared at line 45, column 6
-// variable fade, unique name 0:mainImage3:4:fade, index 201, declared at line 48, column 7
-// variable fVal1, unique name 0:mainImage3:4:fVal1, index 202, declared at line 49, column 7
-// variable fVal2, unique name 0:mainImage3:4:fVal2, index 203, declared at line 50, column 7
-// variable angle, unique name 0:mainImage3:4:angle, index 204, declared at line 52, column 7
-// variable dist, unique name 0:mainImage3:4:dist, index 205, declared at line 53, column 7
-// variable coord, unique name 0:mainImage3:4:coord, index 206, declared at line 54, column 6
-// variable newTime1, unique name 0:mainImage3:4:newTime1, index 207, declared at line 56, column 7
-// variable newTime2, unique name 0:mainImage3:4:newTime2, index 208, declared at line 57, column 7
-// variable corona, unique name 0:mainImage3:4:corona, index 211, declared at line 64, column 7
-// variable sphereNormal, unique name 0:mainImage3:4:sphereNormal, index 212, declared at line 67, column 6
-// variable dir, unique name 0:mainImage3:4:dir, index 213, declared at line 68, column 6
-// variable center, unique name 0:mainImage3:4:center, index 214, declared at line 69, column 6
-// variable starSphere, unique name 0:mainImage3:4:starSphere, index 215, declared at line 70, column 6
-// variable sp, unique name 0:mainImage3:4:sp, index 216, declared at line 72, column 6
-// variable r, unique name 0:mainImage3:4:r, index 217, declared at line 75, column 9
-// variable f, unique name 0:mainImage3:4:f, index 218, declared at line 76, column 7
-// variable starGlow, unique name 0:mainImage3:4:starGlow, index 223, declared at line 90, column 7
+// variable brightness, unique name 0:mainImage3:4:brightness, index 193, declared at line 36, column 7
+// variable radius, unique name 0:mainImage3:4:radius, index 194, declared at line 37, column 7
+// variable invRadius, unique name 0:mainImage3:4:invRadius, index 195, declared at line 38, column 7
+// variable orange, unique name 0:mainImage3:4:orange, index 196, declared at line 40, column 6
+// variable orangeRed, unique name 0:mainImage3:4:orangeRed, index 197, declared at line 41, column 6
+// variable time, unique name 0:mainImage3:4:time, index 198, declared at line 42, column 7
+// variable aspect, unique name 0:mainImage3:4:aspect, index 199, declared at line 43, column 7
+// variable uv, unique name 0:mainImage3:4:uv, index 200, declared at line 44, column 6
+// variable p, unique name 0:mainImage3:4:p, index 201, declared at line 45, column 6
+// variable fade, unique name 0:mainImage3:4:fade, index 202, declared at line 48, column 7
+// variable fVal1, unique name 0:mainImage3:4:fVal1, index 203, declared at line 49, column 7
+// variable fVal2, unique name 0:mainImage3:4:fVal2, index 204, declared at line 50, column 7
+// variable angle, unique name 0:mainImage3:4:angle, index 205, declared at line 52, column 7
+// variable dist, unique name 0:mainImage3:4:dist, index 206, declared at line 53, column 7
+// variable coord, unique name 0:mainImage3:4:coord, index 207, declared at line 54, column 6
+// variable newTime1, unique name 0:mainImage3:4:newTime1, index 208, declared at line 56, column 7
+// variable newTime2, unique name 0:mainImage3:4:newTime2, index 209, declared at line 57, column 7
+// variable corona, unique name 0:mainImage3:4:corona, index 212, declared at line 64, column 7
+// variable sphereNormal, unique name 0:mainImage3:4:sphereNormal, index 213, declared at line 67, column 6
+// variable dir, unique name 0:mainImage3:4:dir, index 214, declared at line 68, column 6
+// variable center, unique name 0:mainImage3:4:center, index 215, declared at line 69, column 6
+// variable starSphere, unique name 0:mainImage3:4:starSphere, index 216, declared at line 70, column 6
+// variable sp, unique name 0:mainImage3:4:sp, index 217, declared at line 72, column 6
+// variable r, unique name 0:mainImage3:4:r, index 218, declared at line 75, column 9
+// variable f, unique name 0:mainImage3:4:f, index 219, declared at line 76, column 7
+// variable starGlow, unique name 0:mainImage3:4:starGlow, index 224, declared at line 90, column 7
 // references:
 // freqs at line 31, column 1
 // texture at line 31, column 12
@@ -362,7 +362,7 @@ function mainImage(fragColor, fragCoord)
 // fragColor at line 93, column 1
 // popping activation record 0:mainImage3
 // local variables: 
-// variable fragColor, unique name 0:mainImage3:fragColor, index 190, declared at line 29, column 25
-// variable fragCoord, unique name 0:mainImage3:fragCoord, index 191, declared at line 29, column 44
+// variable fragColor, unique name 0:mainImage3:fragColor, index 191, declared at line 29, column 25
+// variable fragCoord, unique name 0:mainImage3:fragCoord, index 192, declared at line 29, column 44
 // references:
 // undefined variables 

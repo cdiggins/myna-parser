@@ -9,7 +9,7 @@ float snow(vec2 uv, float scale)
     float w = smoothstep(1., 0., -uv.y * (scale / 10.));
     if (w < .1) return 0.;
     uv += time / scale;
-    zuv.y += time * 2. / scale;
+    uv.y += time * 2. / scale;
     uv.x += sin(uv.y + time * .5) / scale;
     uv *= scale;
     vec2 s = floor(uv), f = fract(uv), p;
@@ -23,12 +23,12 @@ float snow(vec2 uv, float scale)
 }
 // popping activation record 0:snow1:2
 // local variables: 
-// variable w, unique name 0:snow1:2:w, index 183, declared at line 11, column 7
-// variable s, unique name 0:snow1:2:s, index 184, declared at line 14, column 16
-// variable f, unique name 0:snow1:2:f, index 185, declared at line 14, column 28
-// variable p, unique name 0:snow1:2:p, index 186, declared at line 14, column 40
-// variable k, unique name 0:snow1:2:k, index 187, declared at line 14, column 48
-// variable d, unique name 0:snow1:2:d, index 188, declared at line 14, column 53
+// variable w, unique name 0:snow1:2:w, index 184, declared at line 11, column 7
+// variable s, unique name 0:snow1:2:s, index 185, declared at line 14, column 16
+// variable f, unique name 0:snow1:2:f, index 186, declared at line 14, column 28
+// variable p, unique name 0:snow1:2:p, index 187, declared at line 14, column 40
+// variable k, unique name 0:snow1:2:k, index 188, declared at line 14, column 48
+// variable d, unique name 0:snow1:2:d, index 189, declared at line 14, column 53
 // references:
 // smoothstep at line 11, column 9
 // uv at line 11, column 27
@@ -37,13 +37,14 @@ float snow(vec2 uv, float scale)
 // uv at line 13, column 1
 // time at line 13, column 5
 // scale at line 13, column 10
-// time at line 13, column 23
-// scale at line 13, column 31
-// uv at line 13, column 37
-// sin at line 13, column 43
-// uv at line 13, column 47
-// time at line 13, column 52
-// scale at line 13, column 61
+// uv at line 13, column 16
+// time at line 13, column 22
+// scale at line 13, column 30
+// uv at line 13, column 36
+// sin at line 13, column 42
+// uv at line 13, column 46
+// time at line 13, column 51
+// scale at line 13, column 60
 // uv at line 14, column 1
 // scale at line 14, column 5
 // floor at line 14, column 18
@@ -76,8 +77,8 @@ float snow(vec2 uv, float scale)
 // w at line 17, column 14
 // popping activation record 0:snow1
 // local variables: 
-// variable uv, unique name 0:snow1:uv, index 181, declared at line 9, column 16
-// variable scale, unique name 0:snow1:scale, index 182, declared at line 9, column 25
+// variable uv, unique name 0:snow1:uv, index 182, declared at line 9, column 16
+// variable scale, unique name 0:snow1:scale, index 183, declared at line 9, column 25
 // references:
 // pushing activation record 0:main3
 void main()
@@ -100,9 +101,9 @@ void main()
 }
 // popping activation record 0:main3:4
 // local variables: 
-// variable uv, unique name 0:main3:4:uv, index 190, declared at line 22, column 6
-// variable finalColor, unique name 0:main3:4:finalColor, index 191, declared at line 23, column 6
-// variable c, unique name 0:main3:4:c, index 192, declared at line 24, column 7
+// variable uv, unique name 0:main3:4:uv, index 191, declared at line 22, column 6
+// variable finalColor, unique name 0:main3:4:finalColor, index 192, declared at line 23, column 6
+// variable c, unique name 0:main3:4:c, index 193, declared at line 24, column 7
 // references:
 // gl_FragCoord at line 22, column 10
 // resolution at line 22, column 29
@@ -146,4 +147,3 @@ void main()
 // local variables: 
 // references:
 // undefined variables 
-//    zuv

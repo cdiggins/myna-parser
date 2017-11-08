@@ -31,10 +31,10 @@ mat3 fromEuler(vec3 ang)
 }
 // popping activation record 0:fromEuler1:2
 // local variables: 
-// variable a1, unique name 0:fromEuler1:2:a1, index 193, declared at line 25, column 6
-// variable a2, unique name 0:fromEuler1:2:a2, index 194, declared at line 26, column 9
-// variable a3, unique name 0:fromEuler1:2:a3, index 195, declared at line 27, column 9
-// variable m, unique name 0:fromEuler1:2:m, index 196, declared at line 28, column 9
+// variable a1, unique name 0:fromEuler1:2:a1, index 194, declared at line 25, column 6
+// variable a2, unique name 0:fromEuler1:2:a2, index 195, declared at line 26, column 9
+// variable a3, unique name 0:fromEuler1:2:a3, index 196, declared at line 27, column 9
+// variable m, unique name 0:fromEuler1:2:m, index 197, declared at line 28, column 9
 // references:
 // vec2 at line 25, column 11
 // sin at line 25, column 16
@@ -89,7 +89,7 @@ mat3 fromEuler(vec3 ang)
 // m at line 32, column 8
 // popping activation record 0:fromEuler1
 // local variables: 
-// variable ang, unique name 0:fromEuler1:ang, index 192, declared at line 24, column 20
+// variable ang, unique name 0:fromEuler1:ang, index 193, declared at line 24, column 20
 // references:
 // pushing activation record 0:hash3
 float hash(vec2 p)
@@ -101,7 +101,7 @@ float hash(vec2 p)
 }
 // popping activation record 0:hash3:4
 // local variables: 
-// variable h, unique name 0:hash3:4:h, index 199, declared at line 35, column 7
+// variable h, unique name 0:hash3:4:h, index 200, declared at line 35, column 7
 // references:
 // dot at line 35, column 11
 // p at line 35, column 15
@@ -111,7 +111,7 @@ float hash(vec2 p)
 // h at line 36, column 21
 // popping activation record 0:hash3
 // local variables: 
-// variable p, unique name 0:hash3:p, index 198, declared at line 34, column 17
+// variable p, unique name 0:hash3:p, index 199, declared at line 34, column 17
 // references:
 // pushing activation record 0:noise5
 float noise(in vec2 p)
@@ -125,9 +125,9 @@ float noise(in vec2 p)
 }
 // popping activation record 0:noise5:6
 // local variables: 
-// variable i, unique name 0:noise5:6:i, index 202, declared at line 39, column 9
-// variable f, unique name 0:noise5:6:f, index 203, declared at line 40, column 9
-// variable u, unique name 0:noise5:6:u, index 204, declared at line 41, column 6
+// variable i, unique name 0:noise5:6:i, index 203, declared at line 39, column 9
+// variable f, unique name 0:noise5:6:f, index 204, declared at line 40, column 9
+// variable u, unique name 0:noise5:6:u, index 205, declared at line 41, column 6
 // references:
 // floor at line 39, column 13
 // p at line 39, column 20
@@ -156,7 +156,7 @@ float noise(in vec2 p)
 // u at line 45, column 54
 // popping activation record 0:noise5
 // local variables: 
-// variable p, unique name 0:noise5:p, index 201, declared at line 38, column 21
+// variable p, unique name 0:noise5:p, index 202, declared at line 38, column 21
 // references:
 // pushing activation record 0:diffuse7
 float diffuse(vec3 n, vec3 l, float p)
@@ -175,9 +175,9 @@ float diffuse(vec3 n, vec3 l, float p)
 // p at line 50, column 36
 // popping activation record 0:diffuse7
 // local variables: 
-// variable n, unique name 0:diffuse7:n, index 206, declared at line 49, column 19
-// variable l, unique name 0:diffuse7:l, index 207, declared at line 49, column 26
-// variable p, unique name 0:diffuse7:p, index 208, declared at line 49, column 34
+// variable n, unique name 0:diffuse7:n, index 207, declared at line 49, column 19
+// variable l, unique name 0:diffuse7:l, index 208, declared at line 49, column 26
+// variable p, unique name 0:diffuse7:p, index 209, declared at line 49, column 34
 // references:
 // pushing activation record 0:specular9
 float specular(vec3 n, vec3 l, vec3 e, float s)
@@ -189,7 +189,7 @@ float specular(vec3 n, vec3 l, vec3 e, float s)
 }
 // popping activation record 0:specular9:10
 // local variables: 
-// variable nrm, unique name 0:specular9:10:nrm, index 214, declared at line 53, column 10
+// variable nrm, unique name 0:specular9:10:nrm, index 215, declared at line 53, column 10
 // references:
 // s at line 53, column 17
 // PI at line 53, column 29
@@ -204,10 +204,10 @@ float specular(vec3 n, vec3 l, vec3 e, float s)
 // nrm at line 54, column 49
 // popping activation record 0:specular9
 // local variables: 
-// variable n, unique name 0:specular9:n, index 210, declared at line 52, column 20
-// variable l, unique name 0:specular9:l, index 211, declared at line 52, column 27
-// variable e, unique name 0:specular9:e, index 212, declared at line 52, column 34
-// variable s, unique name 0:specular9:s, index 213, declared at line 52, column 42
+// variable n, unique name 0:specular9:n, index 211, declared at line 52, column 20
+// variable l, unique name 0:specular9:l, index 212, declared at line 52, column 27
+// variable e, unique name 0:specular9:e, index 213, declared at line 52, column 34
+// variable s, unique name 0:specular9:s, index 214, declared at line 52, column 42
 // references:
 // pushing activation record 0:getSkyColor11
 vec3 getSkyColor(vec3 e)
@@ -230,7 +230,7 @@ vec3 getSkyColor(vec3 e)
 // e at line 60, column 52
 // popping activation record 0:getSkyColor11
 // local variables: 
-// variable e, unique name 0:getSkyColor11:e, index 216, declared at line 58, column 22
+// variable e, unique name 0:getSkyColor11:e, index 217, declared at line 58, column 22
 // references:
 // pushing activation record 0:sea_octave13
 float sea_octave(vec2 uv, float choppy)
@@ -245,8 +245,8 @@ float sea_octave(vec2 uv, float choppy)
 }
 // popping activation record 0:sea_octave13:14
 // local variables: 
-// variable wv, unique name 0:sea_octave13:14:wv, index 220, declared at line 66, column 9
-// variable swv, unique name 0:sea_octave13:14:swv, index 221, declared at line 67, column 9
+// variable wv, unique name 0:sea_octave13:14:wv, index 221, declared at line 66, column 9
+// variable swv, unique name 0:sea_octave13:14:swv, index 222, declared at line 67, column 9
 // references:
 // uv at line 65, column 4
 // noise at line 65, column 10
@@ -269,8 +269,8 @@ float sea_octave(vec2 uv, float choppy)
 // choppy at line 69, column 41
 // popping activation record 0:sea_octave13
 // local variables: 
-// variable uv, unique name 0:sea_octave13:uv, index 218, declared at line 64, column 22
-// variable choppy, unique name 0:sea_octave13:choppy, index 219, declared at line 64, column 32
+// variable uv, unique name 0:sea_octave13:uv, index 219, declared at line 64, column 22
+// variable choppy, unique name 0:sea_octave13:choppy, index 220, declared at line 64, column 32
 // references:
 // pushing activation record 0:map15
 float map(vec3 p)
@@ -321,7 +321,7 @@ float map(vec3 p)
     // choppy at line 84, column 21
     // popping activation record 0:map15:16:for17
     // local variables: 
-    // variable i, unique name 0:map15:16:for17:i, index 230, declared at line 79, column 12
+    // variable i, unique name 0:map15:16:for17:i, index 231, declared at line 79, column 12
     // references:
     // i at line 79, column 19
     // ITER_GEOMETRY at line 79, column 23
@@ -331,12 +331,12 @@ float map(vec3 p)
 }
 // popping activation record 0:map15:16
 // local variables: 
-// variable freq, unique name 0:map15:16:freq, index 224, declared at line 73, column 10
-// variable amp, unique name 0:map15:16:amp, index 225, declared at line 74, column 10
-// variable choppy, unique name 0:map15:16:choppy, index 226, declared at line 75, column 10
-// variable uv, unique name 0:map15:16:uv, index 227, declared at line 76, column 9
-// variable d, unique name 0:map15:16:d, index 228, declared at line 78, column 10
-// variable h, unique name 0:map15:16:h, index 229, declared at line 78, column 13
+// variable freq, unique name 0:map15:16:freq, index 225, declared at line 73, column 10
+// variable amp, unique name 0:map15:16:amp, index 226, declared at line 74, column 10
+// variable choppy, unique name 0:map15:16:choppy, index 227, declared at line 75, column 10
+// variable uv, unique name 0:map15:16:uv, index 228, declared at line 76, column 9
+// variable d, unique name 0:map15:16:d, index 229, declared at line 78, column 10
+// variable h, unique name 0:map15:16:h, index 230, declared at line 78, column 13
 // references:
 // SEA_FREQ at line 73, column 17
 // SEA_HEIGHT at line 74, column 16
@@ -347,7 +347,7 @@ float map(vec3 p)
 // h at line 86, column 17
 // popping activation record 0:map15
 // local variables: 
-// variable p, unique name 0:map15:p, index 223, declared at line 72, column 15
+// variable p, unique name 0:map15:p, index 224, declared at line 72, column 15
 // references:
 // pushing activation record 0:map_detailed19
 float map_detailed(vec3 p)
@@ -398,7 +398,7 @@ float map_detailed(vec3 p)
     // choppy at line 101, column 21
     // popping activation record 0:map_detailed19:20:for21
     // local variables: 
-    // variable i, unique name 0:map_detailed19:20:for21:i, index 239, declared at line 96, column 12
+    // variable i, unique name 0:map_detailed19:20:for21:i, index 240, declared at line 96, column 12
     // references:
     // i at line 96, column 19
     // ITER_FRAGMENT at line 96, column 23
@@ -408,12 +408,12 @@ float map_detailed(vec3 p)
 }
 // popping activation record 0:map_detailed19:20
 // local variables: 
-// variable freq, unique name 0:map_detailed19:20:freq, index 233, declared at line 90, column 10
-// variable amp, unique name 0:map_detailed19:20:amp, index 234, declared at line 91, column 10
-// variable choppy, unique name 0:map_detailed19:20:choppy, index 235, declared at line 92, column 10
-// variable uv, unique name 0:map_detailed19:20:uv, index 236, declared at line 93, column 9
-// variable d, unique name 0:map_detailed19:20:d, index 237, declared at line 95, column 10
-// variable h, unique name 0:map_detailed19:20:h, index 238, declared at line 95, column 13
+// variable freq, unique name 0:map_detailed19:20:freq, index 234, declared at line 90, column 10
+// variable amp, unique name 0:map_detailed19:20:amp, index 235, declared at line 91, column 10
+// variable choppy, unique name 0:map_detailed19:20:choppy, index 236, declared at line 92, column 10
+// variable uv, unique name 0:map_detailed19:20:uv, index 237, declared at line 93, column 9
+// variable d, unique name 0:map_detailed19:20:d, index 238, declared at line 95, column 10
+// variable h, unique name 0:map_detailed19:20:h, index 239, declared at line 95, column 13
 // references:
 // SEA_FREQ at line 90, column 17
 // SEA_HEIGHT at line 91, column 16
@@ -424,7 +424,7 @@ float map_detailed(vec3 p)
 // h at line 103, column 17
 // popping activation record 0:map_detailed19
 // local variables: 
-// variable p, unique name 0:map_detailed19:p, index 232, declared at line 89, column 24
+// variable p, unique name 0:map_detailed19:p, index 233, declared at line 89, column 24
 // references:
 // pushing activation record 0:getSeaColor23
 vec3 getSeaColor(vec3 p, vec3 n, vec3 l, vec3 eye, vec3 dist)
@@ -443,11 +443,11 @@ vec3 getSeaColor(vec3 p, vec3 n, vec3 l, vec3 eye, vec3 dist)
 }
 // popping activation record 0:getSeaColor23:24
 // local variables: 
-// variable fresnel, unique name 0:getSeaColor23:24:fresnel, index 246, declared at line 107, column 10
-// variable reflected, unique name 0:getSeaColor23:24:reflected, index 247, declared at line 110, column 9
-// variable refracted, unique name 0:getSeaColor23:24:refracted, index 248, declared at line 111, column 9
-// variable color, unique name 0:getSeaColor23:24:color, index 249, declared at line 113, column 9
-// variable atten, unique name 0:getSeaColor23:24:atten, index 250, declared at line 115, column 10
+// variable fresnel, unique name 0:getSeaColor23:24:fresnel, index 247, declared at line 107, column 10
+// variable reflected, unique name 0:getSeaColor23:24:reflected, index 248, declared at line 110, column 9
+// variable refracted, unique name 0:getSeaColor23:24:refracted, index 249, declared at line 111, column 9
+// variable color, unique name 0:getSeaColor23:24:color, index 250, declared at line 113, column 9
+// variable atten, unique name 0:getSeaColor23:24:atten, index 251, declared at line 115, column 10
 // references:
 // clamp at line 107, column 20
 // dot at line 107, column 32
@@ -487,11 +487,11 @@ vec3 getSeaColor(vec3 p, vec3 n, vec3 l, vec3 eye, vec3 dist)
 // color at line 120, column 11
 // popping activation record 0:getSeaColor23
 // local variables: 
-// variable p, unique name 0:getSeaColor23:p, index 241, declared at line 106, column 22
-// variable n, unique name 0:getSeaColor23:n, index 242, declared at line 106, column 30
-// variable l, unique name 0:getSeaColor23:l, index 243, declared at line 106, column 38
-// variable eye, unique name 0:getSeaColor23:eye, index 244, declared at line 106, column 46
-// variable dist, unique name 0:getSeaColor23:dist, index 245, declared at line 106, column 56
+// variable p, unique name 0:getSeaColor23:p, index 242, declared at line 106, column 22
+// variable n, unique name 0:getSeaColor23:n, index 243, declared at line 106, column 30
+// variable l, unique name 0:getSeaColor23:l, index 244, declared at line 106, column 38
+// variable eye, unique name 0:getSeaColor23:eye, index 245, declared at line 106, column 46
+// variable dist, unique name 0:getSeaColor23:dist, index 246, declared at line 106, column 56
 // references:
 // pushing activation record 0:getNormal25
 vec3 getNormal(vec3 p, float eps)
@@ -507,7 +507,7 @@ vec3 getNormal(vec3 p, float eps)
 }
 // popping activation record 0:getNormal25:26
 // local variables: 
-// variable n, unique name 0:getNormal25:26:n, index 254, declared at line 125, column 9
+// variable n, unique name 0:getNormal25:26:n, index 255, declared at line 125, column 9
 // references:
 // n at line 126, column 4
 // map_detailed at line 126, column 10
@@ -534,8 +534,8 @@ vec3 getNormal(vec3 p, float eps)
 // n at line 130, column 21
 // popping activation record 0:getNormal25
 // local variables: 
-// variable p, unique name 0:getNormal25:p, index 252, declared at line 124, column 20
-// variable eps, unique name 0:getNormal25:eps, index 253, declared at line 124, column 29
+// variable p, unique name 0:getNormal25:p, index 253, declared at line 124, column 20
+// variable eps, unique name 0:getNormal25:eps, index 254, declared at line 124, column 29
 // references:
 // pushing activation record 0:heightMapTracing27
 float heightMapTracing(vec3 ori, vec3 dir, out vec3 p)
@@ -570,7 +570,7 @@ float heightMapTracing(vec3 ori, vec3 dir, out vec3 p)
     }
     // popping activation record 0:heightMapTracing27:28:for29:30
     // local variables: 
-    // variable hmid, unique name 0:heightMapTracing27:28:for29:30:hmid, index 265, declared at line 143, column 11
+    // variable hmid, unique name 0:heightMapTracing27:28:for29:30:hmid, index 266, declared at line 143, column 11
     // references:
     // tmid at line 141, column 8
     // mix at line 141, column 15
@@ -588,7 +588,7 @@ float heightMapTracing(vec3 ori, vec3 dir, out vec3 p)
     // hmid at line 144, column 5
     // popping activation record 0:heightMapTracing27:28:for29
     // local variables: 
-    // variable i, unique name 0:heightMapTracing27:28:for29:i, index 264, declared at line 140, column 12
+    // variable i, unique name 0:heightMapTracing27:28:for29:i, index 265, declared at line 140, column 12
     // references:
     // i at line 140, column 19
     // NUM_STEPS at line 140, column 23
@@ -598,11 +598,11 @@ float heightMapTracing(vec3 ori, vec3 dir, out vec3 p)
 }
 // popping activation record 0:heightMapTracing27:28
 // local variables: 
-// variable tm, unique name 0:heightMapTracing27:28:tm, index 259, declared at line 134, column 10
-// variable tx, unique name 0:heightMapTracing27:28:tx, index 260, declared at line 135, column 10
-// variable hx, unique name 0:heightMapTracing27:28:hx, index 261, declared at line 136, column 10
-// variable hm, unique name 0:heightMapTracing27:28:hm, index 262, declared at line 138, column 10
-// variable tmid, unique name 0:heightMapTracing27:28:tmid, index 263, declared at line 139, column 10
+// variable tm, unique name 0:heightMapTracing27:28:tm, index 260, declared at line 134, column 10
+// variable tx, unique name 0:heightMapTracing27:28:tx, index 261, declared at line 135, column 10
+// variable hx, unique name 0:heightMapTracing27:28:hx, index 262, declared at line 136, column 10
+// variable hm, unique name 0:heightMapTracing27:28:hm, index 263, declared at line 138, column 10
+// variable tmid, unique name 0:heightMapTracing27:28:tmid, index 264, declared at line 139, column 10
 // references:
 // map at line 136, column 15
 // ori at line 136, column 19
@@ -617,9 +617,9 @@ float heightMapTracing(vec3 ori, vec3 dir, out vec3 p)
 // tmid at line 152, column 11
 // popping activation record 0:heightMapTracing27
 // local variables: 
-// variable ori, unique name 0:heightMapTracing27:ori, index 256, declared at line 133, column 28
-// variable dir, unique name 0:heightMapTracing27:dir, index 257, declared at line 133, column 38
-// variable p, unique name 0:heightMapTracing27:p, index 258, declared at line 133, column 52
+// variable ori, unique name 0:heightMapTracing27:ori, index 257, declared at line 133, column 28
+// variable dir, unique name 0:heightMapTracing27:dir, index 258, declared at line 133, column 38
+// variable p, unique name 0:heightMapTracing27:p, index 259, declared at line 133, column 52
 // references:
 // pushing activation record 0:mainImage32
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
@@ -645,16 +645,16 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 }
 // popping activation record 0:mainImage32:33
 // local variables: 
-// variable uv, unique name 0:mainImage32:33:uv, index 269, declared at line 157, column 6
-// variable time, unique name 0:mainImage32:33:time, index 270, declared at line 160, column 10
-// variable ang, unique name 0:mainImage32:33:ang, index 271, declared at line 163, column 9
-// variable ori, unique name 0:mainImage32:33:ori, index 272, declared at line 164, column 9
-// variable dir, unique name 0:mainImage32:33:dir, index 273, declared at line 165, column 9
-// variable p, unique name 0:mainImage32:33:p, index 274, declared at line 169, column 9
-// variable dist, unique name 0:mainImage32:33:dist, index 275, declared at line 171, column 9
-// variable n, unique name 0:mainImage32:33:n, index 276, declared at line 172, column 9
-// variable light, unique name 0:mainImage32:33:light, index 277, declared at line 173, column 9
-// variable color, unique name 0:mainImage32:33:color, index 278, declared at line 176, column 9
+// variable uv, unique name 0:mainImage32:33:uv, index 270, declared at line 157, column 6
+// variable time, unique name 0:mainImage32:33:time, index 271, declared at line 160, column 10
+// variable ang, unique name 0:mainImage32:33:ang, index 272, declared at line 163, column 9
+// variable ori, unique name 0:mainImage32:33:ori, index 273, declared at line 164, column 9
+// variable dir, unique name 0:mainImage32:33:dir, index 274, declared at line 165, column 9
+// variable p, unique name 0:mainImage32:33:p, index 275, declared at line 169, column 9
+// variable dist, unique name 0:mainImage32:33:dist, index 276, declared at line 171, column 9
+// variable n, unique name 0:mainImage32:33:n, index 277, declared at line 172, column 9
+// variable light, unique name 0:mainImage32:33:light, index 278, declared at line 173, column 9
+// variable color, unique name 0:mainImage32:33:color, index 279, declared at line 176, column 9
 // references:
 // fragCoord at line 157, column 11
 // iResolution at line 157, column 26
@@ -717,7 +717,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 // vec3 at line 182, column 28
 // popping activation record 0:mainImage32
 // local variables: 
-// variable fragColor, unique name 0:mainImage32:fragColor, index 267, declared at line 156, column 25
-// variable fragCoord, unique name 0:mainImage32:fragCoord, index 268, declared at line 156, column 44
+// variable fragColor, unique name 0:mainImage32:fragColor, index 268, declared at line 156, column 25
+// variable fragCoord, unique name 0:mainImage32:fragCoord, index 269, declared at line 156, column 44
 // references:
 // undefined variables 

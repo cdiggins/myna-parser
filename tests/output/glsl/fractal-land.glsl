@@ -40,7 +40,7 @@ mat2 rot(float a)
 // a at line 36, column 39
 // popping activation record 0:rot1
 // local variables: 
-// variable a, unique name 0:rot1:a, index 189, declared at line 35, column 15
+// variable a, unique name 0:rot1:a, index 190, declared at line 35, column 15
 // references:
 // pushing activation record 0:formula3
 vec4 formula(vec4 p)
@@ -75,7 +75,7 @@ vec4 formula(vec4 p)
 // p at line 45, column 8
 // popping activation record 0:formula3
 // local variables: 
-// variable p, unique name 0:formula3:p, index 191, declared at line 40, column 18
+// variable p, unique name 0:formula3:p, index 192, declared at line 40, column 18
 // references:
 // pushing activation record 0:de5
 float de(vec3 pos)
@@ -104,7 +104,7 @@ float hid = 0.;
     // p at line 57, column 36
     // popping activation record 0:de5:6:for7
     // local variables: 
-    // variable i, unique name 0:de5:6:for7:i, index 197, declared at line 57, column 10
+    // variable i, unique name 0:de5:6:for7:i, index 198, declared at line 57, column 10
     // references:
     // i at line 57, column 15
     // i at line 57, column 20
@@ -120,12 +120,12 @@ float hid = 0.;
 }
 // popping activation record 0:de5:6
 // local variables: 
-// variable hid, unique name 0:de5:6:hid, index 194, declared at line 53, column 7
-// variable tpos, unique name 0:de5:6:tpos, index 195, declared at line 54, column 6
-// variable p, unique name 0:de5:6:p, index 196, declared at line 56, column 6
-// variable fr, unique name 0:de5:6:fr, index 198, declared at line 58, column 7
-// variable ro, unique name 0:de5:6:ro, index 199, declared at line 59, column 7
-// variable d, unique name 0:de5:6:d, index 200, declared at line 64, column 7
+// variable hid, unique name 0:de5:6:hid, index 195, declared at line 53, column 7
+// variable tpos, unique name 0:de5:6:tpos, index 196, declared at line 54, column 6
+// variable p, unique name 0:de5:6:p, index 197, declared at line 56, column 6
+// variable fr, unique name 0:de5:6:fr, index 199, declared at line 58, column 7
+// variable ro, unique name 0:de5:6:ro, index 200, declared at line 59, column 7
+// variable d, unique name 0:de5:6:d, index 201, declared at line 64, column 7
 // references:
 // pos at line 51, column 1
 // sin at line 51, column 8
@@ -178,7 +178,7 @@ float hid = 0.;
 // d at line 65, column 8
 // popping activation record 0:de5
 // local variables: 
-// variable pos, unique name 0:de5:pos, index 193, declared at line 49, column 14
+// variable pos, unique name 0:de5:pos, index 194, declared at line 49, column 14
 // references:
 // pushing activation record 0:path9
 vec3 path(float ti)
@@ -191,7 +191,7 @@ vec3 path(float ti)
 }
 // popping activation record 0:path9:10
 // local variables: 
-// variable p, unique name 0:path9:10:p, index 203, declared at line 72, column 7
+// variable p, unique name 0:path9:10:p, index 204, declared at line 72, column 7
 // references:
 // ti at line 71, column 1
 // vec3 at line 72, column 9
@@ -203,7 +203,7 @@ vec3 path(float ti)
 // p at line 73, column 8
 // popping activation record 0:path9
 // local variables: 
-// variable ti, unique name 0:path9:ti, index 202, declared at line 70, column 16
+// variable ti, unique name 0:path9:ti, index 203, declared at line 70, column 16
 // references:
 float edge = 0.;
 // pushing activation record 0:normal11
@@ -222,14 +222,14 @@ vec3 normal(vec3 p)
 }
 // popping activation record 0:normal11:12
 // local variables: 
-// variable e, unique name 0:normal11:12:e, index 207, declared at line 80, column 6
-// variable d1, unique name 0:normal11:12:d1, index 208, declared at line 82, column 7
-// variable d2, unique name 0:normal11:12:d2, index 209, declared at line 82, column 22
-// variable d3, unique name 0:normal11:12:d3, index 210, declared at line 83, column 7
-// variable d4, unique name 0:normal11:12:d4, index 211, declared at line 83, column 22
-// variable d5, unique name 0:normal11:12:d5, index 212, declared at line 84, column 7
-// variable d6, unique name 0:normal11:12:d6, index 213, declared at line 84, column 22
-// variable d, unique name 0:normal11:12:d, index 214, declared at line 85, column 7
+// variable e, unique name 0:normal11:12:e, index 208, declared at line 80, column 6
+// variable d1, unique name 0:normal11:12:d1, index 209, declared at line 82, column 7
+// variable d2, unique name 0:normal11:12:d2, index 210, declared at line 82, column 22
+// variable d3, unique name 0:normal11:12:d3, index 211, declared at line 83, column 7
+// variable d4, unique name 0:normal11:12:d4, index 212, declared at line 83, column 22
+// variable d5, unique name 0:normal11:12:d5, index 213, declared at line 84, column 7
+// variable d6, unique name 0:normal11:12:d6, index 214, declared at line 84, column 22
+// variable d, unique name 0:normal11:12:d, index 215, declared at line 85, column 7
 // references:
 // vec3 at line 80, column 10
 // det at line 80, column 19
@@ -280,7 +280,7 @@ vec3 normal(vec3 p)
 // d6 at line 88, column 38
 // popping activation record 0:normal11
 // local variables: 
-// variable p, unique name 0:normal11:p, index 206, declared at line 79, column 17
+// variable p, unique name 0:normal11:p, index 207, declared at line 79, column 17
 // references:
 // pushing activation record 0:rainbow13
 vec4 rainbow(vec2 p)
@@ -299,9 +299,9 @@ vec4 rainbow(vec2 p)
 }
 // popping activation record 0:rainbow13:14
 // local variables: 
-// variable q, unique name 0:rainbow13:14:q, index 217, declared at line 96, column 7
-// variable s, unique name 0:rainbow13:14:s, index 218, declared at line 97, column 7
-// variable c, unique name 0:rainbow13:14:c, index 219, declared at line 101, column 6
+// variable q, unique name 0:rainbow13:14:q, index 218, declared at line 96, column 7
+// variable s, unique name 0:rainbow13:14:s, index 219, declared at line 97, column 7
+// variable c, unique name 0:rainbow13:14:c, index 220, declared at line 101, column 6
 // references:
 // max at line 96, column 11
 // p at line 96, column 15
@@ -327,7 +327,7 @@ vec4 rainbow(vec2 p)
 // c at line 114, column 8
 // popping activation record 0:rainbow13
 // local variables: 
-// variable p, unique name 0:rainbow13:p, index 216, declared at line 94, column 18
+// variable p, unique name 0:rainbow13:p, index 217, declared at line 94, column 18
 // references:
 // pushing activation record 0:nyan15
 vec4 nyan(vec2 p)
@@ -349,11 +349,11 @@ vec4 nyan(vec2 p)
 }
 // popping activation record 0:nyan15:16
 // local variables: 
-// variable uv, unique name 0:nyan15:16:uv, index 222, declared at line 119, column 6
-// variable ns, unique name 0:nyan15:16:ns, index 223, declared at line 120, column 7
-// variable nt, unique name 0:nyan15:16:nt, index 224, declared at line 121, column 7
-// variable ny, unique name 0:nyan15:16:ny, index 225, declared at line 122, column 7
-// variable color, unique name 0:nyan15:16:color, index 226, declared at line 123, column 6
+// variable uv, unique name 0:nyan15:16:uv, index 223, declared at line 119, column 6
+// variable ns, unique name 0:nyan15:16:ns, index 224, declared at line 120, column 7
+// variable nt, unique name 0:nyan15:16:nt, index 225, declared at line 121, column 7
+// variable ny, unique name 0:nyan15:16:ny, index 226, declared at line 122, column 7
+// variable color, unique name 0:nyan15:16:color, index 227, declared at line 123, column 6
 // references:
 // p at line 119, column 11
 // vec2 at line 119, column 13
@@ -386,7 +386,7 @@ vec4 nyan(vec2 p)
 // color at line 126, column 8
 // popping activation record 0:nyan15
 // local variables: 
-// variable p, unique name 0:nyan15:p, index 221, declared at line 117, column 15
+// variable p, unique name 0:nyan15:p, index 222, declared at line 117, column 15
 // references:
 // pushing activation record 0:raymarch17
 vec3 raymarch(in vec3 from, in vec3 dir)
@@ -433,7 +433,7 @@ vec3 raymarch(in vec3 from, in vec3 dir)
     // totdist at line 140, column 15
     // popping activation record 0:raymarch17:18:for19
     // local variables: 
-    // variable i, unique name 0:raymarch17:18:for19:i, index 234, declared at line 139, column 10
+    // variable i, unique name 0:raymarch17:18:for19:i, index 235, declared at line 139, column 10
     // references:
     // i at line 139, column 15
     // RAY_STEPS at line 139, column 17
@@ -487,21 +487,21 @@ return col;
 }
 // popping activation record 0:raymarch17:18
 // local variables: 
-// variable p, unique name 0:raymarch17:18:p, index 230, declared at line 136, column 6
-// variable norm, unique name 0:raymarch17:18:norm, index 231, declared at line 136, column 9
-// variable d, unique name 0:raymarch17:18:d, index 232, declared at line 137, column 7
-// variable totdist, unique name 0:raymarch17:18:totdist, index 233, declared at line 138, column 7
-// variable col, unique name 0:raymarch17:18:col, index 235, declared at line 147, column 6
-// variable sunsize, unique name 0:raymarch17:18:sunsize, index 236, declared at line 157, column 7
-// variable an, unique name 0:raymarch17:18:an, index 237, declared at line 158, column 7
-// variable s, unique name 0:raymarch17:18:s, index 238, declared at line 159, column 7
-// variable sb, unique name 0:raymarch17:18:sb, index 239, declared at line 160, column 7
-// variable sg, unique name 0:raymarch17:18:sg, index 240, declared at line 161, column 7
-// variable y, unique name 0:raymarch17:18:y, index 241, declared at line 162, column 7
-// variable backg, unique name 0:raymarch17:18:backg, index 242, declared at line 165, column 6
-// variable ncatpos, unique name 0:raymarch17:18:ncatpos, index 243, declared at line 179, column 6
-// variable ncat, unique name 0:raymarch17:18:ncat, index 244, declared at line 180, column 6
-// variable rain, unique name 0:raymarch17:18:rain, index 245, declared at line 181, column 6
+// variable p, unique name 0:raymarch17:18:p, index 231, declared at line 136, column 6
+// variable norm, unique name 0:raymarch17:18:norm, index 232, declared at line 136, column 9
+// variable d, unique name 0:raymarch17:18:d, index 233, declared at line 137, column 7
+// variable totdist, unique name 0:raymarch17:18:totdist, index 234, declared at line 138, column 7
+// variable col, unique name 0:raymarch17:18:col, index 236, declared at line 147, column 6
+// variable sunsize, unique name 0:raymarch17:18:sunsize, index 237, declared at line 157, column 7
+// variable an, unique name 0:raymarch17:18:an, index 238, declared at line 158, column 7
+// variable s, unique name 0:raymarch17:18:s, index 239, declared at line 159, column 7
+// variable sb, unique name 0:raymarch17:18:sb, index 240, declared at line 160, column 7
+// variable sg, unique name 0:raymarch17:18:sg, index 241, declared at line 161, column 7
+// variable y, unique name 0:raymarch17:18:y, index 242, declared at line 162, column 7
+// variable backg, unique name 0:raymarch17:18:backg, index 243, declared at line 165, column 6
+// variable ncatpos, unique name 0:raymarch17:18:ncatpos, index 244, declared at line 179, column 6
+// variable ncat, unique name 0:raymarch17:18:ncat, index 245, declared at line 180, column 6
+// variable rain, unique name 0:raymarch17:18:rain, index 246, declared at line 181, column 6
 // references:
 // edge at line 135, column 1
 // vec3 at line 147, column 10
@@ -636,8 +636,8 @@ return col;
 // col at line 186, column 8
 // popping activation record 0:raymarch17
 // local variables: 
-// variable from, unique name 0:raymarch17:from, index 228, declared at line 132, column 22
-// variable dir, unique name 0:raymarch17:dir, index 229, declared at line 132, column 36
+// variable from, unique name 0:raymarch17:from, index 229, declared at line 132, column 22
+// variable dir, unique name 0:raymarch17:dir, index 230, declared at line 132, column 36
 // references:
 // pushing activation record 0:move22
 vec3 move(inout vec3 dir)
@@ -659,11 +659,11 @@ vec3 move(inout vec3 dir)
 }
 // popping activation record 0:move22:23
 // local variables: 
-// variable go, unique name 0:move22:23:go, index 248, declared at line 191, column 6
-// variable adv, unique name 0:move22:23:adv, index 249, declared at line 192, column 6
-// variable hd, unique name 0:move22:23:hd, index 250, declared at line 193, column 7
-// variable advec, unique name 0:move22:23:advec, index 251, declared at line 194, column 6
-// variable an, unique name 0:move22:23:an, index 252, declared at line 195, column 7
+// variable go, unique name 0:move22:23:go, index 249, declared at line 191, column 6
+// variable adv, unique name 0:move22:23:adv, index 250, declared at line 192, column 6
+// variable hd, unique name 0:move22:23:hd, index 251, declared at line 193, column 7
+// variable advec, unique name 0:move22:23:advec, index 252, declared at line 194, column 6
+// variable an, unique name 0:move22:23:an, index 253, declared at line 195, column 7
 // references:
 // path at line 191, column 9
 // t at line 191, column 14
@@ -723,7 +723,7 @@ vec3 move(inout vec3 dir)
 // go at line 201, column 8
 // popping activation record 0:move22
 // local variables: 
-// variable dir, unique name 0:move22:dir, index 247, declared at line 190, column 21
+// variable dir, unique name 0:move22:dir, index 248, declared at line 190, column 21
 // references:
 // pushing activation record 0:mainImage24
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
@@ -750,13 +750,13 @@ fragColor = vec4(color, 1.);
 }
 // popping activation record 0:mainImage24:25
 // local variables: 
-// variable uv, unique name 0:mainImage24:25:uv, index 256, declared at line 206, column 6
-// variable oriuv, unique name 0:mainImage24:25:oriuv, index 257, declared at line 207, column 6
-// variable mouse, unique name 0:mainImage24:25:mouse, index 258, declared at line 209, column 6
-// variable fov, unique name 0:mainImage24:25:fov, index 259, declared at line 211, column 7
-// variable dir, unique name 0:mainImage24:25:dir, index 260, declared at line 212, column 6
-// variable from, unique name 0:mainImage24:25:from, index 261, declared at line 215, column 6
-// variable color, unique name 0:mainImage24:25:color, index 262, declared at line 216, column 6
+// variable uv, unique name 0:mainImage24:25:uv, index 257, declared at line 206, column 6
+// variable oriuv, unique name 0:mainImage24:25:oriuv, index 258, declared at line 207, column 6
+// variable mouse, unique name 0:mainImage24:25:mouse, index 259, declared at line 209, column 6
+// variable fov, unique name 0:mainImage24:25:fov, index 260, declared at line 211, column 7
+// variable dir, unique name 0:mainImage24:25:dir, index 261, declared at line 212, column 6
+// variable from, unique name 0:mainImage24:25:from, index 262, declared at line 215, column 6
+// variable color, unique name 0:mainImage24:25:color, index 263, declared at line 216, column 6
 // references:
 // fragCoord at line 206, column 11
 // iResolution at line 206, column 26
@@ -803,7 +803,7 @@ fragColor = vec4(color, 1.);
 // color at line 220, column 18
 // popping activation record 0:mainImage24
 // local variables: 
-// variable fragColor, unique name 0:mainImage24:fragColor, index 254, declared at line 204, column 25
-// variable fragCoord, unique name 0:mainImage24:fragCoord, index 255, declared at line 204, column 44
+// variable fragColor, unique name 0:mainImage24:fragColor, index 255, declared at line 204, column 25
+// variable fragCoord, unique name 0:mainImage24:fragCoord, index 256, declared at line 204, column 44
 // references:
 // undefined variables 

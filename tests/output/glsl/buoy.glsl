@@ -18,7 +18,7 @@ vec3 ToLinear(in vec3 col)
 // GAMMA at line 11, column 23
 // popping activation record 0:ToLinear1
 // local variables: 
-// variable col, unique name 0:ToLinear1:col, index 180, declared at line 8, column 23
+// variable col, unique name 0:ToLinear1:col, index 181, declared at line 8, column 23
 // references:
 // pushing activation record 0:ToGamma3
 vec3 ToGamma(in vec3 col)
@@ -36,7 +36,7 @@ vec3 ToGamma(in vec3 col)
 // GAMMA at line 17, column 27
 // popping activation record 0:ToGamma3
 // local variables: 
-// variable col, unique name 0:ToGamma3:col, index 182, declared at line 14, column 22
+// variable col, unique name 0:ToGamma3:col, index 183, declared at line 14, column 22
 // references:
 vec3 localRay;
 // pushing activation record 0:CamPolar5
@@ -58,8 +58,8 @@ void CamPolar(out vec3 pos, out vec3 ray, in vec3 origin, in vec2 rotation, in f
 }
 // popping activation record 0:CamPolar5:6
 // local variables: 
-// variable c, unique name 0:CamPolar5:6:c, index 192, declared at line 30, column 6
-// variable s, unique name 0:CamPolar5:6:s, index 193, declared at line 31, column 6
+// variable c, unique name 0:CamPolar5:6:c, index 193, declared at line 30, column 6
+// variable s, unique name 0:CamPolar5:6:s, index 194, declared at line 31, column 6
 // references:
 // vec2 at line 30, column 10
 // cos at line 30, column 15
@@ -106,13 +106,13 @@ void CamPolar(out vec3 pos, out vec3 ray, in vec3 origin, in vec2 rotation, in f
 // c at line 46, column 46
 // popping activation record 0:CamPolar5
 // local variables: 
-// variable pos, unique name 0:CamPolar5:pos, index 185, declared at line 27, column 24
-// variable ray, unique name 0:CamPolar5:ray, index 186, declared at line 27, column 38
-// variable origin, unique name 0:CamPolar5:origin, index 187, declared at line 27, column 51
-// variable rotation, unique name 0:CamPolar5:rotation, index 188, declared at line 27, column 67
-// variable distance, unique name 0:CamPolar5:distance, index 189, declared at line 27, column 86
-// variable zoom, unique name 0:CamPolar5:zoom, index 190, declared at line 27, column 105
-// variable fragCoord, unique name 0:CamPolar5:fragCoord, index 191, declared at line 27, column 119
+// variable pos, unique name 0:CamPolar5:pos, index 186, declared at line 27, column 24
+// variable ray, unique name 0:CamPolar5:ray, index 187, declared at line 27, column 38
+// variable origin, unique name 0:CamPolar5:origin, index 188, declared at line 27, column 51
+// variable rotation, unique name 0:CamPolar5:rotation, index 189, declared at line 27, column 67
+// variable distance, unique name 0:CamPolar5:distance, index 190, declared at line 27, column 86
+// variable zoom, unique name 0:CamPolar5:zoom, index 191, declared at line 27, column 105
+// variable fragCoord, unique name 0:CamPolar5:fragCoord, index 192, declared at line 27, column 119
 // references:
 // pushing activation record 0:Noise7
 vec2 Noise(in vec3 x)
@@ -128,10 +128,10 @@ vec2 Noise(in vec3 x)
 }
 // popping activation record 0:Noise7:8
 // local variables: 
-// variable p, unique name 0:Noise7:8:p, index 196, declared at line 54, column 9
-// variable f, unique name 0:Noise7:8:f, index 197, declared at line 55, column 9
-// variable uv, unique name 0:Noise7:8:uv, index 198, declared at line 59, column 6
-// variable rg, unique name 0:Noise7:8:rg, index 199, declared at line 61, column 6
+// variable p, unique name 0:Noise7:8:p, index 197, declared at line 54, column 9
+// variable f, unique name 0:Noise7:8:f, index 198, declared at line 55, column 9
+// variable uv, unique name 0:Noise7:8:uv, index 199, declared at line 59, column 6
+// variable rg, unique name 0:Noise7:8:rg, index 200, declared at line 61, column 6
 // references:
 // floor at line 54, column 13
 // x at line 54, column 19
@@ -154,7 +154,7 @@ vec2 Noise(in vec3 x)
 // f at line 63, column 27
 // popping activation record 0:Noise7
 // local variables: 
-// variable x, unique name 0:Noise7:x, index 195, declared at line 52, column 20
+// variable x, unique name 0:Noise7:x, index 196, declared at line 52, column 20
 // references:
 // pushing activation record 0:NoisePrecise9
 vec2 NoisePrecise(in vec3 x)
@@ -170,10 +170,10 @@ vec2 NoisePrecise(in vec3 x)
 }
 // popping activation record 0:NoisePrecise9:10
 // local variables: 
-// variable p, unique name 0:NoisePrecise9:10:p, index 202, declared at line 68, column 9
-// variable f, unique name 0:NoisePrecise9:10:f, index 203, declared at line 69, column 9
-// variable uv, unique name 0:NoisePrecise9:10:uv, index 204, declared at line 73, column 6
-// variable rg, unique name 0:NoisePrecise9:10:rg, index 205, declared at line 75, column 6
+// variable p, unique name 0:NoisePrecise9:10:p, index 203, declared at line 68, column 9
+// variable f, unique name 0:NoisePrecise9:10:f, index 204, declared at line 69, column 9
+// variable uv, unique name 0:NoisePrecise9:10:uv, index 205, declared at line 73, column 6
+// variable rg, unique name 0:NoisePrecise9:10:rg, index 206, declared at line 75, column 6
 // references:
 // floor at line 68, column 13
 // x at line 68, column 19
@@ -212,7 +212,7 @@ vec2 NoisePrecise(in vec3 x)
 // f at line 86, column 27
 // popping activation record 0:NoisePrecise9
 // local variables: 
-// variable x, unique name 0:NoisePrecise9:x, index 201, declared at line 66, column 27
+// variable x, unique name 0:NoisePrecise9:x, index 202, declared at line 66, column 27
 // references:
 // pushing activation record 0:Noise11
 vec4 Noise(in vec2 x)
@@ -227,9 +227,9 @@ vec4 Noise(in vec2 x)
 }
 // popping activation record 0:Noise11:12
 // local variables: 
-// variable p, unique name 0:Noise11:12:p, index 207, declared at line 91, column 9
-// variable f, unique name 0:Noise11:12:f, index 208, declared at line 92, column 9
-// variable uv, unique name 0:Noise11:12:uv, index 209, declared at line 96, column 6
+// variable p, unique name 0:Noise11:12:p, index 208, declared at line 91, column 9
+// variable f, unique name 0:Noise11:12:f, index 209, declared at line 92, column 9
+// variable uv, unique name 0:Noise11:12:uv, index 210, declared at line 96, column 6
 // references:
 // floor at line 91, column 13
 // x at line 91, column 19
@@ -246,7 +246,7 @@ vec4 Noise(in vec2 x)
 // uv at line 97, column 32
 // popping activation record 0:Noise11
 // local variables: 
-// variable x, unique name 0:Noise11:x, index 206, declared at line 89, column 20
+// variable x, unique name 0:Noise11:x, index 207, declared at line 89, column 20
 // references:
 // pushing activation record 0:Noise13
 vec4 Noise(in ivec2 x)
@@ -264,7 +264,7 @@ vec4 Noise(in ivec2 x)
 // x at line 102, column 37
 // popping activation record 0:Noise13
 // local variables: 
-// variable x, unique name 0:Noise13:x, index 210, declared at line 100, column 21
+// variable x, unique name 0:Noise13:x, index 211, declared at line 100, column 21
 // references:
 // pushing activation record 0:Noise15
 vec2 Noise(in ivec3 x)
@@ -276,7 +276,7 @@ vec2 Noise(in ivec3 x)
 }
 // popping activation record 0:Noise15:16
 // local variables: 
-// variable uv, unique name 0:Noise15:16:uv, index 212, declared at line 107, column 6
+// variable uv, unique name 0:Noise15:16:uv, index 213, declared at line 107, column 6
 // references:
 // vec2 at line 107, column 11
 // x at line 107, column 16
@@ -288,7 +288,7 @@ vec2 Noise(in ivec3 x)
 // uv at line 108, column 32
 // popping activation record 0:Noise15
 // local variables: 
-// variable x, unique name 0:Noise15:x, index 211, declared at line 105, column 21
+// variable x, unique name 0:Noise15:x, index 212, declared at line 105, column 21
 // references:
 // pushing activation record 0:Waves17
 float Waves(vec3 pos)
@@ -322,7 +322,7 @@ float Waves(vec3 pos)
     // pos at line 126, column 2
     // popping activation record 0:Waves17:18:for19
     // local variables: 
-    // variable i, unique name 0:Waves17:18:for19:i, index 217, declared at line 122, column 11
+    // variable i, unique name 0:Waves17:18:for19:i, index 218, declared at line 122, column 11
     // references:
     // i at line 122, column 16
     // octaves at line 122, column 20
@@ -333,8 +333,8 @@ float Waves(vec3 pos)
 }
 // popping activation record 0:Waves17:18
 // local variables: 
-// variable octaves, unique name 0:Waves17:18:octaves, index 215, declared at line 116, column 11
-// variable f, unique name 0:Waves17:18:f, index 216, declared at line 117, column 7
+// variable octaves, unique name 0:Waves17:18:octaves, index 216, declared at line 116, column 11
+// variable f, unique name 0:Waves17:18:f, index 217, declared at line 117, column 7
 // references:
 // pos at line 114, column 1
 // vec3 at line 114, column 11
@@ -348,7 +348,7 @@ float Waves(vec3 pos)
 // f at line 130, column 12
 // popping activation record 0:Waves17
 // local variables: 
-// variable pos, unique name 0:Waves17:pos, index 214, declared at line 112, column 18
+// variable pos, unique name 0:Waves17:pos, index 215, declared at line 112, column 18
 // references:
 // pushing activation record 0:WavesDetail21
 float WavesDetail(vec3 pos)
@@ -382,7 +382,7 @@ float WavesDetail(vec3 pos)
     // pos at line 147, column 2
     // popping activation record 0:WavesDetail21:22:for23
     // local variables: 
-    // variable i, unique name 0:WavesDetail21:22:for23:i, index 222, declared at line 143, column 11
+    // variable i, unique name 0:WavesDetail21:22:for23:i, index 223, declared at line 143, column 11
     // references:
     // i at line 143, column 16
     // octaves at line 143, column 20
@@ -393,8 +393,8 @@ float WavesDetail(vec3 pos)
 }
 // popping activation record 0:WavesDetail21:22
 // local variables: 
-// variable octaves, unique name 0:WavesDetail21:22:octaves, index 220, declared at line 137, column 11
-// variable f, unique name 0:WavesDetail21:22:f, index 221, declared at line 138, column 7
+// variable octaves, unique name 0:WavesDetail21:22:octaves, index 221, declared at line 137, column 11
+// variable f, unique name 0:WavesDetail21:22:f, index 222, declared at line 138, column 7
 // references:
 // pos at line 135, column 1
 // vec3 at line 135, column 11
@@ -408,7 +408,7 @@ float WavesDetail(vec3 pos)
 // f at line 151, column 12
 // popping activation record 0:WavesDetail21
 // local variables: 
-// variable pos, unique name 0:WavesDetail21:pos, index 219, declared at line 133, column 24
+// variable pos, unique name 0:WavesDetail21:pos, index 220, declared at line 133, column 24
 // references:
 // pushing activation record 0:WavesSmooth25
 float WavesSmooth(vec3 pos)
@@ -443,7 +443,7 @@ float WavesSmooth(vec3 pos)
     // pos at line 169, column 2
     // popping activation record 0:WavesSmooth25:26:for27
     // local variables: 
-    // variable i, unique name 0:WavesSmooth25:26:for27:i, index 227, declared at line 164, column 11
+    // variable i, unique name 0:WavesSmooth25:26:for27:i, index 228, declared at line 164, column 11
     // references:
     // i at line 164, column 16
     // octaves at line 164, column 20
@@ -454,8 +454,8 @@ float WavesSmooth(vec3 pos)
 }
 // popping activation record 0:WavesSmooth25:26
 // local variables: 
-// variable octaves, unique name 0:WavesSmooth25:26:octaves, index 225, declared at line 158, column 11
-// variable f, unique name 0:WavesSmooth25:26:f, index 226, declared at line 159, column 7
+// variable octaves, unique name 0:WavesSmooth25:26:octaves, index 226, declared at line 158, column 11
+// variable f, unique name 0:WavesSmooth25:26:f, index 227, declared at line 159, column 7
 // references:
 // pos at line 156, column 1
 // vec3 at line 156, column 11
@@ -469,7 +469,7 @@ float WavesSmooth(vec3 pos)
 // f at line 173, column 12
 // popping activation record 0:WavesSmooth25
 // local variables: 
-// variable pos, unique name 0:WavesSmooth25:pos, index 224, declared at line 154, column 24
+// variable pos, unique name 0:WavesSmooth25:pos, index 225, declared at line 154, column 24
 // references:
 // pushing activation record 0:WaveCrests29
 float WaveCrests(vec3 ipos, in vec2 fragCoord)
@@ -506,7 +506,7 @@ float WaveCrests(vec3 ipos, in vec2 fragCoord)
     // pos at line 193, column 2
     // popping activation record 0:WaveCrests29:30:for31
     // local variables: 
-    // variable i, unique name 0:WaveCrests29:30:for31:i, index 236, declared at line 189, column 11
+    // variable i, unique name 0:WaveCrests29:30:for31:i, index 237, declared at line 189, column 11
     // references:
     // i at line 189, column 16
     // octaves1 at line 189, column 20
@@ -538,7 +538,7 @@ float WaveCrests(vec3 ipos, in vec2 fragCoord)
     // pos at line 201, column 2
     // popping activation record 0:WaveCrests29:30:for33
     // local variables: 
-    // variable i, unique name 0:WaveCrests29:30:for33:i, index 237, declared at line 197, column 11
+    // variable i, unique name 0:WaveCrests29:30:for33:i, index 238, declared at line 197, column 11
     // references:
     // octaves1 at line 197, column 13
     // i at line 197, column 23
@@ -551,11 +551,11 @@ float WaveCrests(vec3 ipos, in vec2 fragCoord)
 }
 // popping activation record 0:WaveCrests29:30
 // local variables: 
-// variable pos, unique name 0:WaveCrests29:30:pos, index 231, declared at line 178, column 6
-// variable octaves1, unique name 0:WaveCrests29:30:octaves1, index 232, declared at line 181, column 11
-// variable octaves2, unique name 0:WaveCrests29:30:octaves2, index 233, declared at line 182, column 11
-// variable f, unique name 0:WaveCrests29:30:f, index 234, declared at line 183, column 7
-// variable pos2, unique name 0:WaveCrests29:30:pos2, index 235, declared at line 188, column 6
+// variable pos, unique name 0:WaveCrests29:30:pos, index 232, declared at line 178, column 6
+// variable octaves1, unique name 0:WaveCrests29:30:octaves1, index 233, declared at line 181, column 11
+// variable octaves2, unique name 0:WaveCrests29:30:octaves2, index 234, declared at line 182, column 11
+// variable f, unique name 0:WaveCrests29:30:f, index 235, declared at line 183, column 7
+// variable pos2, unique name 0:WaveCrests29:30:pos2, index 236, declared at line 188, column 6
 // references:
 // ipos at line 178, column 12
 // pos at line 179, column 1
@@ -581,8 +581,8 @@ float WaveCrests(vec3 ipos, in vec2 fragCoord)
 // f at line 207, column 30
 // popping activation record 0:WaveCrests29
 // local variables: 
-// variable ipos, unique name 0:WaveCrests29:ipos, index 229, declared at line 176, column 23
-// variable fragCoord, unique name 0:WaveCrests29:fragCoord, index 230, declared at line 176, column 37
+// variable ipos, unique name 0:WaveCrests29:ipos, index 230, declared at line 176, column 23
+// variable fragCoord, unique name 0:WaveCrests29:fragCoord, index 231, declared at line 176, column 37
 // references:
 // pushing activation record 0:Sky35
 vec3 Sky(vec3 ray)
@@ -597,7 +597,7 @@ vec3 Sky(vec3 ray)
 // vec3 at line 213, column 8
 // popping activation record 0:Sky35
 // local variables: 
-// variable ray, unique name 0:Sky35:ray, index 239, declared at line 211, column 15
+// variable ray, unique name 0:Sky35:ray, index 240, declared at line 211, column 15
 // references:
 vec3 boatRight, boatUp, boatForward;
 vec3 boatPosition;
@@ -627,7 +627,7 @@ void ComputeBoatTransform()
 }
 // popping activation record 0:ComputeBoatTransform37:38
 // local variables: 
-// variable samples, unique name 0:ComputeBoatTransform37:38:samples, index 245, declared at line 222, column 6
+// variable samples, unique name 0:ComputeBoatTransform37:38:samples, index 246, declared at line 222, column 6
 // references:
 // samples at line 224, column 1
 // vec3 at line 224, column 14
@@ -702,7 +702,7 @@ vec3 BoatToWorld(vec3 dir)
 // boatForward at line 249, column 43
 // popping activation record 0:BoatToWorld39
 // local variables: 
-// variable dir, unique name 0:BoatToWorld39:dir, index 247, declared at line 247, column 23
+// variable dir, unique name 0:BoatToWorld39:dir, index 248, declared at line 247, column 23
 // references:
 // pushing activation record 0:WorldToBoat41
 vec3 WorldToBoat(vec3 dir)
@@ -726,7 +726,7 @@ vec3 WorldToBoat(vec3 dir)
 // boatForward at line 254, column 59
 // popping activation record 0:WorldToBoat41
 // local variables: 
-// variable dir, unique name 0:WorldToBoat41:dir, index 249, declared at line 252, column 23
+// variable dir, unique name 0:WorldToBoat41:dir, index 250, declared at line 252, column 23
 // references:
 // pushing activation record 0:TraceBoat43
 float TraceBoat(vec3 pos, vec3 ray)
@@ -743,10 +743,10 @@ float TraceBoat(vec3 pos, vec3 ray)
 }
 // popping activation record 0:TraceBoat43:44
 // local variables: 
-// variable c, unique name 0:TraceBoat43:44:c, index 253, declared at line 259, column 6
-// variable r, unique name 0:TraceBoat43:44:r, index 254, declared at line 260, column 7
-// variable t, unique name 0:TraceBoat43:44:t, index 255, declared at line 264, column 7
-// variable p, unique name 0:TraceBoat43:44:p, index 256, declared at line 266, column 7
+// variable c, unique name 0:TraceBoat43:44:c, index 254, declared at line 259, column 6
+// variable r, unique name 0:TraceBoat43:44:r, index 255, declared at line 260, column 7
+// variable t, unique name 0:TraceBoat43:44:t, index 256, declared at line 264, column 7
+// variable p, unique name 0:TraceBoat43:44:p, index 257, declared at line 266, column 7
 // references:
 // boatPosition at line 259, column 10
 // c at line 262, column 1
@@ -768,8 +768,8 @@ float TraceBoat(vec3 pos, vec3 ray)
 // p at line 270, column 21
 // popping activation record 0:TraceBoat43
 // local variables: 
-// variable pos, unique name 0:TraceBoat43:pos, index 251, declared at line 257, column 22
-// variable ray, unique name 0:TraceBoat43:ray, index 252, declared at line 257, column 32
+// variable pos, unique name 0:TraceBoat43:pos, index 252, declared at line 257, column 22
+// variable ray, unique name 0:TraceBoat43:ray, index 253, declared at line 257, column 32
 // references:
 // pushing activation record 0:ShadeBoat45
 vec3 ShadeBoat(vec3 pos, vec3 ray)
@@ -802,19 +802,19 @@ vec3 ShadeBoat(vec3 pos, vec3 ray)
 }
 // popping activation record 0:ShadeBoat45:46
 // local variables: 
-// variable norm, unique name 0:ShadeBoat45:46:norm, index 260, declared at line 277, column 6
-// variable lightDir, unique name 0:ShadeBoat45:46:lightDir, index 261, declared at line 280, column 6
-// variable ndotl, unique name 0:ShadeBoat45:46:ndotl, index 262, declared at line 281, column 7
-// variable light, unique name 0:ShadeBoat45:46:light, index 263, declared at line 284, column 6
-// variable aa, unique name 0:ShadeBoat45:46:aa, index 264, declared at line 287, column 7
-// variable albedo, unique name 0:ShadeBoat45:46:albedo, index 265, declared at line 290, column 6
-// variable col, unique name 0:ShadeBoat45:46:col, index 266, declared at line 296, column 6
-// variable h, unique name 0:ShadeBoat45:46:h, index 267, declared at line 299, column 6
-// variable s, unique name 0:ShadeBoat45:46:s, index 268, declared at line 300, column 7
-// variable specular, unique name 0:ShadeBoat45:46:specular, index 269, declared at line 302, column 6
-// variable rr, unique name 0:ShadeBoat45:46:rr, index 270, declared at line 304, column 6
-// variable ndotr, unique name 0:ShadeBoat45:46:ndotr, index 271, declared at line 307, column 7
-// variable fresnel, unique name 0:ShadeBoat45:46:fresnel, index 272, declared at line 308, column 7
+// variable norm, unique name 0:ShadeBoat45:46:norm, index 261, declared at line 277, column 6
+// variable lightDir, unique name 0:ShadeBoat45:46:lightDir, index 262, declared at line 280, column 6
+// variable ndotl, unique name 0:ShadeBoat45:46:ndotl, index 263, declared at line 281, column 7
+// variable light, unique name 0:ShadeBoat45:46:light, index 264, declared at line 284, column 6
+// variable aa, unique name 0:ShadeBoat45:46:aa, index 265, declared at line 287, column 7
+// variable albedo, unique name 0:ShadeBoat45:46:albedo, index 266, declared at line 290, column 6
+// variable col, unique name 0:ShadeBoat45:46:col, index 267, declared at line 296, column 6
+// variable h, unique name 0:ShadeBoat45:46:h, index 268, declared at line 299, column 6
+// variable s, unique name 0:ShadeBoat45:46:s, index 269, declared at line 300, column 7
+// variable specular, unique name 0:ShadeBoat45:46:specular, index 270, declared at line 302, column 6
+// variable rr, unique name 0:ShadeBoat45:46:rr, index 271, declared at line 304, column 6
+// variable ndotr, unique name 0:ShadeBoat45:46:ndotr, index 272, declared at line 307, column 7
+// variable fresnel, unique name 0:ShadeBoat45:46:fresnel, index 273, declared at line 308, column 7
 // references:
 // pos at line 276, column 1
 // boatPosition at line 276, column 8
@@ -916,8 +916,8 @@ vec3 ShadeBoat(vec3 pos, vec3 ray)
 // col at line 313, column 8
 // popping activation record 0:ShadeBoat45
 // local variables: 
-// variable pos, unique name 0:ShadeBoat45:pos, index 258, declared at line 274, column 21
-// variable ray, unique name 0:ShadeBoat45:ray, index 259, declared at line 274, column 31
+// variable pos, unique name 0:ShadeBoat45:pos, index 259, declared at line 274, column 21
+// variable ray, unique name 0:ShadeBoat45:ray, index 260, declared at line 274, column 31
 // references:
 // pushing activation record 0:OceanDistanceField47
 float OceanDistanceField(vec3 pos)
@@ -934,7 +934,7 @@ float OceanDistanceField(vec3 pos)
 // pos at line 319, column 22
 // popping activation record 0:OceanDistanceField47
 // local variables: 
-// variable pos, unique name 0:OceanDistanceField47:pos, index 274, declared at line 317, column 31
+// variable pos, unique name 0:OceanDistanceField47:pos, index 275, declared at line 317, column 31
 // references:
 // pushing activation record 0:OceanDistanceFieldDetail49
 float OceanDistanceFieldDetail(vec3 pos)
@@ -951,7 +951,7 @@ float OceanDistanceFieldDetail(vec3 pos)
 // pos at line 324, column 28
 // popping activation record 0:OceanDistanceFieldDetail49
 // local variables: 
-// variable pos, unique name 0:OceanDistanceFieldDetail49:pos, index 276, declared at line 322, column 37
+// variable pos, unique name 0:OceanDistanceFieldDetail49:pos, index 277, declared at line 322, column 37
 // references:
 // pushing activation record 0:OceanNormal51
 vec3 OceanNormal(vec3 pos)
@@ -967,8 +967,8 @@ vec3 OceanNormal(vec3 pos)
 }
 // popping activation record 0:OceanNormal51:52
 // local variables: 
-// variable norm, unique name 0:OceanNormal51:52:norm, index 279, declared at line 329, column 6
-// variable d, unique name 0:OceanNormal51:52:d, index 280, declared at line 330, column 6
+// variable norm, unique name 0:OceanNormal51:52:norm, index 280, declared at line 329, column 6
+// variable d, unique name 0:OceanNormal51:52:d, index 281, declared at line 330, column 6
 // references:
 // vec2 at line 330, column 10
 // length at line 330, column 19
@@ -998,7 +998,7 @@ vec3 OceanNormal(vec3 pos)
 // norm at line 336, column 18
 // popping activation record 0:OceanNormal51
 // local variables: 
-// variable pos, unique name 0:OceanNormal51:pos, index 278, declared at line 327, column 23
+// variable pos, unique name 0:OceanNormal51:pos, index 279, declared at line 327, column 23
 // references:
 // pushing activation record 0:TraceOcean53
 float TraceOcean(vec3 pos, vec3 ray)
@@ -1028,7 +1028,7 @@ float TraceOcean(vec3 pos, vec3 ray)
     // h at line 348, column 7
     // popping activation record 0:TraceOcean53:54:for55
     // local variables: 
-    // variable i, unique name 0:TraceOcean53:54:for55:i, index 286, declared at line 343, column 11
+    // variable i, unique name 0:TraceOcean53:54:for55:i, index 287, declared at line 343, column 11
     // references:
     // i at line 343, column 16
     // i at line 343, column 25
@@ -1038,15 +1038,15 @@ float TraceOcean(vec3 pos, vec3 ray)
 }
 // popping activation record 0:TraceOcean53:54
 // local variables: 
-// variable h, unique name 0:TraceOcean53:54:h, index 284, declared at line 341, column 7
-// variable t, unique name 0:TraceOcean53:54:t, index 285, declared at line 342, column 7
+// variable h, unique name 0:TraceOcean53:54:h, index 285, declared at line 341, column 7
+// variable t, unique name 0:TraceOcean53:54:t, index 286, declared at line 342, column 7
 // references:
 // h at line 351, column 6
 // t at line 354, column 8
 // popping activation record 0:TraceOcean53
 // local variables: 
-// variable pos, unique name 0:TraceOcean53:pos, index 282, declared at line 339, column 23
-// variable ray, unique name 0:TraceOcean53:ray, index 283, declared at line 339, column 33
+// variable pos, unique name 0:TraceOcean53:pos, index 283, declared at line 339, column 23
+// variable ray, unique name 0:TraceOcean53:ray, index 284, declared at line 339, column 33
 // references:
 // pushing activation record 0:ShadeOcean57
 vec3 ShadeOcean(vec3 pos, vec3 ray, in vec2 fragCoord)
@@ -1104,15 +1104,15 @@ vec3 ShadeOcean(vec3 pos, vec3 ray, in vec2 fragCoord)
 }
 // popping activation record 0:ShadeOcean57:58
 // local variables: 
-// variable norm, unique name 0:ShadeOcean57:58:norm, index 291, declared at line 360, column 6
-// variable ndotr, unique name 0:ShadeOcean57:58:ndotr, index 292, declared at line 361, column 7
-// variable fresnel, unique name 0:ShadeOcean57:58:fresnel, index 293, declared at line 363, column 7
-// variable reflectedRay, unique name 0:ShadeOcean57:58:reflectedRay, index 294, declared at line 365, column 6
-// variable refractedRay, unique name 0:ShadeOcean57:58:refractedRay, index 295, declared at line 366, column 6
-// variable crackFudge, unique name 0:ShadeOcean57:58:crackFudge, index 296, declared at line 369, column 13
-// variable reflection, unique name 0:ShadeOcean57:58:reflection, index 297, declared at line 372, column 6
-// variable t, unique name 0:ShadeOcean57:58:t, index 298, declared at line 373, column 7
-// variable col, unique name 0:ShadeOcean57:58:col, index 299, declared at line 384, column 6
+// variable norm, unique name 0:ShadeOcean57:58:norm, index 292, declared at line 360, column 6
+// variable ndotr, unique name 0:ShadeOcean57:58:ndotr, index 293, declared at line 361, column 7
+// variable fresnel, unique name 0:ShadeOcean57:58:fresnel, index 294, declared at line 363, column 7
+// variable reflectedRay, unique name 0:ShadeOcean57:58:reflectedRay, index 295, declared at line 365, column 6
+// variable refractedRay, unique name 0:ShadeOcean57:58:refractedRay, index 296, declared at line 366, column 6
+// variable crackFudge, unique name 0:ShadeOcean57:58:crackFudge, index 297, declared at line 369, column 13
+// variable reflection, unique name 0:ShadeOcean57:58:reflection, index 298, declared at line 372, column 6
+// variable t, unique name 0:ShadeOcean57:58:t, index 299, declared at line 373, column 7
+// variable col, unique name 0:ShadeOcean57:58:col, index 300, declared at line 384, column 6
 // references:
 // OceanNormal at line 360, column 13
 // pos at line 360, column 25
@@ -1165,9 +1165,9 @@ vec3 ShadeOcean(vec3 pos, vec3 ray, in vec2 fragCoord)
 // col at line 395, column 8
 // popping activation record 0:ShadeOcean57
 // local variables: 
-// variable pos, unique name 0:ShadeOcean57:pos, index 288, declared at line 358, column 22
-// variable ray, unique name 0:ShadeOcean57:ray, index 289, declared at line 358, column 32
-// variable fragCoord, unique name 0:ShadeOcean57:fragCoord, index 290, declared at line 358, column 45
+// variable pos, unique name 0:ShadeOcean57:pos, index 289, declared at line 358, column 22
+// variable ray, unique name 0:ShadeOcean57:ray, index 290, declared at line 358, column 32
+// variable fragCoord, unique name 0:ShadeOcean57:fragCoord, index 291, declared at line 358, column 45
 // references:
 // pushing activation record 0:mainImage61
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
@@ -1187,12 +1187,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 }
 // popping activation record 0:mainImage61:62
 // local variables: 
-// variable camRot, unique name 0:mainImage61:62:camRot, index 303, declared at line 403, column 6
-// variable pos, unique name 0:mainImage61:62:pos, index 304, declared at line 404, column 6
-// variable ray, unique name 0:mainImage61:62:ray, index 305, declared at line 404, column 11
-// variable to, unique name 0:mainImage61:62:to, index 306, declared at line 407, column 7
-// variable tb, unique name 0:mainImage61:62:tb, index 307, declared at line 408, column 7
-// variable result, unique name 0:mainImage61:62:result, index 308, declared at line 410, column 6
+// variable camRot, unique name 0:mainImage61:62:camRot, index 304, declared at line 403, column 6
+// variable pos, unique name 0:mainImage61:62:pos, index 305, declared at line 404, column 6
+// variable ray, unique name 0:mainImage61:62:ray, index 306, declared at line 404, column 11
+// variable to, unique name 0:mainImage61:62:to, index 307, declared at line 407, column 7
+// variable tb, unique name 0:mainImage61:62:tb, index 308, declared at line 408, column 7
+// variable result, unique name 0:mainImage61:62:result, index 309, declared at line 410, column 6
 // references:
 // ComputeBoatTransform at line 401, column 1
 // vec2 at line 403, column 15
@@ -1231,7 +1231,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 // result at line 421, column 26
 // popping activation record 0:mainImage61
 // local variables: 
-// variable fragColor, unique name 0:mainImage61:fragColor, index 301, declared at line 399, column 25
-// variable fragCoord, unique name 0:mainImage61:fragCoord, index 302, declared at line 399, column 44
+// variable fragColor, unique name 0:mainImage61:fragColor, index 302, declared at line 399, column 25
+// variable fragCoord, unique name 0:mainImage61:fragCoord, index 303, declared at line 399, column 44
 // references:
 // undefined variables 

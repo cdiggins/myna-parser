@@ -15,7 +15,7 @@ function mhash3(n)
 // vec3 at line 9, column 29
 // popping activation record 0:mhash31
 // local variables: 
-// variable n, unique name 0:mhash31:n, index 178, declared at line 7, column 19
+// variable n, unique name 0:mhash31:n, index 179, declared at line 7, column 19
 // references:
 // pushing activation record 0:mhash3
 function mhash(n)
@@ -32,7 +32,7 @@ function mhash(n)
 // n at line 15, column 27
 // popping activation record 0:mhash3
 // local variables: 
-// variable n, unique name 0:mhash3:n, index 180, declared at line 13, column 19
+// variable n, unique name 0:mhash3:n, index 181, declared at line 13, column 19
 // references:
 // pushing activation record 0:getColor5
 function getColor(p)
@@ -47,9 +47,9 @@ function getColor(p)
 }
 // popping activation record 0:getColor5:6
 // local variables: 
-// variable jitter, unique name 0:getColor5:6:jitter, index 183, declared at line 23, column 7
-// variable f, unique name 0:getColor5:6:f, index 184, declared at line 25, column 7
-// variable col, unique name 0:getColor5:6:col, index 185, declared at line 27, column 6
+// variable jitter, unique name 0:getColor5:6:jitter, index 184, declared at line 23, column 7
+// variable f, unique name 0:getColor5:6:f, index 185, declared at line 25, column 7
+// variable col, unique name 0:getColor5:6:col, index 186, declared at line 27, column 6
 // references:
 // mhash at line 23, column 16
 // p at line 23, column 22
@@ -63,7 +63,7 @@ function getColor(p)
 // col at line 34, column 8
 // popping activation record 0:getColor5
 // local variables: 
-// variable p, unique name 0:getColor5:p, index 182, declared at line 20, column 19
+// variable p, unique name 0:getColor5:p, index 183, declared at line 20, column 19
 // references:
 // pushing activation record 0:trace_spheres7
 function trace_spheres(rayo, rayd)
@@ -134,11 +134,11 @@ function trace_spheres(rayo, rayd)
         }
         // popping activation record 0:trace_spheres7:8:for9:10:13
         // local variables: 
-        // variable z, unique name 0:trace_spheres7:8:for9:10:13:z, index 210, declared at line 104, column 9
-        // variable fog, unique name 0:trace_spheres7:8:for9:10:13:fog, index 211, declared at line 105, column 9
-        // variable col, unique name 0:trace_spheres7:8:for9:10:13:col, index 212, declared at line 108, column 8
-        // variable normal, unique name 0:trace_spheres7:8:for9:10:13:normal, index 213, declared at line 112, column 8
-        // variable light, unique name 0:trace_spheres7:8:for9:10:13:light, index 214, declared at line 113, column 9
+        // variable z, unique name 0:trace_spheres7:8:for9:10:13:z, index 211, declared at line 104, column 9
+        // variable fog, unique name 0:trace_spheres7:8:for9:10:13:fog, index 212, declared at line 105, column 9
+        // variable col, unique name 0:trace_spheres7:8:for9:10:13:col, index 213, declared at line 108, column 8
+        // variable normal, unique name 0:trace_spheres7:8:for9:10:13:normal, index 214, declared at line 112, column 8
+        // variable light, unique name 0:trace_spheres7:8:for9:10:13:light, index 215, declared at line 113, column 9
         // references:
         // dist at line 103, column 3
         // d at line 103, column 11
@@ -178,18 +178,18 @@ function trace_spheres(rayo, rayd)
     }
     // popping activation record 0:trace_spheres7:8:for9:10
     // local variables: 
-    // variable c, unique name 0:trace_spheres7:8:for9:10:c, index 198, declared at line 86, column 7
-    // variable r, unique name 0:trace_spheres7:8:for9:10:r, index 199, declared at line 88, column 8
-    // variable r2, unique name 0:trace_spheres7:8:for9:10:r2, index 200, declared at line 89, column 8
-    // variable p_minus_c, unique name 0:trace_spheres7:8:for9:10:p_minus_c, index 201, declared at line 91, column 7
-    // variable p_minus_c2, unique name 0:trace_spheres7:8:for9:10:p_minus_c2, index 202, declared at line 92, column 8
-    // variable d, unique name 0:trace_spheres7:8:for9:10:d, index 203, declared at line 93, column 8
-    // variable d2, unique name 0:trace_spheres7:8:for9:10:d2, index 204, declared at line 94, column 8
-    // variable root, unique name 0:trace_spheres7:8:for9:10:root, index 205, declared at line 95, column 8
-    // variable dist, unique name 0:trace_spheres7:8:for9:10:dist, index 206, declared at line 96, column 8
-    // variable divFogRange, unique name 0:trace_spheres7:8:for9:10:divFogRange, index 207, declared at line 98, column 14
-    // variable fogCol, unique name 0:trace_spheres7:8:for9:10:fogCol, index 208, declared at line 99, column 13
-    // variable sunDir, unique name 0:trace_spheres7:8:for9:10:sunDir, index 209, declared at line 100, column 13
+    // variable c, unique name 0:trace_spheres7:8:for9:10:c, index 199, declared at line 86, column 7
+    // variable r, unique name 0:trace_spheres7:8:for9:10:r, index 200, declared at line 88, column 8
+    // variable r2, unique name 0:trace_spheres7:8:for9:10:r2, index 201, declared at line 89, column 8
+    // variable p_minus_c, unique name 0:trace_spheres7:8:for9:10:p_minus_c, index 202, declared at line 91, column 7
+    // variable p_minus_c2, unique name 0:trace_spheres7:8:for9:10:p_minus_c2, index 203, declared at line 92, column 8
+    // variable d, unique name 0:trace_spheres7:8:for9:10:d, index 204, declared at line 93, column 8
+    // variable d2, unique name 0:trace_spheres7:8:for9:10:d2, index 205, declared at line 94, column 8
+    // variable root, unique name 0:trace_spheres7:8:for9:10:root, index 206, declared at line 95, column 8
+    // variable dist, unique name 0:trace_spheres7:8:for9:10:dist, index 207, declared at line 96, column 8
+    // variable divFogRange, unique name 0:trace_spheres7:8:for9:10:divFogRange, index 208, declared at line 98, column 14
+    // variable fogCol, unique name 0:trace_spheres7:8:for9:10:fogCol, index 209, declared at line 99, column 13
+    // variable sunDir, unique name 0:trace_spheres7:8:for9:10:sunDir, index 210, declared at line 100, column 13
     // references:
     // tmax at line 64, column 6
     // tmax at line 64, column 15
@@ -229,7 +229,7 @@ function trace_spheres(rayo, rayd)
     // V0 at line 123, column 18
     // popping activation record 0:trace_spheres7:8:for9
     // local variables: 
-    // variable i, unique name 0:trace_spheres7:8:for9:i, index 197, declared at line 63, column 9
+    // variable i, unique name 0:trace_spheres7:8:for9:i, index 198, declared at line 63, column 9
     // references:
     // i at line 63, column 14
     // i at line 63, column 20
@@ -238,14 +238,14 @@ function trace_spheres(rayo, rayd)
 }
 // popping activation record 0:trace_spheres7:8
 // local variables: 
-// variable p, unique name 0:trace_spheres7:8:p, index 189, declared at line 40, column 7
-// variable voxelSize, unique name 0:trace_spheres7:8:voxelSize, index 190, declared at line 41, column 12
-// variable V, unique name 0:trace_spheres7:8:V, index 191, declared at line 45, column 6
-// variable V0, unique name 0:trace_spheres7:8:V0, index 192, declared at line 46, column 6
-// variable step, unique name 0:trace_spheres7:8:step, index 193, declared at line 47, column 6
-// variable lp, unique name 0:trace_spheres7:8:lp, index 194, declared at line 49, column 6
-// variable tmax, unique name 0:trace_spheres7:8:tmax, index 195, declared at line 51, column 6
-// variable tdelta, unique name 0:trace_spheres7:8:tdelta, index 196, declared at line 59, column 6
+// variable p, unique name 0:trace_spheres7:8:p, index 190, declared at line 40, column 7
+// variable voxelSize, unique name 0:trace_spheres7:8:voxelSize, index 191, declared at line 41, column 12
+// variable V, unique name 0:trace_spheres7:8:V, index 192, declared at line 45, column 6
+// variable V0, unique name 0:trace_spheres7:8:V0, index 193, declared at line 46, column 6
+// variable step, unique name 0:trace_spheres7:8:step, index 194, declared at line 47, column 6
+// variable lp, unique name 0:trace_spheres7:8:lp, index 195, declared at line 49, column 6
+// variable tmax, unique name 0:trace_spheres7:8:tmax, index 196, declared at line 51, column 6
+// variable tdelta, unique name 0:trace_spheres7:8:tdelta, index 197, declared at line 59, column 6
 // references:
 // rayo at line 40, column 11
 // vec3 at line 41, column 24
@@ -277,8 +277,8 @@ function trace_spheres(rayo, rayd)
 // vec4 at line 126, column 8
 // popping activation record 0:trace_spheres7
 // local variables: 
-// variable rayo, unique name 0:trace_spheres7:rayo, index 187, declared at line 38, column 28
-// variable rayd, unique name 0:trace_spheres7:rayd, index 188, declared at line 38, column 42
+// variable rayo, unique name 0:trace_spheres7:rayo, index 188, declared at line 38, column 28
+// variable rayd, unique name 0:trace_spheres7:rayd, index 189, declared at line 38, column 42
 // references:
 // pushing activation record 0:setCamera14
 function setCamera(ro, ta, cr)
@@ -293,10 +293,10 @@ function setCamera(ro, ta, cr)
 }
 // popping activation record 0:setCamera14:15
 // local variables: 
-// variable cw, unique name 0:setCamera14:15:cw, index 219, declared at line 131, column 6
-// variable cp, unique name 0:setCamera14:15:cp, index 220, declared at line 132, column 6
-// variable cu, unique name 0:setCamera14:15:cu, index 221, declared at line 133, column 6
-// variable cv, unique name 0:setCamera14:15:cv, index 222, declared at line 134, column 6
+// variable cw, unique name 0:setCamera14:15:cw, index 220, declared at line 131, column 6
+// variable cp, unique name 0:setCamera14:15:cp, index 221, declared at line 132, column 6
+// variable cu, unique name 0:setCamera14:15:cu, index 222, declared at line 133, column 6
+// variable cv, unique name 0:setCamera14:15:cv, index 223, declared at line 134, column 6
 // references:
 // normalize at line 131, column 11
 // ta at line 131, column 21
@@ -320,9 +320,9 @@ function setCamera(ro, ta, cr)
 // cw at line 135, column 25
 // popping activation record 0:setCamera14
 // local variables: 
-// variable ro, unique name 0:setCamera14:ro, index 216, declared at line 129, column 24
-// variable ta, unique name 0:setCamera14:ta, index 217, declared at line 129, column 36
-// variable cr, unique name 0:setCamera14:cr, index 218, declared at line 129, column 46
+// variable ro, unique name 0:setCamera14:ro, index 217, declared at line 129, column 24
+// variable ta, unique name 0:setCamera14:ta, index 218, declared at line 129, column 36
+// variable cr, unique name 0:setCamera14:cr, index 219, declared at line 129, column 46
 // references:
 // pushing activation record 0:mainImage16
 function mainImage(fragColor, fragCoord)
@@ -340,12 +340,12 @@ function mainImage(fragColor, fragCoord)
 }
 // popping activation record 0:mainImage16:17
 // local variables: 
-// variable p, unique name 0:mainImage16:17:p, index 226, declared at line 141, column 9
-// variable m, unique name 0:mainImage16:17:m, index 227, declared at line 143, column 9
-// variable ro, unique name 0:mainImage16:17:ro, index 228, declared at line 146, column 9
-// variable ta, unique name 0:mainImage16:17:ta, index 229, declared at line 147, column 6
-// variable ca, unique name 0:mainImage16:17:ca, index 230, declared at line 148, column 9
-// variable rd, unique name 0:mainImage16:17:rd, index 231, declared at line 150, column 9
+// variable p, unique name 0:mainImage16:17:p, index 227, declared at line 141, column 9
+// variable m, unique name 0:mainImage16:17:m, index 228, declared at line 143, column 9
+// variable ro, unique name 0:mainImage16:17:ro, index 229, declared at line 146, column 9
+// variable ta, unique name 0:mainImage16:17:ta, index 230, declared at line 147, column 6
+// variable ca, unique name 0:mainImage16:17:ca, index 231, declared at line 148, column 9
+// variable rd, unique name 0:mainImage16:17:rd, index 232, declared at line 150, column 9
 // references:
 // iResolution at line 141, column 15
 // fragCoord at line 141, column 36
@@ -377,8 +377,8 @@ function mainImage(fragColor, fragCoord)
 // rd at line 154, column 57
 // popping activation record 0:mainImage16
 // local variables: 
-// variable fragColor, unique name 0:mainImage16:fragColor, index 224, declared at line 139, column 25
-// variable fragCoord, unique name 0:mainImage16:fragCoord, index 225, declared at line 139, column 44
+// variable fragColor, unique name 0:mainImage16:fragColor, index 225, declared at line 139, column 25
+// variable fragCoord, unique name 0:mainImage16:fragCoord, index 226, declared at line 139, column 44
 // references:
 // pushing activation record 0:mainVR18
 function mainVR(fragColor, fragCoord, fragRayOri, fragRayDir)
@@ -396,9 +396,9 @@ function mainVR(fragColor, fragCoord, fragRayOri, fragRayDir)
 // fragRayDir at line 159, column 43
 // popping activation record 0:mainVR18
 // local variables: 
-// variable fragColor, unique name 0:mainVR18:fragColor, index 233, declared at line 157, column 22
-// variable fragCoord, unique name 0:mainVR18:fragCoord, index 234, declared at line 157, column 41
-// variable fragRayOri, unique name 0:mainVR18:fragRayOri, index 235, declared at line 157, column 60
-// variable fragRayDir, unique name 0:mainVR18:fragRayDir, index 236, declared at line 157, column 80
+// variable fragColor, unique name 0:mainVR18:fragColor, index 234, declared at line 157, column 22
+// variable fragCoord, unique name 0:mainVR18:fragCoord, index 235, declared at line 157, column 41
+// variable fragRayOri, unique name 0:mainVR18:fragRayOri, index 236, declared at line 157, column 60
+// variable fragRayDir, unique name 0:mainVR18:fragRayDir, index 237, declared at line 157, column 80
 // references:
 // undefined variables 

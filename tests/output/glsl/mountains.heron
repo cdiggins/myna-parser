@@ -25,7 +25,7 @@ function Hash12(p)
 }
 // popping activation record 0:Hash121:2
 // local variables: 
-// variable p3, unique name 0:Hash121:2:p3, index 191, declared at line 44, column 6
+// variable p3, unique name 0:Hash121:2:p3, index 192, declared at line 44, column 6
 // references:
 // fract at line 44, column 12
 // vec3 at line 44, column 18
@@ -41,7 +41,7 @@ function Hash12(p)
 // p3 at line 46, column 33
 // popping activation record 0:Hash121
 // local variables: 
-// variable p, unique name 0:Hash121:p, index 190, declared at line 42, column 18
+// variable p, unique name 0:Hash121:p, index 191, declared at line 42, column 18
 // references:
 // pushing activation record 0:Hash223
 function Hash22(p)
@@ -54,7 +54,7 @@ function Hash22(p)
 }
 // popping activation record 0:Hash223:4
 // local variables: 
-// variable p3, unique name 0:Hash223:4:p3, index 194, declared at line 50, column 6
+// variable p3, unique name 0:Hash223:4:p3, index 195, declared at line 50, column 6
 // references:
 // fract at line 50, column 11
 // vec3 at line 50, column 17
@@ -70,7 +70,7 @@ function Hash22(p)
 // p3 at line 52, column 31
 // popping activation record 0:Hash223
 // local variables: 
-// variable p, unique name 0:Hash223:p, index 193, declared at line 48, column 17
+// variable p, unique name 0:Hash223:p, index 194, declared at line 48, column 17
 // references:
 // pushing activation record 0:Noise5
 function Noise(x)
@@ -85,9 +85,9 @@ function Noise(x)
 }
 // popping activation record 0:Noise5:6
 // local variables: 
-// variable p, unique name 0:Noise5:6:p, index 197, declared at line 58, column 9
-// variable f, unique name 0:Noise5:6:f, index 198, declared at line 59, column 9
-// variable res, unique name 0:Noise5:6:res, index 199, declared at line 62, column 10
+// variable p, unique name 0:Noise5:6:p, index 198, declared at line 58, column 9
+// variable f, unique name 0:Noise5:6:f, index 199, declared at line 59, column 9
+// variable res, unique name 0:Noise5:6:res, index 200, declared at line 62, column 10
 // references:
 // floor at line 58, column 13
 // x at line 58, column 19
@@ -117,7 +117,7 @@ function Noise(x)
 // res at line 64, column 11
 // popping activation record 0:Noise5
 // local variables: 
-// variable x, unique name 0:Noise5:x, index 196, declared at line 56, column 21
+// variable x, unique name 0:Noise5:x, index 197, declared at line 56, column 21
 // references:
 // pushing activation record 0:Noise27
 function Noise2(x)
@@ -133,10 +133,10 @@ function Noise2(x)
 }
 // popping activation record 0:Noise27:8
 // local variables: 
-// variable p, unique name 0:Noise27:8:p, index 202, declared at line 69, column 9
-// variable f, unique name 0:Noise27:8:f, index 203, declared at line 70, column 9
-// variable n, unique name 0:Noise27:8:n, index 204, declared at line 72, column 10
-// variable res, unique name 0:Noise27:8:res, index 205, declared at line 73, column 8
+// variable p, unique name 0:Noise27:8:p, index 203, declared at line 69, column 9
+// variable f, unique name 0:Noise27:8:f, index 204, declared at line 70, column 9
+// variable n, unique name 0:Noise27:8:n, index 205, declared at line 72, column 10
+// variable res, unique name 0:Noise27:8:res, index 206, declared at line 73, column 8
 // references:
 // floor at line 69, column 13
 // x at line 69, column 19
@@ -168,7 +168,7 @@ function Noise2(x)
 // res at line 75, column 11
 // popping activation record 0:Noise27
 // local variables: 
-// variable x, unique name 0:Noise27:x, index 201, declared at line 67, column 21
+// variable x, unique name 0:Noise27:x, index 202, declared at line 67, column 21
 // references:
 // pushing activation record 0:Trees9
 function Trees(p)
@@ -185,7 +185,7 @@ function Trees(p)
 // treeLine at line 83, column 25
 // popping activation record 0:Trees9
 // local variables: 
-// variable p, unique name 0:Trees9:p, index 207, declared at line 79, column 17
+// variable p, unique name 0:Trees9:p, index 208, declared at line 79, column 17
 // references:
 // pushing activation record 0:Terrain11
 function Terrain(p)
@@ -218,7 +218,7 @@ function Terrain(p)
     // pos at line 102, column 19
     // popping activation record 0:Terrain11:12:for13
     // local variables: 
-    // variable i, unique name 0:Terrain11:12:for13:i, index 214, declared at line 98, column 10
+    // variable i, unique name 0:Terrain11:12:for13:i, index 215, declared at line 98, column 10
     // references:
     // i at line 98, column 17
     // i at line 98, column 24
@@ -229,11 +229,11 @@ function Terrain(p)
 }
 // popping activation record 0:Terrain11:12
 // local variables: 
-// variable pos, unique name 0:Terrain11:12:pos, index 210, declared at line 93, column 6
-// variable w, unique name 0:Terrain11:12:w, index 211, declared at line 94, column 7
-// variable dxy, unique name 0:Terrain11:12:dxy, index 212, declared at line 96, column 6
-// variable f, unique name 0:Terrain11:12:f, index 213, declared at line 97, column 7
-// variable ff, unique name 0:Terrain11:12:ff, index 215, declared at line 104, column 7
+// variable pos, unique name 0:Terrain11:12:pos, index 211, declared at line 93, column 6
+// variable w, unique name 0:Terrain11:12:w, index 212, declared at line 94, column 7
+// variable dxy, unique name 0:Terrain11:12:dxy, index 213, declared at line 96, column 6
+// variable f, unique name 0:Terrain11:12:f, index 214, declared at line 97, column 7
+// variable ff, unique name 0:Terrain11:12:ff, index 216, declared at line 104, column 7
 // references:
 // p at line 93, column 12
 // Noise at line 94, column 12
@@ -251,7 +251,7 @@ function Terrain(p)
 // f at line 107, column 8
 // popping activation record 0:Terrain11
 // local variables: 
-// variable p, unique name 0:Terrain11:p, index 209, declared at line 91, column 23
+// variable p, unique name 0:Terrain11:p, index 210, declared at line 91, column 23
 // references:
 // pushing activation record 0:Map15
 function Map(p)
@@ -267,8 +267,8 @@ function Map(p)
 }
 // popping activation record 0:Map15:16
 // local variables: 
-// variable h, unique name 0:Map15:16:h, index 218, declared at line 114, column 7
-// variable ff, unique name 0:Map15:16:ff, index 219, declared at line 117, column 7
+// variable h, unique name 0:Map15:16:h, index 219, declared at line 114, column 7
+// variable ff, unique name 0:Map15:16:ff, index 220, declared at line 117, column 7
 // references:
 // Terrain at line 114, column 11
 // p at line 114, column 19
@@ -294,7 +294,7 @@ function Map(p)
 // h at line 122, column 17
 // popping activation record 0:Map15
 // local variables: 
-// variable p, unique name 0:Map15:p, index 217, declared at line 112, column 18
+// variable p, unique name 0:Map15:p, index 218, declared at line 112, column 18
 // references:
 // pushing activation record 0:Terrain217
 function Terrain2(p)
@@ -327,7 +327,7 @@ function Terrain2(p)
     // pos at line 140, column 19
     // popping activation record 0:Terrain217:18:for19
     // local variables: 
-    // variable i, unique name 0:Terrain217:18:for19:i, index 226, declared at line 136, column 10
+    // variable i, unique name 0:Terrain217:18:for19:i, index 227, declared at line 136, column 10
     // references:
     // i at line 136, column 17
     // i at line 136, column 24
@@ -358,7 +358,7 @@ function Terrain2(p)
     // pos at line 156, column 19
     // popping activation record 0:Terrain217:18:for21
     // local variables: 
-    // variable i, unique name 0:Terrain217:18:for21:i, index 228, declared at line 152, column 10
+    // variable i, unique name 0:Terrain217:18:for21:i, index 229, declared at line 152, column 10
     // references:
     // i at line 152, column 17
     // i at line 152, column 24
@@ -367,11 +367,11 @@ function Terrain2(p)
 }
 // popping activation record 0:Terrain217:18
 // local variables: 
-// variable pos, unique name 0:Terrain217:18:pos, index 222, declared at line 131, column 6
-// variable w, unique name 0:Terrain217:18:w, index 223, declared at line 132, column 7
-// variable dxy, unique name 0:Terrain217:18:dxy, index 224, declared at line 134, column 6
-// variable f, unique name 0:Terrain217:18:f, index 225, declared at line 135, column 7
-// variable ff, unique name 0:Terrain217:18:ff, index 227, declared at line 142, column 7
+// variable pos, unique name 0:Terrain217:18:pos, index 223, declared at line 131, column 6
+// variable w, unique name 0:Terrain217:18:w, index 224, declared at line 132, column 7
+// variable dxy, unique name 0:Terrain217:18:dxy, index 225, declared at line 134, column 6
+// variable f, unique name 0:Terrain217:18:f, index 226, declared at line 135, column 7
+// variable ff, unique name 0:Terrain217:18:ff, index 228, declared at line 142, column 7
 // references:
 // p at line 131, column 12
 // Noise at line 132, column 12
@@ -396,7 +396,7 @@ function Terrain2(p)
 // f at line 160, column 8
 // popping activation record 0:Terrain217
 // local variables: 
-// variable p, unique name 0:Terrain217:p, index 221, declared at line 127, column 24
+// variable p, unique name 0:Terrain217:p, index 222, declared at line 127, column 24
 // references:
 // pushing activation record 0:FractalNoise23
 function FractalNoise(xy)
@@ -423,7 +423,7 @@ function FractalNoise(xy)
     // xy at line 173, column 2
     // popping activation record 0:FractalNoise23:24:for25
     // local variables: 
-    // variable i, unique name 0:FractalNoise23:24:for25:i, index 233, declared at line 169, column 10
+    // variable i, unique name 0:FractalNoise23:24:for25:i, index 234, declared at line 169, column 10
     // references:
     // i at line 169, column 17
     // i at line 169, column 24
@@ -432,13 +432,13 @@ function FractalNoise(xy)
 }
 // popping activation record 0:FractalNoise23:24
 // local variables: 
-// variable w, unique name 0:FractalNoise23:24:w, index 231, declared at line 166, column 7
-// variable f, unique name 0:FractalNoise23:24:f, index 232, declared at line 167, column 7
+// variable w, unique name 0:FractalNoise23:24:w, index 232, declared at line 166, column 7
+// variable f, unique name 0:FractalNoise23:24:f, index 233, declared at line 167, column 7
 // references:
 // f at line 175, column 8
 // popping activation record 0:FractalNoise23
 // local variables: 
-// variable xy, unique name 0:FractalNoise23:xy, index 230, declared at line 164, column 27
+// variable xy, unique name 0:FractalNoise23:xy, index 231, declared at line 164, column 27
 // references:
 // pushing activation record 0:GetClouds27
 function GetClouds(sky, rd)
@@ -456,8 +456,8 @@ function GetClouds(sky, rd)
 }
 // popping activation record 0:GetClouds27:28
 // local variables: 
-// variable v, unique name 0:GetClouds27:28:v, index 237, declared at line 184, column 7
-// variable f, unique name 0:GetClouds27:28:f, index 238, declared at line 188, column 7
+// variable v, unique name 0:GetClouds27:28:v, index 238, declared at line 184, column 7
+// variable f, unique name 0:GetClouds27:28:f, index 239, declared at line 188, column 7
 // references:
 // rd at line 183, column 5
 // sky at line 183, column 25
@@ -480,8 +480,8 @@ function GetClouds(sky, rd)
 // sky at line 192, column 8
 // popping activation record 0:GetClouds27
 // local variables: 
-// variable sky, unique name 0:GetClouds27:sky, index 235, declared at line 181, column 23
-// variable rd, unique name 0:GetClouds27:rd, index 236, declared at line 181, column 36
+// variable sky, unique name 0:GetClouds27:sky, index 236, declared at line 181, column 23
+// variable rd, unique name 0:GetClouds27:rd, index 237, declared at line 181, column 36
 // references:
 // pushing activation record 0:GetSky29
 function GetSky(rd)
@@ -497,9 +497,9 @@ function GetSky(rd)
 }
 // popping activation record 0:GetSky29:30
 // local variables: 
-// variable sunAmount, unique name 0:GetSky29:30:sunAmount, index 241, declared at line 201, column 7
-// variable v, unique name 0:GetSky29:30:v, index 242, declared at line 202, column 7
-// variable sky, unique name 0:GetSky29:30:sky, index 243, declared at line 203, column 7
+// variable sunAmount, unique name 0:GetSky29:30:sunAmount, index 242, declared at line 201, column 7
+// variable v, unique name 0:GetSky29:30:v, index 243, declared at line 202, column 7
+// variable sky, unique name 0:GetSky29:30:sky, index 244, declared at line 203, column 7
 // references:
 // max at line 201, column 19
 // dot at line 201, column 24
@@ -529,7 +529,7 @@ function GetSky(rd)
 // sky at line 208, column 8
 // popping activation record 0:GetSky29
 // local variables: 
-// variable rd, unique name 0:GetSky29:rd, index 240, declared at line 199, column 20
+// variable rd, unique name 0:GetSky29:rd, index 241, declared at line 199, column 20
 // references:
 // pushing activation record 0:ApplyFog31
 function ApplyFog(rgb, dis, dir)
@@ -541,7 +541,7 @@ function ApplyFog(rgb, dis, dir)
 }
 // popping activation record 0:ApplyFog31:32
 // local variables: 
-// variable fogAmount, unique name 0:ApplyFog31:32:fogAmount, index 248, declared at line 215, column 7
+// variable fogAmount, unique name 0:ApplyFog31:32:fogAmount, index 249, declared at line 215, column 7
 // references:
 // exp at line 215, column 19
 // dis at line 215, column 24
@@ -552,9 +552,9 @@ function ApplyFog(rgb, dis, dir)
 // fogAmount at line 216, column 30
 // popping activation record 0:ApplyFog31
 // local variables: 
-// variable rgb, unique name 0:ApplyFog31:rgb, index 245, declared at line 213, column 24
-// variable dis, unique name 0:ApplyFog31:dis, index 246, declared at line 213, column 38
-// variable dir, unique name 0:ApplyFog31:dir, index 247, declared at line 213, column 51
+// variable rgb, unique name 0:ApplyFog31:rgb, index 246, declared at line 213, column 24
+// variable dis, unique name 0:ApplyFog31:dis, index 247, declared at line 213, column 38
+// variable dir, unique name 0:ApplyFog31:dir, index 248, declared at line 213, column 51
 // references:
 // pushing activation record 0:DoLighting33
 function DoLighting(mat, pos, normal, eyeDir, dis)
@@ -572,8 +572,8 @@ function DoLighting(mat, pos, normal, eyeDir, dis)
     }
     // popping activation record 0:DoLighting33:34:35
     // local variables: 
-    // variable R, unique name 0:DoLighting33:34:35:R, index 257, declared at line 229, column 7
-    // variable specAmount, unique name 0:DoLighting33:34:35:specAmount, index 258, declared at line 230, column 8
+    // variable R, unique name 0:DoLighting33:34:35:R, index 258, declared at line 229, column 7
+    // variable specAmount, unique name 0:DoLighting33:34:35:specAmount, index 259, declared at line 230, column 8
     // references:
     // reflect at line 229, column 11
     // sunLight at line 229, column 19
@@ -594,8 +594,8 @@ function DoLighting(mat, pos, normal, eyeDir, dis)
 }
 // popping activation record 0:DoLighting33:34
 // local variables: 
-// variable h, unique name 0:DoLighting33:34:h, index 255, declared at line 223, column 7
-// variable c, unique name 0:DoLighting33:34:c, index 256, declared at line 224, column 7
+// variable h, unique name 0:DoLighting33:34:h, index 256, declared at line 223, column 7
+// variable c, unique name 0:DoLighting33:34:c, index 257, declared at line 224, column 7
 // references:
 // dot at line 223, column 11
 // sunLight at line 223, column 15
@@ -610,11 +610,11 @@ function DoLighting(mat, pos, normal, eyeDir, dis)
 // h at line 227, column 5
 // popping activation record 0:DoLighting33
 // local variables: 
-// variable mat, unique name 0:DoLighting33:mat, index 250, declared at line 221, column 27
-// variable pos, unique name 0:DoLighting33:pos, index 251, declared at line 221, column 40
-// variable normal, unique name 0:DoLighting33:normal, index 252, declared at line 221, column 53
-// variable eyeDir, unique name 0:DoLighting33:eyeDir, index 253, declared at line 221, column 69
-// variable dis, unique name 0:DoLighting33:dis, index 254, declared at line 221, column 86
+// variable mat, unique name 0:DoLighting33:mat, index 251, declared at line 221, column 27
+// variable pos, unique name 0:DoLighting33:pos, index 252, declared at line 221, column 40
+// variable normal, unique name 0:DoLighting33:normal, index 253, declared at line 221, column 53
+// variable eyeDir, unique name 0:DoLighting33:eyeDir, index 254, declared at line 221, column 69
+// variable dis, unique name 0:DoLighting33:dis, index 255, declared at line 221, column 86
 // references:
 // pushing activation record 0:TerrainColour36
 function TerrainColour(pos, normal, dis)
@@ -644,8 +644,8 @@ function TerrainColour(pos, normal, dis)
     }
     // popping activation record 0:TerrainColour36:37:38
     // local variables: 
-    // variable v, unique name 0:TerrainColour36:37:38:v, index 269, declared at line 256, column 8
-    // variable c, unique name 0:TerrainColour36:37:38:c, index 270, declared at line 257, column 8
+    // variable v, unique name 0:TerrainColour36:37:38:v, index 270, declared at line 256, column 8
+    // variable c, unique name 0:TerrainColour36:37:38:c, index 271, declared at line 257, column 8
     // references:
     // normal at line 256, column 12
     // normal at line 257, column 16
@@ -729,7 +729,7 @@ function TerrainColour(pos, normal, dis)
     }
     // popping activation record 0:TerrainColour36:37:41
     // local variables: 
-    // variable snow, unique name 0:TerrainColour36:37:41:snow, index 271, declared at line 284, column 8
+    // variable snow, unique name 0:TerrainColour36:37:41:snow, index 272, declared at line 284, column 8
     // references:
     // clamp at line 284, column 15
     // matPos at line 284, column 22
@@ -757,7 +757,7 @@ function TerrainColour(pos, normal, dis)
         }
         // popping activation record 0:TerrainColour36:37:42:43
         // local variables: 
-        // variable t, unique name 0:TerrainColour36:37:42:43:t, index 272, declared at line 296, column 9
+        // variable t, unique name 0:TerrainColour36:37:42:43:t, index 273, declared at line 296, column 9
         // references:
         // f at line 294, column 3
         // Noise at line 294, column 7
@@ -817,14 +817,14 @@ function TerrainColour(pos, normal, dis)
     }
     // popping activation record 0:TerrainColour36:37:45
     // local variables: 
-    // variable time, unique name 0:TerrainColour36:37:45:time, index 273, declared at line 313, column 8
-    // variable watPos, unique name 0:TerrainColour36:37:45:watPos, index 274, declared at line 314, column 7
-    // variable tx, unique name 0:TerrainColour36:37:45:tx, index 275, declared at line 317, column 8
-    // variable tz, unique name 0:TerrainColour36:37:45:tz, index 276, declared at line 318, column 8
-    // variable co, unique name 0:TerrainColour36:37:45:co, index 277, declared at line 319, column 7
-    // variable nor, unique name 0:TerrainColour36:37:45:nor, index 278, declared at line 321, column 7
-    // variable sunAmount, unique name 0:TerrainColour36:37:45:sunAmount, index 279, declared at line 328, column 8
-    // variable temp, unique name 0:TerrainColour36:37:45:temp, index 280, declared at line 330, column 13
+    // variable time, unique name 0:TerrainColour36:37:45:time, index 274, declared at line 313, column 8
+    // variable watPos, unique name 0:TerrainColour36:37:45:watPos, index 275, declared at line 314, column 7
+    // variable tx, unique name 0:TerrainColour36:37:45:tx, index 276, declared at line 317, column 8
+    // variable tz, unique name 0:TerrainColour36:37:45:tz, index 277, declared at line 318, column 8
+    // variable co, unique name 0:TerrainColour36:37:45:co, index 278, declared at line 319, column 7
+    // variable nor, unique name 0:TerrainColour36:37:45:nor, index 279, declared at line 321, column 7
+    // variable sunAmount, unique name 0:TerrainColour36:37:45:sunAmount, index 280, declared at line 328, column 8
+    // variable temp, unique name 0:TerrainColour36:37:45:temp, index 281, declared at line 330, column 13
     // references:
     // iGlobalTime at line 313, column 16
     // matPos at line 314, column 16
@@ -903,12 +903,12 @@ function TerrainColour(pos, normal, dis)
 }
 // popping activation record 0:TerrainColour36:37
 // local variables: 
-// variable mat, unique name 0:TerrainColour36:37:mat, index 263, declared at line 239, column 6
-// variable dir, unique name 0:TerrainColour36:37:dir, index 264, declared at line 242, column 6
-// variable matPos, unique name 0:TerrainColour36:37:matPos, index 265, declared at line 244, column 6
-// variable disSqrd, unique name 0:TerrainColour36:37:disSqrd, index 266, declared at line 246, column 7
-// variable f, unique name 0:TerrainColour36:37:f, index 267, declared at line 248, column 7
-// variable m, unique name 0:TerrainColour36:37:m, index 268, declared at line 251, column 6
+// variable mat, unique name 0:TerrainColour36:37:mat, index 264, declared at line 239, column 6
+// variable dir, unique name 0:TerrainColour36:37:dir, index 265, declared at line 242, column 6
+// variable matPos, unique name 0:TerrainColour36:37:matPos, index 266, declared at line 244, column 6
+// variable disSqrd, unique name 0:TerrainColour36:37:disSqrd, index 267, declared at line 246, column 7
+// variable f, unique name 0:TerrainColour36:37:f, index 268, declared at line 248, column 7
+// variable m, unique name 0:TerrainColour36:37:m, index 269, declared at line 251, column 6
 // references:
 // specular at line 240, column 1
 // ambient at line 241, column 1
@@ -967,9 +967,9 @@ function TerrainColour(pos, normal, dis)
 // mat at line 334, column 8
 // popping activation record 0:TerrainColour36
 // local variables: 
-// variable pos, unique name 0:TerrainColour36:pos, index 260, declared at line 237, column 24
-// variable normal, unique name 0:TerrainColour36:normal, index 261, declared at line 237, column 34
-// variable dis, unique name 0:TerrainColour36:dis, index 262, declared at line 237, column 48
+// variable pos, unique name 0:TerrainColour36:pos, index 261, declared at line 237, column 24
+// variable normal, unique name 0:TerrainColour36:normal, index 262, declared at line 237, column 34
+// variable dis, unique name 0:TerrainColour36:dis, index 263, declared at line 237, column 48
 // references:
 // pushing activation record 0:BinarySubdivision46
 function BinarySubdivision(rO, rD, t)
@@ -986,7 +986,7 @@ function BinarySubdivision(rO, rD, t)
     }
     // popping activation record 0:BinarySubdivision46:47:for48:49
     // local variables: 
-    // variable p, unique name 0:BinarySubdivision46:47:for48:49:p, index 287, declared at line 345, column 7
+    // variable p, unique name 0:BinarySubdivision46:47:for48:49:p, index 288, declared at line 345, column 7
     // references:
     // halfwayT at line 344, column 2
     // t at line 344, column 14
@@ -1002,7 +1002,7 @@ function BinarySubdivision(rO, rD, t)
     // halfwayT at line 346, column 41
     // popping activation record 0:BinarySubdivision46:47:for48
     // local variables: 
-    // variable n, unique name 0:BinarySubdivision46:47:for48:n, index 286, declared at line 342, column 10
+    // variable n, unique name 0:BinarySubdivision46:47:for48:n, index 287, declared at line 342, column 10
     // references:
     // n at line 342, column 17
     // n at line 342, column 24
@@ -1011,14 +1011,14 @@ function BinarySubdivision(rO, rD, t)
 }
 // popping activation record 0:BinarySubdivision46:47
 // local variables: 
-// variable halfwayT, unique name 0:BinarySubdivision46:47:halfwayT, index 285, declared at line 341, column 10
+// variable halfwayT, unique name 0:BinarySubdivision46:47:halfwayT, index 286, declared at line 341, column 10
 // references:
 // t at line 348, column 8
 // popping activation record 0:BinarySubdivision46
 // local variables: 
-// variable rO, unique name 0:BinarySubdivision46:rO, index 282, declared at line 338, column 32
-// variable rD, unique name 0:BinarySubdivision46:rD, index 283, declared at line 338, column 44
-// variable t, unique name 0:BinarySubdivision46:t, index 284, declared at line 338, column 53
+// variable rO, unique name 0:BinarySubdivision46:rO, index 283, declared at line 338, column 32
+// variable rD, unique name 0:BinarySubdivision46:rD, index 284, declared at line 338, column 44
+// variable t, unique name 0:BinarySubdivision46:t, index 285, declared at line 338, column 53
 // references:
 // pushing activation record 0:Scene50
 function Scene(rO, rD, resT, fragCoord)
@@ -1058,8 +1058,8 @@ function Scene(rO, rD, resT, fragCoord)
     }
     // popping activation record 0:Scene50:51:for52:53
     // local variables: 
-    // variable p, unique name 0:Scene50:51:for52:53:p, index 300, declared at line 363, column 7
-    // variable h, unique name 0:Scene50:51:for52:53:h, index 301, declared at line 365, column 8
+    // variable p, unique name 0:Scene50:51:for52:53:p, index 301, declared at line 363, column 7
+    // variable h, unique name 0:Scene50:51:for52:53:h, index 302, declared at line 365, column 8
     // references:
     // fin at line 362, column 6
     // t at line 362, column 13
@@ -1079,7 +1079,7 @@ function Scene(rO, rD, resT, fragCoord)
     // delta at line 379, column 7
     // popping activation record 0:Scene50:51:for52
     // local variables: 
-    // variable j, unique name 0:Scene50:51:for52:j, index 299, declared at line 360, column 10
+    // variable j, unique name 0:Scene50:51:for52:j, index 300, declared at line 360, column 10
     // references:
     // j at line 360, column 15
     // j at line 360, column 23
@@ -1089,12 +1089,12 @@ function Scene(rO, rD, resT, fragCoord)
 }
 // popping activation record 0:Scene50:51
 // local variables: 
-// variable t, unique name 0:Scene50:51:t, index 293, declared at line 354, column 10
-// variable oldT, unique name 0:Scene50:51:oldT, index 294, declared at line 355, column 7
-// variable delta, unique name 0:Scene50:51:delta, index 295, declared at line 356, column 7
-// variable fin, unique name 0:Scene50:51:fin, index 296, declared at line 357, column 6
-// variable res, unique name 0:Scene50:51:res, index 297, declared at line 358, column 6
-// variable distances, unique name 0:Scene50:51:distances, index 298, declared at line 359, column 6
+// variable t, unique name 0:Scene50:51:t, index 294, declared at line 354, column 10
+// variable oldT, unique name 0:Scene50:51:oldT, index 295, declared at line 355, column 7
+// variable delta, unique name 0:Scene50:51:delta, index 296, declared at line 356, column 7
+// variable fin, unique name 0:Scene50:51:fin, index 297, declared at line 357, column 6
+// variable res, unique name 0:Scene50:51:res, index 298, declared at line 358, column 6
+// variable distances, unique name 0:Scene50:51:distances, index 299, declared at line 359, column 6
 // references:
 // Hash12 at line 354, column 20
 // fragCoord at line 354, column 27
@@ -1107,10 +1107,10 @@ function Scene(rO, rD, resT, fragCoord)
 // fin at line 383, column 8
 // popping activation record 0:Scene50
 // local variables: 
-// variable rO, unique name 0:Scene50:rO, index 289, declared at line 352, column 19
-// variable rD, unique name 0:Scene50:rD, index 290, declared at line 352, column 31
-// variable resT, unique name 0:Scene50:resT, index 291, declared at line 352, column 45
-// variable fragCoord, unique name 0:Scene50:fragCoord, index 292, declared at line 352, column 59
+// variable rO, unique name 0:Scene50:rO, index 290, declared at line 352, column 19
+// variable rD, unique name 0:Scene50:rD, index 291, declared at line 352, column 31
+// variable resT, unique name 0:Scene50:resT, index 292, declared at line 352, column 45
+// variable fragCoord, unique name 0:Scene50:fragCoord, index 293, declared at line 352, column 59
 // references:
 // pushing activation record 0:CameraPath55
 function CameraPath(t)
@@ -1124,8 +1124,8 @@ function CameraPath(t)
 }
 // popping activation record 0:CameraPath55:56
 // local variables: 
-// variable m, unique name 0:CameraPath55:56:m, index 304, declared at line 389, column 7
-// variable p, unique name 0:CameraPath55:56:p, index 305, declared at line 391, column 9
+// variable m, unique name 0:CameraPath55:56:m, index 305, declared at line 389, column 7
+// variable p, unique name 0:CameraPath55:56:p, index 306, declared at line 391, column 9
 // references:
 // iMouse at line 389, column 16
 // iResolution at line 389, column 25
@@ -1143,7 +1143,7 @@ function CameraPath(t)
 // p at line 392, column 35
 // popping activation record 0:CameraPath55
 // local variables: 
-// variable t, unique name 0:CameraPath55:t, index 303, declared at line 387, column 23
+// variable t, unique name 0:CameraPath55:t, index 304, declared at line 387, column 23
 // references:
 // pushing activation record 0:PostEffects57
 function PostEffects(rgb, uv)
@@ -1162,8 +1162,8 @@ function PostEffects(rgb, uv)
 // rgb at line 406, column 8
 // popping activation record 0:PostEffects57
 // local variables: 
-// variable rgb, unique name 0:PostEffects57:rgb, index 307, declared at line 397, column 22
-// variable uv, unique name 0:PostEffects57:uv, index 308, declared at line 397, column 32
+// variable rgb, unique name 0:PostEffects57:rgb, index 308, declared at line 397, column 22
+// variable uv, unique name 0:PostEffects57:uv, index 309, declared at line 397, column 32
 // references:
 // pushing activation record 0:mainImage59
 function mainImage(fragColor, fragCoord)
@@ -1199,7 +1199,7 @@ var h : float  = 0.0;
     // f at line 426, column 2
     // popping activation record 0:mainImage59:60:for61
     // local variables: 
-    // variable i, unique name 0:mainImage59:60:for61:i, index 318, declared at line 423, column 10
+    // variable i, unique name 0:mainImage59:60:for61:i, index 319, declared at line 423, column 10
     // references:
     // i at line 423, column 17
     // i at line 423, column 24
@@ -1248,20 +1248,20 @@ fragColor = vec4(col, 1.0);
 }
 // popping activation record 0:mainImage59:60
 // local variables: 
-// variable xy, unique name 0:mainImage59:60:xy, index 312, declared at line 412, column 9
-// variable uv, unique name 0:mainImage59:60:uv, index 313, declared at line 413, column 6
-// variable camTar, unique name 0:mainImage59:60:camTar, index 314, declared at line 414, column 6
-// variable isCyan, unique name 0:mainImage59:60:isCyan, index 315, declared at line 417, column 7
-// variable h, unique name 0:mainImage59:60:h, index 316, declared at line 421, column 7
-// variable f, unique name 0:mainImage59:60:f, index 317, declared at line 422, column 7
-// variable roll, unique name 0:mainImage59:60:roll, index 319, declared at line 432, column 7
-// variable cw, unique name 0:mainImage59:60:cw, index 320, declared at line 433, column 6
-// variable cp, unique name 0:mainImage59:60:cp, index 321, declared at line 434, column 6
-// variable cu, unique name 0:mainImage59:60:cu, index 322, declared at line 435, column 6
-// variable cv, unique name 0:mainImage59:60:cv, index 323, declared at line 436, column 6
-// variable rd, unique name 0:mainImage59:60:rd, index 324, declared at line 437, column 6
-// variable col, unique name 0:mainImage59:60:col, index 325, declared at line 443, column 6
-// variable distance, unique name 0:mainImage59:60:distance, index 326, declared at line 444, column 7
+// variable xy, unique name 0:mainImage59:60:xy, index 313, declared at line 412, column 9
+// variable uv, unique name 0:mainImage59:60:uv, index 314, declared at line 413, column 6
+// variable camTar, unique name 0:mainImage59:60:camTar, index 315, declared at line 414, column 6
+// variable isCyan, unique name 0:mainImage59:60:isCyan, index 316, declared at line 417, column 7
+// variable h, unique name 0:mainImage59:60:h, index 317, declared at line 421, column 7
+// variable f, unique name 0:mainImage59:60:f, index 318, declared at line 422, column 7
+// variable roll, unique name 0:mainImage59:60:roll, index 320, declared at line 432, column 7
+// variable cw, unique name 0:mainImage59:60:cw, index 321, declared at line 433, column 6
+// variable cp, unique name 0:mainImage59:60:cp, index 322, declared at line 434, column 6
+// variable cu, unique name 0:mainImage59:60:cu, index 323, declared at line 435, column 6
+// variable cv, unique name 0:mainImage59:60:cv, index 324, declared at line 436, column 6
+// variable rd, unique name 0:mainImage59:60:rd, index 325, declared at line 437, column 6
+// variable col, unique name 0:mainImage59:60:col, index 326, declared at line 443, column 6
+// variable distance, unique name 0:mainImage59:60:distance, index 327, declared at line 444, column 7
 // references:
 // fragCoord at line 412, column 25
 // iResolution at line 412, column 40
@@ -1329,7 +1329,7 @@ fragColor = vec4(col, 1.0);
 // col at line 474, column 16
 // popping activation record 0:mainImage59
 // local variables: 
-// variable fragColor, unique name 0:mainImage59:fragColor, index 310, declared at line 410, column 25
-// variable fragCoord, unique name 0:mainImage59:fragCoord, index 311, declared at line 410, column 44
+// variable fragColor, unique name 0:mainImage59:fragColor, index 311, declared at line 410, column 25
+// variable fragCoord, unique name 0:mainImage59:fragCoord, index 312, declared at line 410, column 44
 // references:
 // undefined variables 

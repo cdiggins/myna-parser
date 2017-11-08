@@ -74,8 +74,8 @@ vec3 nSphere(in vec3 pos, in vec4 sph)
 // sph at line 38, column 25
 // popping activation record 0:nSphere7
 // local variables: 
-// variable pos, unique name 0:nSphere7:pos, index 193, declared at line 37, column 22
-// variable sph, unique name 0:nSphere7:sph, index 194, declared at line 37, column 35
+// variable pos, unique name 0:nSphere7:pos, index 194, declared at line 37, column 22
+// variable sph, unique name 0:nSphere7:sph, index 195, declared at line 37, column 35
 // references:
 // pushing activation record 0:iSphere9
 float iSphere(in vec3 ro, in vec3 rd, in vec4 sph)
@@ -91,10 +91,10 @@ float iSphere(in vec3 ro, in vec3 rd, in vec4 sph)
 }
 // popping activation record 0:iSphere9:10
 // local variables: 
-// variable oc, unique name 0:iSphere9:10:oc, index 199, declared at line 42, column 6
-// variable b, unique name 0:iSphere9:10:b, index 200, declared at line 43, column 7
-// variable c, unique name 0:iSphere9:10:c, index 201, declared at line 44, column 7
-// variable h, unique name 0:iSphere9:10:h, index 202, declared at line 45, column 7
+// variable oc, unique name 0:iSphere9:10:oc, index 200, declared at line 42, column 6
+// variable b, unique name 0:iSphere9:10:b, index 201, declared at line 43, column 7
+// variable c, unique name 0:iSphere9:10:c, index 202, declared at line 44, column 7
+// variable h, unique name 0:iSphere9:10:h, index 203, declared at line 45, column 7
 // references:
 // ro at line 42, column 11
 // sph at line 42, column 16
@@ -115,9 +115,9 @@ float iSphere(in vec3 ro, in vec3 rd, in vec4 sph)
 // h at line 47, column 19
 // popping activation record 0:iSphere9
 // local variables: 
-// variable ro, unique name 0:iSphere9:ro, index 196, declared at line 41, column 23
-// variable rd, unique name 0:iSphere9:rd, index 197, declared at line 41, column 35
-// variable sph, unique name 0:iSphere9:sph, index 198, declared at line 41, column 47
+// variable ro, unique name 0:iSphere9:ro, index 197, declared at line 41, column 23
+// variable rd, unique name 0:iSphere9:rd, index 198, declared at line 41, column 35
+// variable sph, unique name 0:iSphere9:sph, index 199, declared at line 41, column 47
 // references:
 // pushing activation record 0:nPlane11
 vec3 nPlane(in vec3 ro, in vec4 obj)
@@ -132,8 +132,8 @@ vec3 nPlane(in vec3 ro, in vec4 obj)
 // obj at line 51, column 11
 // popping activation record 0:nPlane11
 // local variables: 
-// variable ro, unique name 0:nPlane11:ro, index 204, declared at line 50, column 21
-// variable obj, unique name 0:nPlane11:obj, index 205, declared at line 50, column 33
+// variable ro, unique name 0:nPlane11:ro, index 205, declared at line 50, column 21
+// variable obj, unique name 0:nPlane11:obj, index 206, declared at line 50, column 33
 // references:
 // pushing activation record 0:iPlane13
 float iPlane(in vec3 ro, in vec3 rd, in vec4 pla)
@@ -154,9 +154,9 @@ float iPlane(in vec3 ro, in vec3 rd, in vec4 pla)
 // rd at line 55, column 54
 // popping activation record 0:iPlane13
 // local variables: 
-// variable ro, unique name 0:iPlane13:ro, index 207, declared at line 54, column 22
-// variable rd, unique name 0:iPlane13:rd, index 208, declared at line 54, column 34
-// variable pla, unique name 0:iPlane13:pla, index 209, declared at line 54, column 46
+// variable ro, unique name 0:iPlane13:ro, index 208, declared at line 54, column 22
+// variable rd, unique name 0:iPlane13:rd, index 209, declared at line 54, column 34
+// variable pla, unique name 0:iPlane13:pla, index 210, declared at line 54, column 46
 // references:
 // pushing activation record 0:cosWeightedRandomHemisphereDirection15
 vec3 cosWeightedRandomHemisphereDirection(const vec3 n)
@@ -175,14 +175,14 @@ vec3 cosWeightedRandomHemisphereDirection(const vec3 n)
 }
 // popping activation record 0:cosWeightedRandomHemisphereDirection15:16
 // local variables: 
-// variable r, unique name 0:cosWeightedRandomHemisphereDirection15:16:r, index 212, declared at line 63, column 8
-// variable uu, unique name 0:cosWeightedRandomHemisphereDirection15:16:uu, index 213, declared at line 65, column 7
-// variable vv, unique name 0:cosWeightedRandomHemisphereDirection15:16:vv, index 214, declared at line 66, column 7
-// variable ra, unique name 0:cosWeightedRandomHemisphereDirection15:16:ra, index 215, declared at line 68, column 7
-// variable rx, unique name 0:cosWeightedRandomHemisphereDirection15:16:rx, index 216, declared at line 69, column 7
-// variable ry, unique name 0:cosWeightedRandomHemisphereDirection15:16:ry, index 217, declared at line 70, column 7
-// variable rz, unique name 0:cosWeightedRandomHemisphereDirection15:16:rz, index 218, declared at line 71, column 7
-// variable rr, unique name 0:cosWeightedRandomHemisphereDirection15:16:rr, index 219, declared at line 72, column 7
+// variable r, unique name 0:cosWeightedRandomHemisphereDirection15:16:r, index 213, declared at line 63, column 8
+// variable uu, unique name 0:cosWeightedRandomHemisphereDirection15:16:uu, index 214, declared at line 65, column 7
+// variable vv, unique name 0:cosWeightedRandomHemisphereDirection15:16:vv, index 215, declared at line 66, column 7
+// variable ra, unique name 0:cosWeightedRandomHemisphereDirection15:16:ra, index 216, declared at line 68, column 7
+// variable rx, unique name 0:cosWeightedRandomHemisphereDirection15:16:rx, index 217, declared at line 69, column 7
+// variable ry, unique name 0:cosWeightedRandomHemisphereDirection15:16:ry, index 218, declared at line 70, column 7
+// variable rz, unique name 0:cosWeightedRandomHemisphereDirection15:16:rz, index 219, declared at line 71, column 7
+// variable rr, unique name 0:cosWeightedRandomHemisphereDirection15:16:rr, index 220, declared at line 72, column 7
 // references:
 // hash2 at line 63, column 12
 // normalize at line 65, column 12
@@ -213,7 +213,7 @@ vec3 cosWeightedRandomHemisphereDirection(const vec3 n)
 // rr at line 74, column 22
 // popping activation record 0:cosWeightedRandomHemisphereDirection15
 // local variables: 
-// variable n, unique name 0:cosWeightedRandomHemisphereDirection15:n, index 211, declared at line 62, column 54
+// variable n, unique name 0:cosWeightedRandomHemisphereDirection15:n, index 212, declared at line 62, column 54
 // references:
 // pushing activation record 0:randomSphereDirection17
 vec3 randomSphereDirection()
@@ -226,8 +226,8 @@ vec3 randomSphereDirection()
 }
 // popping activation record 0:randomSphereDirection17:18
 // local variables: 
-// variable r, unique name 0:randomSphereDirection17:18:r, index 221, declared at line 78, column 9
-// variable dr, unique name 0:randomSphereDirection17:18:dr, index 222, declared at line 80, column 6
+// variable r, unique name 0:randomSphereDirection17:18:r, index 222, declared at line 78, column 9
+// variable dr, unique name 0:randomSphereDirection17:18:dr, index 223, declared at line 80, column 6
 // references:
 // hash2 at line 78, column 13
 // vec3 at line 80, column 9
@@ -245,7 +245,7 @@ vec3 randomHemisphereDirection(const vec3 n)
 }
 // popping activation record 0:randomHemisphereDirection19:20
 // local variables: 
-// variable dr, unique name 0:randomHemisphereDirection19:20:dr, index 225, declared at line 85, column 6
+// variable dr, unique name 0:randomHemisphereDirection19:20:dr, index 226, declared at line 85, column 6
 // references:
 // randomSphereDirection at line 85, column 11
 // dot at line 86, column 8
@@ -254,7 +254,7 @@ vec3 randomHemisphereDirection(const vec3 n)
 // dr at line 86, column 20
 // popping activation record 0:randomHemisphereDirection19
 // local variables: 
-// variable n, unique name 0:randomHemisphereDirection19:n, index 224, declared at line 84, column 43
+// variable n, unique name 0:randomHemisphereDirection19:n, index 225, declared at line 84, column 43
 // references:
 vec4 lightSphere;
 // pushing activation record 0:initLightSphere21
@@ -277,7 +277,7 @@ void initLightSphere(float time)
 // time at line 96, column 70
 // popping activation record 0:initLightSphere21
 // local variables: 
-// variable time, unique name 0:initLightSphere21:time, index 228, declared at line 95, column 28
+// variable time, unique name 0:initLightSphere21:time, index 229, declared at line 95, column 28
 // references:
 // pushing activation record 0:sampleLight23
 vec3 sampleLight(const in vec3 ro)
@@ -289,7 +289,7 @@ vec3 sampleLight(const in vec3 ro)
 }
 // popping activation record 0:sampleLight23:24
 // local variables: 
-// variable n, unique name 0:sampleLight23:24:n, index 231, declared at line 100, column 9
+// variable n, unique name 0:sampleLight23:24:n, index 232, declared at line 100, column 9
 // references:
 // randomSphereDirection at line 100, column 13
 // lightSphere at line 100, column 39
@@ -297,7 +297,7 @@ vec3 sampleLight(const in vec3 ro)
 // n at line 101, column 29
 // popping activation record 0:sampleLight23
 // local variables: 
-// variable ro, unique name 0:sampleLight23:ro, index 230, declared at line 99, column 32
+// variable ro, unique name 0:sampleLight23:ro, index 231, declared at line 99, column 32
 // references:
 // pushing activation record 0:intersect25
 vec2 intersect(in vec3 ro, in vec3 rd, inout vec3 normal)
@@ -442,8 +442,8 @@ vec2 intersect(in vec3 ro, in vec3 rd, inout vec3 normal)
 }
 // popping activation record 0:intersect25:26
 // local variables: 
-// variable res, unique name 0:intersect25:26:res, index 236, declared at line 109, column 6
-// variable t, unique name 0:intersect25:26:t, index 237, declared at line 110, column 10
+// variable res, unique name 0:intersect25:26:res, index 237, declared at line 109, column 6
+// variable t, unique name 0:intersect25:26:t, index 238, declared at line 110, column 10
 // references:
 // vec2 at line 109, column 12
 // t at line 112, column 1
@@ -521,9 +521,9 @@ vec2 intersect(in vec3 ro, in vec3 rd, inout vec3 normal)
 // res at line 123, column 11
 // popping activation record 0:intersect25
 // local variables: 
-// variable ro, unique name 0:intersect25:ro, index 233, declared at line 108, column 24
-// variable rd, unique name 0:intersect25:rd, index 234, declared at line 108, column 36
-// variable normal, unique name 0:intersect25:normal, index 235, declared at line 108, column 51
+// variable ro, unique name 0:intersect25:ro, index 234, declared at line 108, column 24
+// variable rd, unique name 0:intersect25:rd, index 235, declared at line 108, column 36
+// variable normal, unique name 0:intersect25:normal, index 236, declared at line 108, column 51
 // references:
 // pushing activation record 0:intersectShadow35
 bool intersectShadow(in vec3 ro, in vec3 rd, in float dist)
@@ -553,7 +553,7 @@ bool intersectShadow(in vec3 ro, in vec3 rd, in float dist)
 }
 // popping activation record 0:intersectShadow35:36
 // local variables: 
-// variable t, unique name 0:intersectShadow35:36:t, index 242, declared at line 127, column 10
+// variable t, unique name 0:intersectShadow35:36:t, index 243, declared at line 127, column 10
 // references:
 // t at line 129, column 1
 // iSphere at line 129, column 5
@@ -575,9 +575,9 @@ bool intersectShadow(in vec3 ro, in vec3 rd, in float dist)
 // dist at line 130, column 68
 // popping activation record 0:intersectShadow35
 // local variables: 
-// variable ro, unique name 0:intersectShadow35:ro, index 239, declared at line 126, column 30
-// variable rd, unique name 0:intersectShadow35:rd, index 240, declared at line 126, column 42
-// variable dist, unique name 0:intersectShadow35:dist, index 241, declared at line 126, column 55
+// variable ro, unique name 0:intersectShadow35:ro, index 240, declared at line 126, column 30
+// variable rd, unique name 0:intersectShadow35:rd, index 241, declared at line 126, column 42
+// variable dist, unique name 0:intersectShadow35:dist, index 242, declared at line 126, column 55
 // references:
 // pushing activation record 0:matColor39
 vec3 matColor(const in float mat)
@@ -593,7 +593,7 @@ vec3 matColor(const in float mat)
 }
 // popping activation record 0:matColor39:40
 // local variables: 
-// variable nor, unique name 0:matColor39:40:nor, index 245, declared at line 140, column 6
+// variable nor, unique name 0:matColor39:40:nor, index 246, declared at line 140, column 6
 // references:
 // vec3 at line 140, column 12
 // mat at line 142, column 5
@@ -611,7 +611,7 @@ vec3 matColor(const in float mat)
 // nor at line 147, column 11
 // popping activation record 0:matColor39
 // local variables: 
-// variable mat, unique name 0:matColor39:mat, index 244, declared at line 139, column 30
+// variable mat, unique name 0:matColor39:mat, index 245, declared at line 139, column 30
 // references:
 // pushing activation record 0:matIsSpecular41
 bool matIsSpecular(const in float mat)
@@ -626,7 +626,7 @@ bool matIsSpecular(const in float mat)
 // mat at line 151, column 11
 // popping activation record 0:matIsSpecular41
 // local variables: 
-// variable mat, unique name 0:matIsSpecular41:mat, index 247, declared at line 150, column 35
+// variable mat, unique name 0:matIsSpecular41:mat, index 248, declared at line 150, column 35
 // references:
 // pushing activation record 0:matIsLight43
 bool matIsLight(const in float mat)
@@ -641,7 +641,7 @@ bool matIsLight(const in float mat)
 // mat at line 155, column 11
 // popping activation record 0:matIsLight43
 // local variables: 
-// variable mat, unique name 0:matIsLight43:mat, index 249, declared at line 154, column 32
+// variable mat, unique name 0:matIsLight43:mat, index 250, declared at line 154, column 32
 // references:
 // pushing activation record 0:getBRDFRay45
 vec3 getBRDFRay(const in vec3 n, const in vec3 rd, const in float m, inout bool specularBounce)
@@ -662,7 +662,7 @@ vec3 getBRDFRay(const in vec3 n, const in vec3 rd, const in float m, inout bool 
 }
 // popping activation record 0:getBRDFRay45:46
 // local variables: 
-// variable r, unique name 0:getBRDFRay45:46:r, index 255, declared at line 165, column 9
+// variable r, unique name 0:getBRDFRay45:46:r, index 256, declared at line 165, column 9
 // references:
 // specularBounce at line 163, column 4
 // cosWeightedRandomHemisphereDirection at line 165, column 13
@@ -671,10 +671,10 @@ vec3 getBRDFRay(const in vec3 n, const in vec3 rd, const in float m, inout bool 
 // m at line 166, column 25
 // popping activation record 0:getBRDFRay45
 // local variables: 
-// variable n, unique name 0:getBRDFRay45:n, index 251, declared at line 162, column 31
-// variable rd, unique name 0:getBRDFRay45:rd, index 252, declared at line 162, column 48
-// variable m, unique name 0:getBRDFRay45:m, index 253, declared at line 162, column 67
-// variable specularBounce, unique name 0:getBRDFRay45:specularBounce, index 254, declared at line 162, column 81
+// variable n, unique name 0:getBRDFRay45:n, index 252, declared at line 162, column 31
+// variable rd, unique name 0:getBRDFRay45:rd, index 253, declared at line 162, column 48
+// variable m, unique name 0:getBRDFRay45:m, index 254, declared at line 162, column 67
+// variable specularBounce, unique name 0:getBRDFRay45:specularBounce, index 255, declared at line 162, column 81
 // references:
 // pushing activation record 0:traceEyePath48
 vec3 traceEyePath(in vec3 ro, in vec3 rd, const in bool directLightSampling)
@@ -735,8 +735,8 @@ vec3 traceEyePath(in vec3 ro, in vec3 rd, const in bool directLightSampling)
             }
             // popping activation record 0:traceEyePath48:49:for50:51:55:56
             // local variables: 
-            // variable cos_a_max, unique name 0:traceEyePath48:49:for50:51:55:56:cos_a_max, index 268, declared at line 233, column 22
-            // variable weight, unique name 0:traceEyePath48:49:for50:51:55:56:weight, index 269, declared at line 234, column 22
+            // variable cos_a_max, unique name 0:traceEyePath48:49:for50:51:55:56:cos_a_max, index 269, declared at line 233, column 22
+            // variable weight, unique name 0:traceEyePath48:49:for50:51:55:56:weight, index 270, declared at line 234, column 22
             // references:
             // sqrt at line 233, column 34
             // clamp at line 233, column 44
@@ -760,7 +760,7 @@ vec3 traceEyePath(in vec3 ro, in vec3 rd, const in bool directLightSampling)
         }
         // popping activation record 0:traceEyePath48:49:for50:51:55
         // local variables: 
-        // variable nld, unique name 0:traceEyePath48:49:for50:51:55:nld, index 267, declared at line 230, column 8
+        // variable nld, unique name 0:traceEyePath48:49:for50:51:55:nld, index 268, declared at line 230, column 8
         // references:
         // normalize at line 230, column 14
         // ld at line 230, column 24
@@ -776,9 +776,9 @@ vec3 traceEyePath(in vec3 ro, in vec3 rd, const in bool directLightSampling)
     }
     // popping activation record 0:traceEyePath48:49:for50:51
     // local variables: 
-    // variable normal, unique name 0:traceEyePath48:49:for50:51:normal, index 264, declared at line 205, column 13
-    // variable res, unique name 0:traceEyePath48:49:for50:51:res, index 265, declared at line 207, column 13
-    // variable ld, unique name 0:traceEyePath48:49:for50:51:ld, index 266, declared at line 227, column 13
+    // variable normal, unique name 0:traceEyePath48:49:for50:51:normal, index 265, declared at line 205, column 13
+    // variable res, unique name 0:traceEyePath48:49:for50:51:res, index 266, declared at line 207, column 13
+    // variable ld, unique name 0:traceEyePath48:49:for50:51:ld, index 267, declared at line 227, column 13
     // references:
     // intersect at line 207, column 19
     // ro at line 207, column 30
@@ -806,7 +806,7 @@ vec3 traceEyePath(in vec3 ro, in vec3 rd, const in bool directLightSampling)
     // directLightSampling at line 229, column 12
     // popping activation record 0:traceEyePath48:49:for50
     // local variables: 
-    // variable j, unique name 0:traceEyePath48:49:for50:j, index 263, declared at line 204, column 13
+    // variable j, unique name 0:traceEyePath48:49:for50:j, index 264, declared at line 204, column 13
     // references:
     // j at line 204, column 18
     // EYEPATHLENGTH at line 204, column 20
@@ -816,18 +816,18 @@ vec3 traceEyePath(in vec3 ro, in vec3 rd, const in bool directLightSampling)
 }
 // popping activation record 0:traceEyePath48:49
 // local variables: 
-// variable tcol, unique name 0:traceEyePath48:49:tcol, index 260, declared at line 199, column 9
-// variable fcol, unique name 0:traceEyePath48:49:fcol, index 261, declared at line 200, column 9
-// variable specularBounce, unique name 0:traceEyePath48:49:specularBounce, index 262, declared at line 202, column 9
+// variable tcol, unique name 0:traceEyePath48:49:tcol, index 261, declared at line 199, column 9
+// variable fcol, unique name 0:traceEyePath48:49:fcol, index 262, declared at line 200, column 9
+// variable specularBounce, unique name 0:traceEyePath48:49:specularBounce, index 263, declared at line 202, column 9
 // references:
 // vec3 at line 199, column 16
 // vec3 at line 200, column 17
 // tcol at line 240, column 11
 // popping activation record 0:traceEyePath48
 // local variables: 
-// variable ro, unique name 0:traceEyePath48:ro, index 257, declared at line 198, column 27
-// variable rd, unique name 0:traceEyePath48:rd, index 258, declared at line 198, column 39
-// variable directLightSampling, unique name 0:traceEyePath48:directLightSampling, index 259, declared at line 198, column 57
+// variable ro, unique name 0:traceEyePath48:ro, index 258, declared at line 198, column 27
+// variable rd, unique name 0:traceEyePath48:rd, index 259, declared at line 198, column 39
+// variable directLightSampling, unique name 0:traceEyePath48:directLightSampling, index 260, declared at line 198, column 57
 // references:
 // pushing activation record 0:main57
 void main()
@@ -859,9 +859,9 @@ void main()
     }
     // popping activation record 0:main57:58:for59:60
     // local variables: 
-    // variable rpof, unique name 0:main57:58:for59:60:rpof, index 283, declared at line 276, column 13
-    // variable rd, unique name 0:main57:58:for59:60:rd, index 284, declared at line 277, column 10
-    // variable rof, unique name 0:main57:58:for59:60:rof, index 285, declared at line 279, column 13
+    // variable rpof, unique name 0:main57:58:for59:60:rpof, index 284, declared at line 276, column 13
+    // variable rd, unique name 0:main57:58:for59:60:rd, index 285, declared at line 277, column 10
+    // variable rof, unique name 0:main57:58:for59:60:rof, index 286, declared at line 279, column 13
     // references:
     // hash2 at line 276, column 24
     // vec2 at line 276, column 32
@@ -886,7 +886,7 @@ void main()
     // col at line 284, column 15
     // popping activation record 0:main57:58:for59
     // local variables: 
-    // variable a, unique name 0:main57:58:for59:a, index 282, declared at line 274, column 13
+    // variable a, unique name 0:main57:58:for59:a, index 283, declared at line 274, column 13
     // references:
     // a at line 274, column 18
     // SAMPLES at line 274, column 20
@@ -898,17 +898,17 @@ void main()
 }
 // popping activation record 0:main57:58
 // local variables: 
-// variable q, unique name 0:main57:58:q, index 271, declared at line 248, column 6
-// variable directLightSampling, unique name 0:main57:58:directLightSampling, index 272, declared at line 250, column 6
-// variable p, unique name 0:main57:58:p, index 273, declared at line 255, column 9
-// variable ro, unique name 0:main57:58:ro, index 274, declared at line 260, column 9
-// variable ta, unique name 0:main57:58:ta, index 275, declared at line 261, column 9
-// variable ww, unique name 0:main57:58:ww, index 276, declared at line 262, column 9
-// variable uu, unique name 0:main57:58:uu, index 277, declared at line 263, column 9
-// variable vv, unique name 0:main57:58:vv, index 278, declared at line 264, column 9
-// variable col, unique name 0:main57:58:col, index 279, declared at line 270, column 9
-// variable tot, unique name 0:main57:58:tot, index 280, declared at line 271, column 9
-// variable uvw, unique name 0:main57:58:uvw, index 281, declared at line 272, column 9
+// variable q, unique name 0:main57:58:q, index 272, declared at line 248, column 6
+// variable directLightSampling, unique name 0:main57:58:directLightSampling, index 273, declared at line 250, column 6
+// variable p, unique name 0:main57:58:p, index 274, declared at line 255, column 9
+// variable ro, unique name 0:main57:58:ro, index 275, declared at line 260, column 9
+// variable ta, unique name 0:main57:58:ta, index 276, declared at line 261, column 9
+// variable ww, unique name 0:main57:58:ww, index 277, declared at line 262, column 9
+// variable uu, unique name 0:main57:58:uu, index 278, declared at line 263, column 9
+// variable vv, unique name 0:main57:58:vv, index 279, declared at line 264, column 9
+// variable col, unique name 0:main57:58:col, index 280, declared at line 270, column 9
+// variable tot, unique name 0:main57:58:tot, index 281, declared at line 271, column 9
+// variable uvw, unique name 0:main57:58:uvw, index 282, declared at line 272, column 9
 // references:
 // gl_FragCoord at line 248, column 10
 // resolution at line 248, column 28

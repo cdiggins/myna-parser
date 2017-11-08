@@ -23,7 +23,7 @@ function hash(p)
 // p at line 14, column 29
 // popping activation record 0:hash1
 // local variables: 
-// variable p, unique name 0:hash1:p, index 178, declared at line 9, column 16
+// variable p, unique name 0:hash1:p, index 179, declared at line 9, column 16
 // references:
 // pushing activation record 0:noise3
 function noise(p)
@@ -43,15 +43,15 @@ function noise(p)
 }
 // popping activation record 0:noise3:4
 // local variables: 
-// variable K1, unique name 0:noise3:4:K1, index 181, declared at line 19, column 16
-// variable K2, unique name 0:noise3:4:K2, index 182, declared at line 20, column 16
-// variable i, unique name 0:noise3:4:i, index 183, declared at line 22, column 6
-// variable a, unique name 0:noise3:4:a, index 184, declared at line 24, column 9
-// variable o, unique name 0:noise3:4:o, index 185, declared at line 25, column 9
-// variable b, unique name 0:noise3:4:b, index 186, declared at line 26, column 9
-// variable c, unique name 0:noise3:4:c, index 187, declared at line 27, column 6
-// variable h, unique name 0:noise3:4:h, index 188, declared at line 29, column 9
-// variable n, unique name 0:noise3:4:n, index 189, declared at line 31, column 6
+// variable K1, unique name 0:noise3:4:K1, index 182, declared at line 19, column 16
+// variable K2, unique name 0:noise3:4:K2, index 183, declared at line 20, column 16
+// variable i, unique name 0:noise3:4:i, index 184, declared at line 22, column 6
+// variable a, unique name 0:noise3:4:a, index 185, declared at line 24, column 9
+// variable o, unique name 0:noise3:4:o, index 186, declared at line 25, column 9
+// variable b, unique name 0:noise3:4:b, index 187, declared at line 26, column 9
+// variable c, unique name 0:noise3:4:c, index 188, declared at line 27, column 6
+// variable h, unique name 0:noise3:4:h, index 189, declared at line 29, column 9
+// variable n, unique name 0:noise3:4:n, index 190, declared at line 31, column 6
 // references:
 // floor at line 22, column 10
 // p at line 22, column 17
@@ -105,7 +105,7 @@ function noise(p)
 // vec3 at line 33, column 19
 // popping activation record 0:noise3
 // local variables: 
-// variable p, unique name 0:noise3:p, index 180, declared at line 17, column 21
+// variable p, unique name 0:noise3:p, index 181, declared at line 17, column 21
 // references:
 // pushing activation record 0:reset5
 function reset()
@@ -140,7 +140,7 @@ function normz(x)
 // x at line 44, column 57
 // popping activation record 0:normz7
 // local variables: 
-// variable x, unique name 0:normz7:x, index 192, declared at line 43, column 16
+// variable x, unique name 0:normz7:x, index 193, declared at line 43, column 16
 // references:
 // pushing activation record 0:advect9
 function advect(ab, vUv, step, sc)
@@ -174,29 +174,29 @@ function advect(ab, vUv, step, sc)
 }
 // popping activation record 0:advect9:10
 // local variables: 
-// variable aUv, unique name 0:advect9:10:aUv, index 198, declared at line 50, column 9
-// variable _G0, unique name 0:advect9:10:_G0, index 199, declared at line 52, column 16
-// variable _G1, unique name 0:advect9:10:_G1, index 200, declared at line 53, column 16
-// variable _G2, unique name 0:advect9:10:_G2, index 201, declared at line 54, column 16
-// variable step_x, unique name 0:advect9:10:step_x, index 202, declared at line 57, column 10
-// variable step_y, unique name 0:advect9:10:step_y, index 203, declared at line 58, column 10
-// variable n, unique name 0:advect9:10:n, index 204, declared at line 59, column 9
-// variable ne, unique name 0:advect9:10:ne, index 205, declared at line 60, column 9
-// variable e, unique name 0:advect9:10:e, index 206, declared at line 61, column 9
-// variable se, unique name 0:advect9:10:se, index 207, declared at line 62, column 9
-// variable s, unique name 0:advect9:10:s, index 208, declared at line 63, column 9
-// variable sw, unique name 0:advect9:10:sw, index 209, declared at line 64, column 9
-// variable w, unique name 0:advect9:10:w, index 210, declared at line 65, column 9
-// variable nw, unique name 0:advect9:10:nw, index 211, declared at line 66, column 9
-// variable uv, unique name 0:advect9:10:uv, index 212, declared at line 68, column 9
-// variable uv_n, unique name 0:advect9:10:uv_n, index 213, declared at line 69, column 9
-// variable uv_e, unique name 0:advect9:10:uv_e, index 214, declared at line 70, column 9
-// variable uv_s, unique name 0:advect9:10:uv_s, index 215, declared at line 71, column 9
-// variable uv_w, unique name 0:advect9:10:uv_w, index 216, declared at line 72, column 9
-// variable uv_nw, unique name 0:advect9:10:uv_nw, index 217, declared at line 73, column 9
-// variable uv_sw, unique name 0:advect9:10:uv_sw, index 218, declared at line 74, column 9
-// variable uv_ne, unique name 0:advect9:10:uv_ne, index 219, declared at line 75, column 9
-// variable uv_se, unique name 0:advect9:10:uv_se, index 220, declared at line 76, column 9
+// variable aUv, unique name 0:advect9:10:aUv, index 199, declared at line 50, column 9
+// variable _G0, unique name 0:advect9:10:_G0, index 200, declared at line 52, column 16
+// variable _G1, unique name 0:advect9:10:_G1, index 201, declared at line 53, column 16
+// variable _G2, unique name 0:advect9:10:_G2, index 202, declared at line 54, column 16
+// variable step_x, unique name 0:advect9:10:step_x, index 203, declared at line 57, column 10
+// variable step_y, unique name 0:advect9:10:step_y, index 204, declared at line 58, column 10
+// variable n, unique name 0:advect9:10:n, index 205, declared at line 59, column 9
+// variable ne, unique name 0:advect9:10:ne, index 206, declared at line 60, column 9
+// variable e, unique name 0:advect9:10:e, index 207, declared at line 61, column 9
+// variable se, unique name 0:advect9:10:se, index 208, declared at line 62, column 9
+// variable s, unique name 0:advect9:10:s, index 209, declared at line 63, column 9
+// variable sw, unique name 0:advect9:10:sw, index 210, declared at line 64, column 9
+// variable w, unique name 0:advect9:10:w, index 211, declared at line 65, column 9
+// variable nw, unique name 0:advect9:10:nw, index 212, declared at line 66, column 9
+// variable uv, unique name 0:advect9:10:uv, index 213, declared at line 68, column 9
+// variable uv_n, unique name 0:advect9:10:uv_n, index 214, declared at line 69, column 9
+// variable uv_e, unique name 0:advect9:10:uv_e, index 215, declared at line 70, column 9
+// variable uv_s, unique name 0:advect9:10:uv_s, index 216, declared at line 71, column 9
+// variable uv_w, unique name 0:advect9:10:uv_w, index 217, declared at line 72, column 9
+// variable uv_nw, unique name 0:advect9:10:uv_nw, index 218, declared at line 73, column 9
+// variable uv_sw, unique name 0:advect9:10:uv_sw, index 219, declared at line 74, column 9
+// variable uv_ne, unique name 0:advect9:10:uv_ne, index 220, declared at line 75, column 9
+// variable uv_se, unique name 0:advect9:10:uv_se, index 221, declared at line 76, column 9
 // references:
 // vUv at line 50, column 15
 // ab at line 50, column 21
@@ -282,10 +282,10 @@ function advect(ab, vUv, step, sc)
 // uv_se at line 78, column 83
 // popping activation record 0:advect9
 // local variables: 
-// variable ab, unique name 0:advect9:ab, index 194, declared at line 48, column 17
-// variable vUv, unique name 0:advect9:vUv, index 195, declared at line 48, column 26
-// variable step, unique name 0:advect9:step, index 196, declared at line 48, column 36
-// variable sc, unique name 0:advect9:sc, index 197, declared at line 48, column 48
+// variable ab, unique name 0:advect9:ab, index 195, declared at line 48, column 17
+// variable vUv, unique name 0:advect9:vUv, index 196, declared at line 48, column 26
+// variable step, unique name 0:advect9:step, index 197, declared at line 48, column 36
+// variable sc, unique name 0:advect9:sc, index 198, declared at line 48, column 48
 // references:
 // pushing activation record 0:mainImage11
 function mainImage(fragColor, fragCoord)
@@ -348,8 +348,8 @@ function mainImage(fragColor, fragCoord)
     }
     // popping activation record 0:mainImage11:12:13
     // local variables: 
-    // variable d, unique name 0:mainImage11:12:13:d, index 272, declared at line 156, column 10
-    // variable m, unique name 0:mainImage11:12:13:m, index 273, declared at line 157, column 14
+    // variable d, unique name 0:mainImage11:12:13:d, index 273, declared at line 156, column 10
+    // variable m, unique name 0:mainImage11:12:13:m, index 274, declared at line 157, column 14
     // references:
     // fragCoord at line 156, column 14
     // iMouse at line 156, column 29
@@ -368,7 +368,7 @@ function mainImage(fragColor, fragCoord)
     }
     // popping activation record 0:mainImage11:12:14
     // local variables: 
-    // variable rnd, unique name 0:mainImage11:12:14:rnd, index 274, declared at line 163, column 13
+    // variable rnd, unique name 0:mainImage11:12:14:rnd, index 275, declared at line 163, column 13
     // references:
     // vec3 at line 163, column 19
     // noise at line 163, column 24
@@ -384,54 +384,54 @@ function mainImage(fragColor, fragCoord)
 }
 // popping activation record 0:mainImage11:12
 // local variables: 
-// variable _K0, unique name 0:mainImage11:12:_K0, index 224, declared at line 83, column 16
-// variable _K1, unique name 0:mainImage11:12:_K1, index 225, declared at line 84, column 16
-// variable _K2, unique name 0:mainImage11:12:_K2, index 226, declared at line 85, column 16
-// variable cs, unique name 0:mainImage11:12:cs, index 227, declared at line 86, column 16
-// variable ls, unique name 0:mainImage11:12:ls, index 228, declared at line 87, column 16
-// variable ps, unique name 0:mainImage11:12:ps, index 229, declared at line 88, column 16
-// variable ds, unique name 0:mainImage11:12:ds, index 230, declared at line 89, column 16
-// variable dp, unique name 0:mainImage11:12:dp, index 231, declared at line 90, column 16
-// variable pl, unique name 0:mainImage11:12:pl, index 232, declared at line 91, column 16
-// variable ad, unique name 0:mainImage11:12:ad, index 233, declared at line 92, column 16
-// variable pwr, unique name 0:mainImage11:12:pwr, index 234, declared at line 93, column 16
-// variable amp, unique name 0:mainImage11:12:amp, index 235, declared at line 94, column 16
-// variable upd, unique name 0:mainImage11:12:upd, index 236, declared at line 95, column 16
-// variable sq2, unique name 0:mainImage11:12:sq2, index 237, declared at line 96, column 16
-// variable vUv, unique name 0:mainImage11:12:vUv, index 238, declared at line 98, column 9
-// variable texel, unique name 0:mainImage11:12:texel, index 239, declared at line 99, column 9
-// variable step_x, unique name 0:mainImage11:12:step_x, index 240, declared at line 102, column 10
-// variable step_y, unique name 0:mainImage11:12:step_y, index 241, declared at line 103, column 10
-// variable n, unique name 0:mainImage11:12:n, index 242, declared at line 104, column 9
-// variable ne, unique name 0:mainImage11:12:ne, index 243, declared at line 105, column 9
-// variable e, unique name 0:mainImage11:12:e, index 244, declared at line 106, column 9
-// variable se, unique name 0:mainImage11:12:se, index 245, declared at line 107, column 9
-// variable s, unique name 0:mainImage11:12:s, index 246, declared at line 108, column 9
-// variable sw, unique name 0:mainImage11:12:sw, index 247, declared at line 109, column 9
-// variable w, unique name 0:mainImage11:12:w, index 248, declared at line 110, column 9
-// variable nw, unique name 0:mainImage11:12:nw, index 249, declared at line 111, column 9
-// variable uv, unique name 0:mainImage11:12:uv, index 250, declared at line 113, column 9
-// variable uv_n, unique name 0:mainImage11:12:uv_n, index 251, declared at line 114, column 9
-// variable uv_e, unique name 0:mainImage11:12:uv_e, index 252, declared at line 115, column 9
-// variable uv_s, unique name 0:mainImage11:12:uv_s, index 253, declared at line 116, column 9
-// variable uv_w, unique name 0:mainImage11:12:uv_w, index 254, declared at line 117, column 9
-// variable uv_nw, unique name 0:mainImage11:12:uv_nw, index 255, declared at line 118, column 9
-// variable uv_sw, unique name 0:mainImage11:12:uv_sw, index 256, declared at line 119, column 9
-// variable uv_ne, unique name 0:mainImage11:12:uv_ne, index 257, declared at line 120, column 9
-// variable uv_se, unique name 0:mainImage11:12:uv_se, index 258, declared at line 121, column 9
-// variable lapl, unique name 0:mainImage11:12:lapl, index 259, declared at line 126, column 9
-// variable sp, unique name 0:mainImage11:12:sp, index 260, declared at line 127, column 10
-// variable curl, unique name 0:mainImage11:12:curl, index 261, declared at line 131, column 10
-// variable sc, unique name 0:mainImage11:12:sc, index 262, declared at line 134, column 10
-// variable div, unique name 0:mainImage11:12:div, index 263, declared at line 138, column 10
-// variable sd, unique name 0:mainImage11:12:sd, index 264, declared at line 139, column 10
-// variable norm, unique name 0:mainImage11:12:norm, index 265, declared at line 141, column 9
-// variable ab, unique name 0:mainImage11:12:ab, index 266, declared at line 143, column 9
-// variable ta, unique name 0:mainImage11:12:ta, index 267, declared at line 146, column 10
-// variable tb, unique name 0:mainImage11:12:tb, index 268, declared at line 147, column 10
-// variable a, unique name 0:mainImage11:12:a, index 269, declared at line 150, column 10
-// variable b, unique name 0:mainImage11:12:b, index 270, declared at line 151, column 10
-// variable abd, unique name 0:mainImage11:12:abd, index 271, declared at line 153, column 9
+// variable _K0, unique name 0:mainImage11:12:_K0, index 225, declared at line 83, column 16
+// variable _K1, unique name 0:mainImage11:12:_K1, index 226, declared at line 84, column 16
+// variable _K2, unique name 0:mainImage11:12:_K2, index 227, declared at line 85, column 16
+// variable cs, unique name 0:mainImage11:12:cs, index 228, declared at line 86, column 16
+// variable ls, unique name 0:mainImage11:12:ls, index 229, declared at line 87, column 16
+// variable ps, unique name 0:mainImage11:12:ps, index 230, declared at line 88, column 16
+// variable ds, unique name 0:mainImage11:12:ds, index 231, declared at line 89, column 16
+// variable dp, unique name 0:mainImage11:12:dp, index 232, declared at line 90, column 16
+// variable pl, unique name 0:mainImage11:12:pl, index 233, declared at line 91, column 16
+// variable ad, unique name 0:mainImage11:12:ad, index 234, declared at line 92, column 16
+// variable pwr, unique name 0:mainImage11:12:pwr, index 235, declared at line 93, column 16
+// variable amp, unique name 0:mainImage11:12:amp, index 236, declared at line 94, column 16
+// variable upd, unique name 0:mainImage11:12:upd, index 237, declared at line 95, column 16
+// variable sq2, unique name 0:mainImage11:12:sq2, index 238, declared at line 96, column 16
+// variable vUv, unique name 0:mainImage11:12:vUv, index 239, declared at line 98, column 9
+// variable texel, unique name 0:mainImage11:12:texel, index 240, declared at line 99, column 9
+// variable step_x, unique name 0:mainImage11:12:step_x, index 241, declared at line 102, column 10
+// variable step_y, unique name 0:mainImage11:12:step_y, index 242, declared at line 103, column 10
+// variable n, unique name 0:mainImage11:12:n, index 243, declared at line 104, column 9
+// variable ne, unique name 0:mainImage11:12:ne, index 244, declared at line 105, column 9
+// variable e, unique name 0:mainImage11:12:e, index 245, declared at line 106, column 9
+// variable se, unique name 0:mainImage11:12:se, index 246, declared at line 107, column 9
+// variable s, unique name 0:mainImage11:12:s, index 247, declared at line 108, column 9
+// variable sw, unique name 0:mainImage11:12:sw, index 248, declared at line 109, column 9
+// variable w, unique name 0:mainImage11:12:w, index 249, declared at line 110, column 9
+// variable nw, unique name 0:mainImage11:12:nw, index 250, declared at line 111, column 9
+// variable uv, unique name 0:mainImage11:12:uv, index 251, declared at line 113, column 9
+// variable uv_n, unique name 0:mainImage11:12:uv_n, index 252, declared at line 114, column 9
+// variable uv_e, unique name 0:mainImage11:12:uv_e, index 253, declared at line 115, column 9
+// variable uv_s, unique name 0:mainImage11:12:uv_s, index 254, declared at line 116, column 9
+// variable uv_w, unique name 0:mainImage11:12:uv_w, index 255, declared at line 117, column 9
+// variable uv_nw, unique name 0:mainImage11:12:uv_nw, index 256, declared at line 118, column 9
+// variable uv_sw, unique name 0:mainImage11:12:uv_sw, index 257, declared at line 119, column 9
+// variable uv_ne, unique name 0:mainImage11:12:uv_ne, index 258, declared at line 120, column 9
+// variable uv_se, unique name 0:mainImage11:12:uv_se, index 259, declared at line 121, column 9
+// variable lapl, unique name 0:mainImage11:12:lapl, index 260, declared at line 126, column 9
+// variable sp, unique name 0:mainImage11:12:sp, index 261, declared at line 127, column 10
+// variable curl, unique name 0:mainImage11:12:curl, index 262, declared at line 131, column 10
+// variable sc, unique name 0:mainImage11:12:sc, index 263, declared at line 134, column 10
+// variable div, unique name 0:mainImage11:12:div, index 264, declared at line 138, column 10
+// variable sd, unique name 0:mainImage11:12:sd, index 265, declared at line 139, column 10
+// variable norm, unique name 0:mainImage11:12:norm, index 266, declared at line 141, column 9
+// variable ab, unique name 0:mainImage11:12:ab, index 267, declared at line 143, column 9
+// variable ta, unique name 0:mainImage11:12:ta, index 268, declared at line 146, column 10
+// variable tb, unique name 0:mainImage11:12:tb, index 269, declared at line 147, column 10
+// variable a, unique name 0:mainImage11:12:a, index 270, declared at line 150, column 10
+// variable b, unique name 0:mainImage11:12:b, index 271, declared at line 151, column 10
+// variable abd, unique name 0:mainImage11:12:abd, index 272, declared at line 153, column 9
 // references:
 // fragCoord at line 98, column 15
 // iResolution at line 98, column 30
@@ -605,8 +605,8 @@ function mainImage(fragColor, fragCoord)
 // reset at line 162, column 20
 // popping activation record 0:mainImage11
 // local variables: 
-// variable fragColor, unique name 0:mainImage11:fragColor, index 222, declared at line 81, column 25
-// variable fragCoord, unique name 0:mainImage11:fragCoord, index 223, declared at line 81, column 44
+// variable fragColor, unique name 0:mainImage11:fragColor, index 223, declared at line 81, column 25
+// variable fragCoord, unique name 0:mainImage11:fragCoord, index 224, declared at line 81, column 44
 // references:
 // pushing activation record 0:mainImage15
 function mainImage(fragColor, fragCoord)
@@ -623,12 +623,12 @@ function mainImage(fragColor, fragCoord)
 }
 // popping activation record 0:mainImage15:16
 // local variables: 
-// variable texel, unique name 0:mainImage15:16:texel, index 277, declared at line 180, column 9
-// variable uv, unique name 0:mainImage15:16:uv, index 278, declared at line 181, column 9
-// variable c, unique name 0:mainImage15:16:c, index 279, declared at line 182, column 9
-// variable norm, unique name 0:mainImage15:16:norm, index 280, declared at line 183, column 9
-// variable div, unique name 0:mainImage15:16:div, index 281, declared at line 185, column 9
-// variable rbcol, unique name 0:mainImage15:16:rbcol, index 282, declared at line 186, column 9
+// variable texel, unique name 0:mainImage15:16:texel, index 278, declared at line 180, column 9
+// variable uv, unique name 0:mainImage15:16:uv, index 279, declared at line 181, column 9
+// variable c, unique name 0:mainImage15:16:c, index 280, declared at line 182, column 9
+// variable norm, unique name 0:mainImage15:16:norm, index 281, declared at line 183, column 9
+// variable div, unique name 0:mainImage15:16:div, index 282, declared at line 185, column 9
+// variable rbcol, unique name 0:mainImage15:16:rbcol, index 283, declared at line 186, column 9
 // references:
 // iResolution at line 180, column 22
 // fragCoord at line 181, column 14
@@ -649,7 +649,7 @@ function mainImage(fragColor, fragCoord)
 // div at line 188, column 29
 // popping activation record 0:mainImage15
 // local variables: 
-// variable fragColor, unique name 0:mainImage15:fragColor, index 275, declared at line 178, column 25
-// variable fragCoord, unique name 0:mainImage15:fragCoord, index 276, declared at line 178, column 44
+// variable fragColor, unique name 0:mainImage15:fragColor, index 276, declared at line 178, column 25
+// variable fragCoord, unique name 0:mainImage15:fragCoord, index 277, declared at line 178, column 44
 // references:
 // undefined variables 

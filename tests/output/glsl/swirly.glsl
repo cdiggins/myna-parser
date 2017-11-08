@@ -16,11 +16,11 @@ vec3 rotate(vec3 p, float angle, vec3 axis)
 }
 // popping activation record 0:rotate1:2
 // local variables: 
-// variable a, unique name 0:rotate1:2:a, index 184, declared at line 12, column 9
-// variable s, unique name 0:rotate1:2:s, index 185, declared at line 13, column 10
-// variable c, unique name 0:rotate1:2:c, index 186, declared at line 14, column 10
-// variable r, unique name 0:rotate1:2:r, index 187, declared at line 15, column 10
-// variable m, unique name 0:rotate1:2:m, index 188, declared at line 16, column 9
+// variable a, unique name 0:rotate1:2:a, index 185, declared at line 12, column 9
+// variable s, unique name 0:rotate1:2:s, index 186, declared at line 13, column 10
+// variable c, unique name 0:rotate1:2:c, index 187, declared at line 14, column 10
+// variable r, unique name 0:rotate1:2:r, index 188, declared at line 15, column 10
+// variable m, unique name 0:rotate1:2:m, index 189, declared at line 16, column 9
 // references:
 // normalize at line 12, column 13
 // axis at line 12, column 23
@@ -76,9 +76,9 @@ vec3 rotate(vec3 p, float angle, vec3 axis)
 // p at line 27, column 15
 // popping activation record 0:rotate1
 // local variables: 
-// variable p, unique name 0:rotate1:p, index 181, declared at line 11, column 17
-// variable angle, unique name 0:rotate1:angle, index 182, declared at line 11, column 26
-// variable axis, unique name 0:rotate1:axis, index 183, declared at line 11, column 38
+// variable p, unique name 0:rotate1:p, index 182, declared at line 11, column 17
+// variable angle, unique name 0:rotate1:angle, index 183, declared at line 11, column 26
+// variable axis, unique name 0:rotate1:axis, index 184, declared at line 11, column 38
 // references:
 // pushing activation record 0:random3
 float random(in vec2 st)
@@ -97,7 +97,7 @@ float random(in vec2 st)
 // vec2 at line 32, column 25
 // popping activation record 0:random3
 // local variables: 
-// variable st, unique name 0:random3:st, index 190, declared at line 30, column 22
+// variable st, unique name 0:random3:st, index 191, declared at line 30, column 22
 // references:
 // pushing activation record 0:noise5
 float noise(in vec2 p)
@@ -111,9 +111,9 @@ float noise(in vec2 p)
 }
 // popping activation record 0:noise5:6
 // local variables: 
-// variable i, unique name 0:noise5:6:i, index 193, declared at line 40, column 9
-// variable f, unique name 0:noise5:6:f, index 194, declared at line 41, column 9
-// variable u, unique name 0:noise5:6:u, index 195, declared at line 43, column 9
+// variable i, unique name 0:noise5:6:i, index 194, declared at line 40, column 9
+// variable f, unique name 0:noise5:6:f, index 195, declared at line 41, column 9
+// variable u, unique name 0:noise5:6:u, index 196, declared at line 43, column 9
 // references:
 // floor at line 40, column 13
 // p at line 40, column 20
@@ -142,7 +142,7 @@ float noise(in vec2 p)
 // u at line 48, column 56
 // popping activation record 0:noise5
 // local variables: 
-// variable p, unique name 0:noise5:p, index 192, declared at line 38, column 21
+// variable p, unique name 0:noise5:p, index 193, declared at line 38, column 21
 // references:
 const vec3 lightDir = vec3(-0.577, 0.577, 0.577);
 // pushing activation record 0:sphere7
@@ -156,7 +156,7 @@ float sphere(vec3 p, float size)
 }
 // popping activation record 0:sphere7:8
 // local variables: 
-// variable q, unique name 0:sphere7:8:q, index 200, declared at line 56, column 6
+// variable q, unique name 0:sphere7:8:q, index 201, declared at line 56, column 6
 // references:
 // p at line 54, column 1
 // vec3 at line 54, column 6
@@ -188,8 +188,8 @@ float sphere(vec3 p, float size)
 // size at line 57, column 34
 // popping activation record 0:sphere7
 // local variables: 
-// variable p, unique name 0:sphere7:p, index 198, declared at line 53, column 18
-// variable size, unique name 0:sphere7:size, index 199, declared at line 53, column 27
+// variable p, unique name 0:sphere7:p, index 199, declared at line 53, column 18
+// variable size, unique name 0:sphere7:size, index 200, declared at line 53, column 27
 // references:
 // pushing activation record 0:distanceFunc9
 float distanceFunc(vec3 p)
@@ -206,10 +206,10 @@ float distanceFunc(vec3 p)
 }
 // popping activation record 0:distanceFunc9:10
 // local variables: 
-// variable obj1, unique name 0:distanceFunc9:10:obj1, index 203, declared at line 66, column 7
-// variable obj2, unique name 0:distanceFunc9:10:obj2, index 204, declared at line 67, column 7
-// variable obj3, unique name 0:distanceFunc9:10:obj3, index 205, declared at line 68, column 7
-// variable dist, unique name 0:distanceFunc9:10:dist, index 206, declared at line 71, column 7
+// variable obj1, unique name 0:distanceFunc9:10:obj1, index 204, declared at line 66, column 7
+// variable obj2, unique name 0:distanceFunc9:10:obj2, index 205, declared at line 67, column 7
+// variable obj3, unique name 0:distanceFunc9:10:obj3, index 206, declared at line 68, column 7
+// variable dist, unique name 0:distanceFunc9:10:dist, index 207, declared at line 71, column 7
 // references:
 // p at line 63, column 1
 // vec3 at line 63, column 6
@@ -247,7 +247,7 @@ float distanceFunc(vec3 p)
 // obj3 at line 73, column 35
 // popping activation record 0:distanceFunc9
 // local variables: 
-// variable p, unique name 0:distanceFunc9:p, index 202, declared at line 61, column 24
+// variable p, unique name 0:distanceFunc9:p, index 203, declared at line 61, column 24
 // references:
 // pushing activation record 0:getNormal11
 vec3 getNormal(vec3 p)
@@ -259,7 +259,7 @@ vec3 getNormal(vec3 p)
 }
 // popping activation record 0:getNormal11:12
 // local variables: 
-// variable d, unique name 0:getNormal11:12:d, index 209, declared at line 77, column 10
+// variable d, unique name 0:getNormal11:12:d, index 210, declared at line 77, column 10
 // references:
 // normalize at line 78, column 11
 // vec3 at line 78, column 21
@@ -289,7 +289,7 @@ vec3 getNormal(vec3 p)
 // d at line 81, column 82
 // popping activation record 0:getNormal11
 // local variables: 
-// variable p, unique name 0:getNormal11:p, index 208, declared at line 76, column 20
+// variable p, unique name 0:getNormal11:p, index 209, declared at line 76, column 20
 // references:
 // pushing activation record 0:main13
 void main()
@@ -332,7 +332,7 @@ void main()
     // rLen at line 106, column 73
     // popping activation record 0:main13:14:for15
     // local variables: 
-    // variable i, unique name 0:main13:14:for15:i, index 221, declared at line 103, column 12
+    // variable i, unique name 0:main13:14:for15:i, index 222, declared at line 103, column 12
     // references:
     // i at line 103, column 19
     // i at line 103, column 27
@@ -348,22 +348,22 @@ void main()
 }
 // popping activation record 0:main13:14
 // local variables: 
-// variable p, unique name 0:main13:14:p, index 211, declared at line 87, column 9
-// variable cPos, unique name 0:main13:14:cPos, index 212, declared at line 90, column 9
-// variable cDir, unique name 0:main13:14:cDir, index 213, declared at line 91, column 9
-// variable cUp, unique name 0:main13:14:cUp, index 214, declared at line 92, column 9
-// variable cSide, unique name 0:main13:14:cSide, index 215, declared at line 93, column 9
-// variable targetDepth, unique name 0:main13:14:targetDepth, index 216, declared at line 94, column 10
-// variable ray, unique name 0:main13:14:ray, index 217, declared at line 97, column 9
-// variable distance, unique name 0:main13:14:distance, index 218, declared at line 100, column 10
-// variable rLen, unique name 0:main13:14:rLen, index 219, declared at line 101, column 10
-// variable rPos, unique name 0:main13:14:rPos, index 220, declared at line 102, column 10
-// variable normal, unique name 0:main13:14:normal, index 222, declared at line 110, column 6
-// variable diff, unique name 0:main13:14:diff, index 223, declared at line 111, column 14
-// variable lightDir2, unique name 0:main13:14:lightDir2, index 224, declared at line 115, column 9
-// variable diff2, unique name 0:main13:14:diff2, index 225, declared at line 116, column 10
-// variable lightDir3, unique name 0:main13:14:lightDir3, index 226, declared at line 118, column 9
-// variable diff3, unique name 0:main13:14:diff3, index 227, declared at line 119, column 10
+// variable p, unique name 0:main13:14:p, index 212, declared at line 87, column 9
+// variable cPos, unique name 0:main13:14:cPos, index 213, declared at line 90, column 9
+// variable cDir, unique name 0:main13:14:cDir, index 214, declared at line 91, column 9
+// variable cUp, unique name 0:main13:14:cUp, index 215, declared at line 92, column 9
+// variable cSide, unique name 0:main13:14:cSide, index 216, declared at line 93, column 9
+// variable targetDepth, unique name 0:main13:14:targetDepth, index 217, declared at line 94, column 10
+// variable ray, unique name 0:main13:14:ray, index 218, declared at line 97, column 9
+// variable distance, unique name 0:main13:14:distance, index 219, declared at line 100, column 10
+// variable rLen, unique name 0:main13:14:rLen, index 220, declared at line 101, column 10
+// variable rPos, unique name 0:main13:14:rPos, index 221, declared at line 102, column 10
+// variable normal, unique name 0:main13:14:normal, index 223, declared at line 110, column 6
+// variable diff, unique name 0:main13:14:diff, index 224, declared at line 111, column 14
+// variable lightDir2, unique name 0:main13:14:lightDir2, index 225, declared at line 115, column 9
+// variable diff2, unique name 0:main13:14:diff2, index 226, declared at line 116, column 10
+// variable lightDir3, unique name 0:main13:14:lightDir3, index 227, declared at line 118, column 9
+// variable diff3, unique name 0:main13:14:diff3, index 228, declared at line 119, column 10
 // references:
 // gl_FragCoord at line 87, column 14
 // resolution at line 87, column 38

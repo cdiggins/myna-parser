@@ -13,9 +13,9 @@ float noise(vec3 p)
 }
 // popping activation record 0:noise1:2
 // local variables: 
-// variable i, unique name 0:noise1:2:i, index 179, declared at line 4, column 6
-// variable a, unique name 0:noise1:2:a, index 180, declared at line 5, column 6
-// variable f, unique name 0:noise1:2:f, index 181, declared at line 6, column 6
+// variable i, unique name 0:noise1:2:i, index 180, declared at line 4, column 6
+// variable a, unique name 0:noise1:2:a, index 181, declared at line 5, column 6
+// variable f, unique name 0:noise1:2:f, index 182, declared at line 6, column 6
 // references:
 // floor at line 4, column 10
 // p at line 4, column 16
@@ -49,7 +49,7 @@ float noise(vec3 p)
 // f at line 9, column 22
 // popping activation record 0:noise1
 // local variables: 
-// variable p, unique name 0:noise1:p, index 178, declared at line 2, column 17
+// variable p, unique name 0:noise1:p, index 179, declared at line 2, column 17
 // references:
 // pushing activation record 0:sphere3
 float sphere(vec3 p, vec4 spr)
@@ -67,8 +67,8 @@ float sphere(vec3 p, vec4 spr)
 // spr at line 14, column 28
 // popping activation record 0:sphere3
 // local variables: 
-// variable p, unique name 0:sphere3:p, index 183, declared at line 12, column 18
-// variable spr, unique name 0:sphere3:spr, index 184, declared at line 12, column 26
+// variable p, unique name 0:sphere3:p, index 184, declared at line 12, column 18
+// variable spr, unique name 0:sphere3:spr, index 185, declared at line 12, column 26
 // references:
 // pushing activation record 0:flame5
 float flame(vec3 p)
@@ -80,7 +80,7 @@ float flame(vec3 p)
 }
 // popping activation record 0:flame5:6
 // local variables: 
-// variable d, unique name 0:flame5:6:d, index 187, declared at line 19, column 7
+// variable d, unique name 0:flame5:6:d, index 188, declared at line 19, column 7
 // references:
 // sphere at line 19, column 11
 // p at line 19, column 18
@@ -96,7 +96,7 @@ float flame(vec3 p)
 // p at line 20, column 72
 // popping activation record 0:flame5
 // local variables: 
-// variable p, unique name 0:flame5:p, index 186, declared at line 17, column 17
+// variable p, unique name 0:flame5:p, index 187, declared at line 17, column 17
 // references:
 // pushing activation record 0:scene7
 float scene(vec3 p)
@@ -116,7 +116,7 @@ float scene(vec3 p)
 // p at line 25, column 39
 // popping activation record 0:scene7
 // local variables: 
-// variable p, unique name 0:scene7:p, index 189, declared at line 23, column 17
+// variable p, unique name 0:scene7:p, index 190, declared at line 23, column 17
 // references:
 // pushing activation record 0:raymarch9
 vec4 raymarch(vec3 org, vec3 dir)
@@ -162,7 +162,7 @@ vec4 raymarch(vec3 org, vec3 dir)
     // eps at line 38, column 8
     // popping activation record 0:raymarch9:10:for11
     // local variables: 
-    // variable i, unique name 0:raymarch9:10:for11:i, index 198, declared at line 34, column 9
+    // variable i, unique name 0:raymarch9:10:for11:i, index 199, declared at line 34, column 9
     // references:
     // i at line 34, column 14
     // i at line 34, column 20
@@ -171,11 +171,11 @@ vec4 raymarch(vec3 org, vec3 dir)
 }
 // popping activation record 0:raymarch9:10
 // local variables: 
-// variable d, unique name 0:raymarch9:10:d, index 193, declared at line 30, column 7
-// variable glow, unique name 0:raymarch9:10:glow, index 194, declared at line 30, column 16
-// variable eps, unique name 0:raymarch9:10:eps, index 195, declared at line 30, column 28
-// variable p, unique name 0:raymarch9:10:p, index 196, declared at line 31, column 7
-// variable glowed, unique name 0:raymarch9:10:glowed, index 197, declared at line 32, column 6
+// variable d, unique name 0:raymarch9:10:d, index 194, declared at line 30, column 7
+// variable glow, unique name 0:raymarch9:10:glow, index 195, declared at line 30, column 16
+// variable eps, unique name 0:raymarch9:10:eps, index 196, declared at line 30, column 28
+// variable p, unique name 0:raymarch9:10:p, index 197, declared at line 31, column 7
+// variable glowed, unique name 0:raymarch9:10:glowed, index 198, declared at line 32, column 6
 // references:
 // org at line 31, column 11
 // vec4 at line 46, column 8
@@ -183,8 +183,8 @@ vec4 raymarch(vec3 org, vec3 dir)
 // glow at line 46, column 15
 // popping activation record 0:raymarch9
 // local variables: 
-// variable org, unique name 0:raymarch9:org, index 191, declared at line 28, column 19
-// variable dir, unique name 0:raymarch9:dir, index 192, declared at line 28, column 29
+// variable org, unique name 0:raymarch9:org, index 192, declared at line 28, column 19
+// variable dir, unique name 0:raymarch9:dir, index 193, declared at line 28, column 29
 // references:
 // pushing activation record 0:mainImage14
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
@@ -202,12 +202,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 }
 // popping activation record 0:mainImage14:15
 // local variables: 
-// variable v, unique name 0:mainImage14:15:v, index 202, declared at line 51, column 6
-// variable org, unique name 0:mainImage14:15:org, index 203, declared at line 54, column 6
-// variable dir, unique name 0:mainImage14:15:dir, index 204, declared at line 55, column 6
-// variable p, unique name 0:mainImage14:15:p, index 205, declared at line 57, column 6
-// variable glow, unique name 0:mainImage14:15:glow, index 206, declared at line 58, column 7
-// variable col, unique name 0:mainImage14:15:col, index 207, declared at line 60, column 6
+// variable v, unique name 0:mainImage14:15:v, index 203, declared at line 51, column 6
+// variable org, unique name 0:mainImage14:15:org, index 204, declared at line 54, column 6
+// variable dir, unique name 0:mainImage14:15:dir, index 205, declared at line 55, column 6
+// variable p, unique name 0:mainImage14:15:p, index 206, declared at line 57, column 6
+// variable glow, unique name 0:mainImage14:15:glow, index 207, declared at line 58, column 7
+// variable col, unique name 0:mainImage14:15:col, index 208, declared at line 60, column 6
 // references:
 // fragCoord at line 51, column 23
 // iResolution at line 51, column 38
@@ -235,7 +235,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 // glow at line 62, column 36
 // popping activation record 0:mainImage14
 // local variables: 
-// variable fragColor, unique name 0:mainImage14:fragColor, index 200, declared at line 49, column 25
-// variable fragCoord, unique name 0:mainImage14:fragCoord, index 201, declared at line 49, column 44
+// variable fragColor, unique name 0:mainImage14:fragColor, index 201, declared at line 49, column 25
+// variable fragCoord, unique name 0:mainImage14:fragCoord, index 202, declared at line 49, column 44
 // references:
 // undefined variables 

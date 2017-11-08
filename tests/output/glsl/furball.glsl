@@ -20,8 +20,8 @@ bool intersectSphere(vec3 ro, vec3 rd, float r, out float t)
 }
 // popping activation record 0:intersectSphere1:2
 // local variables: 
-// variable b, unique name 0:intersectSphere1:2:b, index 189, declared at line 17, column 7
-// variable det, unique name 0:intersectSphere1:2:det, index 190, declared at line 18, column 7
+// variable b, unique name 0:intersectSphere1:2:b, index 190, declared at line 17, column 7
+// variable det, unique name 0:intersectSphere1:2:det, index 191, declared at line 18, column 7
 // references:
 // dot at line 17, column 11
 // ro at line 17, column 16
@@ -43,10 +43,10 @@ bool intersectSphere(vec3 ro, vec3 rd, float r, out float t)
 // t at line 22, column 8
 // popping activation record 0:intersectSphere1
 // local variables: 
-// variable ro, unique name 0:intersectSphere1:ro, index 185, declared at line 15, column 26
-// variable rd, unique name 0:intersectSphere1:rd, index 186, declared at line 15, column 35
-// variable r, unique name 0:intersectSphere1:r, index 187, declared at line 15, column 45
-// variable t, unique name 0:intersectSphere1:t, index 188, declared at line 15, column 58
+// variable ro, unique name 0:intersectSphere1:ro, index 186, declared at line 15, column 26
+// variable rd, unique name 0:intersectSphere1:rd, index 187, declared at line 15, column 35
+// variable r, unique name 0:intersectSphere1:r, index 188, declared at line 15, column 45
+// variable t, unique name 0:intersectSphere1:t, index 189, declared at line 15, column 58
 // references:
 // pushing activation record 0:rotateX3
 vec3 rotateX(vec3 p, float a)
@@ -59,8 +59,8 @@ vec3 rotateX(vec3 p, float a)
 }
 // popping activation record 0:rotateX3:4
 // local variables: 
-// variable sa, unique name 0:rotateX3:4:sa, index 194, declared at line 27, column 10
-// variable ca, unique name 0:rotateX3:4:ca, index 195, declared at line 28, column 10
+// variable sa, unique name 0:rotateX3:4:sa, index 195, declared at line 27, column 10
+// variable ca, unique name 0:rotateX3:4:ca, index 196, declared at line 28, column 10
 // references:
 // sin at line 27, column 15
 // a at line 27, column 19
@@ -78,8 +78,8 @@ vec3 rotateX(vec3 p, float a)
 // p at line 29, column 50
 // popping activation record 0:rotateX3
 // local variables: 
-// variable p, unique name 0:rotateX3:p, index 192, declared at line 25, column 18
-// variable a, unique name 0:rotateX3:a, index 193, declared at line 25, column 27
+// variable p, unique name 0:rotateX3:p, index 193, declared at line 25, column 18
+// variable a, unique name 0:rotateX3:a, index 194, declared at line 25, column 27
 // references:
 // pushing activation record 0:rotateY5
 vec3 rotateY(vec3 p, float a)
@@ -92,8 +92,8 @@ vec3 rotateY(vec3 p, float a)
 }
 // popping activation record 0:rotateY5:6
 // local variables: 
-// variable sa, unique name 0:rotateY5:6:sa, index 199, declared at line 34, column 10
-// variable ca, unique name 0:rotateY5:6:ca, index 200, declared at line 35, column 10
+// variable sa, unique name 0:rotateY5:6:sa, index 200, declared at line 34, column 10
+// variable ca, unique name 0:rotateY5:6:ca, index 201, declared at line 35, column 10
 // references:
 // sin at line 34, column 15
 // a at line 34, column 19
@@ -111,8 +111,8 @@ vec3 rotateY(vec3 p, float a)
 // p at line 36, column 51
 // popping activation record 0:rotateY5
 // local variables: 
-// variable p, unique name 0:rotateY5:p, index 197, declared at line 32, column 18
-// variable a, unique name 0:rotateY5:a, index 198, declared at line 32, column 27
+// variable p, unique name 0:rotateY5:p, index 198, declared at line 32, column 18
+// variable a, unique name 0:rotateY5:a, index 199, declared at line 32, column 27
 // references:
 // pushing activation record 0:cartesianToSpherical7
 vec2 cartesianToSpherical(vec3 p)
@@ -129,9 +129,9 @@ vec2 cartesianToSpherical(vec3 p)
 }
 // popping activation record 0:cartesianToSpherical7:8
 // local variables: 
-// variable r, unique name 0:cartesianToSpherical7:8:r, index 203, declared at line 41, column 7
-// variable t, unique name 0:cartesianToSpherical7:8:t, index 204, declared at line 43, column 7
-// variable uv, unique name 0:cartesianToSpherical7:8:uv, index 205, declared at line 47, column 6
+// variable r, unique name 0:cartesianToSpherical7:8:r, index 204, declared at line 41, column 7
+// variable t, unique name 0:cartesianToSpherical7:8:t, index 205, declared at line 43, column 7
+// variable uv, unique name 0:cartesianToSpherical7:8:uv, index 206, declared at line 47, column 6
 // references:
 // length at line 41, column 11
 // p at line 41, column 18
@@ -159,7 +159,7 @@ vec2 cartesianToSpherical(vec3 p)
 // uv at line 52, column 8
 // popping activation record 0:cartesianToSpherical7
 // local variables: 
-// variable p, unique name 0:cartesianToSpherical7:p, index 202, declared at line 39, column 31
+// variable p, unique name 0:cartesianToSpherical7:p, index 203, declared at line 39, column 31
 // references:
 // pushing activation record 0:furDensity9
 float furDensity(vec3 pos, out vec2 uv)
@@ -177,11 +177,11 @@ float furDensity(vec3 pos, out vec2 uv)
 }
 // popping activation record 0:furDensity9:10
 // local variables: 
-// variable tex, unique name 0:furDensity9:10:tex, index 209, declared at line 59, column 6
-// variable density, unique name 0:furDensity9:10:density, index 210, declared at line 62, column 7
-// variable r, unique name 0:furDensity9:10:r, index 211, declared at line 64, column 7
-// variable t, unique name 0:furDensity9:10:t, index 212, declared at line 65, column 7
-// variable len, unique name 0:furDensity9:10:len, index 213, declared at line 68, column 7
+// variable tex, unique name 0:furDensity9:10:tex, index 210, declared at line 59, column 6
+// variable density, unique name 0:furDensity9:10:density, index 211, declared at line 62, column 7
+// variable r, unique name 0:furDensity9:10:r, index 212, declared at line 64, column 7
+// variable t, unique name 0:furDensity9:10:t, index 213, declared at line 65, column 7
+// variable len, unique name 0:furDensity9:10:len, index 214, declared at line 68, column 7
 // references:
 // uv at line 58, column 1
 // cartesianToSpherical at line 58, column 6
@@ -207,8 +207,8 @@ float furDensity(vec3 pos, out vec2 uv)
 // density at line 71, column 8
 // popping activation record 0:furDensity9
 // local variables: 
-// variable pos, unique name 0:furDensity9:pos, index 207, declared at line 56, column 22
-// variable uv, unique name 0:furDensity9:uv, index 208, declared at line 56, column 36
+// variable pos, unique name 0:furDensity9:pos, index 208, declared at line 56, column 22
+// variable uv, unique name 0:furDensity9:uv, index 209, declared at line 56, column 36
 // references:
 // pushing activation record 0:furNormal11
 vec3 furNormal(vec3 pos, float density)
@@ -225,9 +225,9 @@ vec3 furNormal(vec3 pos, float density)
 }
 // popping activation record 0:furNormal11:12
 // local variables: 
-// variable eps, unique name 0:furNormal11:12:eps, index 217, declared at line 77, column 10
-// variable n, unique name 0:furNormal11:12:n, index 218, declared at line 78, column 9
-// variable uv, unique name 0:furNormal11:12:uv, index 219, declared at line 79, column 6
+// variable eps, unique name 0:furNormal11:12:eps, index 218, declared at line 77, column 10
+// variable n, unique name 0:furNormal11:12:n, index 219, declared at line 78, column 9
+// variable uv, unique name 0:furNormal11:12:uv, index 220, declared at line 79, column 6
 // references:
 // n at line 80, column 4
 // furDensity at line 80, column 10
@@ -260,8 +260,8 @@ vec3 furNormal(vec3 pos, float density)
 // n at line 83, column 21
 // popping activation record 0:furNormal11
 // local variables: 
-// variable pos, unique name 0:furNormal11:pos, index 215, declared at line 75, column 20
-// variable density, unique name 0:furNormal11:density, index 216, declared at line 75, column 31
+// variable pos, unique name 0:furNormal11:pos, index 216, declared at line 75, column 20
+// variable density, unique name 0:furNormal11:density, index 217, declared at line 75, column 31
 // references:
 // pushing activation record 0:furShade13
 vec3 furShade(vec3 pos, vec2 uv, vec3 ro, float density)
@@ -283,16 +283,16 @@ vec3 furShade(vec3 pos, vec2 uv, vec3 ro, float density)
 }
 // popping activation record 0:furShade13:14
 // local variables: 
-// variable L, unique name 0:furShade13:14:L, index 225, declared at line 89, column 12
-// variable V, unique name 0:furShade13:14:V, index 226, declared at line 90, column 6
-// variable H, unique name 0:furShade13:14:H, index 227, declared at line 91, column 6
-// variable N, unique name 0:furShade13:14:N, index 228, declared at line 93, column 6
-// variable diff, unique name 0:furShade13:14:diff, index 229, declared at line 95, column 7
-// variable spec, unique name 0:furShade13:14:spec, index 230, declared at line 96, column 7
-// variable color, unique name 0:furShade13:14:color, index 231, declared at line 99, column 6
-// variable r, unique name 0:furShade13:14:r, index 232, declared at line 102, column 7
-// variable t, unique name 0:furShade13:14:t, index 233, declared at line 103, column 7
-// variable i, unique name 0:furShade13:14:i, index 234, declared at line 105, column 7
+// variable L, unique name 0:furShade13:14:L, index 226, declared at line 89, column 12
+// variable V, unique name 0:furShade13:14:V, index 227, declared at line 90, column 6
+// variable H, unique name 0:furShade13:14:H, index 228, declared at line 91, column 6
+// variable N, unique name 0:furShade13:14:N, index 229, declared at line 93, column 6
+// variable diff, unique name 0:furShade13:14:diff, index 230, declared at line 95, column 7
+// variable spec, unique name 0:furShade13:14:spec, index 231, declared at line 96, column 7
+// variable color, unique name 0:furShade13:14:color, index 232, declared at line 99, column 6
+// variable r, unique name 0:furShade13:14:r, index 233, declared at line 102, column 7
+// variable t, unique name 0:furShade13:14:t, index 234, declared at line 103, column 7
+// variable i, unique name 0:furShade13:14:i, index 235, declared at line 105, column 7
 // references:
 // vec3 at line 89, column 16
 // normalize at line 90, column 10
@@ -335,10 +335,10 @@ vec3 furShade(vec3 pos, vec2 uv, vec3 ro, float density)
 // i at line 107, column 33
 // popping activation record 0:furShade13
 // local variables: 
-// variable pos, unique name 0:furShade13:pos, index 221, declared at line 86, column 19
-// variable uv, unique name 0:furShade13:uv, index 222, declared at line 86, column 29
-// variable ro, unique name 0:furShade13:ro, index 223, declared at line 86, column 38
-// variable density, unique name 0:furShade13:density, index 224, declared at line 86, column 48
+// variable pos, unique name 0:furShade13:pos, index 222, declared at line 86, column 19
+// variable uv, unique name 0:furShade13:uv, index 223, declared at line 86, column 29
+// variable ro, unique name 0:furShade13:ro, index 224, declared at line 86, column 38
+// variable density, unique name 0:furShade13:density, index 225, declared at line 86, column 48
 // references:
 // pushing activation record 0:scene15
 vec4 scene(vec3 ro, vec3 rd)
@@ -387,8 +387,8 @@ vec4 scene(vec3 ro, vec3 rd)
         }
         // popping activation record 0:scene15:16:17:for18:19
         // local variables: 
-        // variable sampleCol, unique name 0:scene15:16:17:for18:19:sampleCol, index 245, declared at line 123, column 8
-        // variable uv, unique name 0:scene15:16:17:for18:19:uv, index 246, declared at line 124, column 8
+        // variable sampleCol, unique name 0:scene15:16:17:for18:19:sampleCol, index 246, declared at line 123, column 8
+        // variable uv, unique name 0:scene15:16:17:for18:19:uv, index 247, declared at line 124, column 8
         // references:
         // sampleCol at line 125, column 3
         // furDensity at line 125, column 17
@@ -400,7 +400,7 @@ vec4 scene(vec3 ro, vec3 rd)
         // rayStep at line 135, column 13
         // popping activation record 0:scene15:16:17:for18
         // local variables: 
-        // variable i, unique name 0:scene15:16:17:for18:i, index 244, declared at line 122, column 10
+        // variable i, unique name 0:scene15:16:17:for18:i, index 245, declared at line 122, column 10
         // references:
         // i at line 122, column 15
         // furLayers at line 122, column 17
@@ -409,7 +409,7 @@ vec4 scene(vec3 ro, vec3 rd)
     }
     // popping activation record 0:scene15:16:17
     // local variables: 
-    // variable pos, unique name 0:scene15:16:17:pos, index 243, declared at line 119, column 7
+    // variable pos, unique name 0:scene15:16:17:pos, index 244, declared at line 119, column 7
     // references:
     // ro at line 119, column 13
     // rd at line 119, column 18
@@ -419,11 +419,11 @@ vec4 scene(vec3 ro, vec3 rd)
 }
 // popping activation record 0:scene15:16
 // local variables: 
-// variable p, unique name 0:scene15:16:p, index 238, declared at line 112, column 6
-// variable r, unique name 0:scene15:16:r, index 239, declared at line 113, column 13
-// variable t, unique name 0:scene15:16:t, index 240, declared at line 114, column 7
-// variable hit, unique name 0:scene15:16:hit, index 241, declared at line 115, column 6
-// variable c, unique name 0:scene15:16:c, index 242, declared at line 117, column 6
+// variable p, unique name 0:scene15:16:p, index 239, declared at line 112, column 6
+// variable r, unique name 0:scene15:16:r, index 240, declared at line 113, column 13
+// variable t, unique name 0:scene15:16:t, index 241, declared at line 114, column 7
+// variable hit, unique name 0:scene15:16:hit, index 242, declared at line 115, column 6
+// variable c, unique name 0:scene15:16:c, index 243, declared at line 117, column 6
 // references:
 // vec3 at line 112, column 10
 // intersectSphere at line 115, column 12
@@ -437,8 +437,8 @@ vec4 scene(vec3 ro, vec3 rd)
 // c at line 139, column 8
 // popping activation record 0:scene15
 // local variables: 
-// variable ro, unique name 0:scene15:ro, index 236, declared at line 110, column 16
-// variable rd, unique name 0:scene15:rd, index 237, declared at line 110, column 24
+// variable ro, unique name 0:scene15:ro, index 237, declared at line 110, column 16
+// variable rd, unique name 0:scene15:rd, index 238, declared at line 110, column 24
 // references:
 // pushing activation record 0:mainImage21
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
@@ -474,12 +474,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 }
 // popping activation record 0:mainImage21:22
 // local variables: 
-// variable uv, unique name 0:mainImage21:22:uv, index 250, declared at line 144, column 6
-// variable ro, unique name 0:mainImage21:22:ro, index 251, declared at line 148, column 6
-// variable rd, unique name 0:mainImage21:22:rd, index 252, declared at line 149, column 6
-// variable mouse, unique name 0:mainImage21:22:mouse, index 253, declared at line 151, column 6
-// variable roty, unique name 0:mainImage21:22:roty, index 254, declared at line 152, column 7
-// variable rotx, unique name 0:mainImage21:22:rotx, index 255, declared at line 153, column 7
+// variable uv, unique name 0:mainImage21:22:uv, index 251, declared at line 144, column 6
+// variable ro, unique name 0:mainImage21:22:ro, index 252, declared at line 148, column 6
+// variable rd, unique name 0:mainImage21:22:rd, index 253, declared at line 149, column 6
+// variable mouse, unique name 0:mainImage21:22:mouse, index 254, declared at line 151, column 6
+// variable roty, unique name 0:mainImage21:22:roty, index 255, declared at line 152, column 7
+// variable rotx, unique name 0:mainImage21:22:rotx, index 256, declared at line 153, column 7
 // references:
 // fragCoord at line 144, column 11
 // iResolution at line 144, column 26
@@ -517,7 +517,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 // rd at line 166, column 23
 // popping activation record 0:mainImage21
 // local variables: 
-// variable fragColor, unique name 0:mainImage21:fragColor, index 248, declared at line 142, column 25
-// variable fragCoord, unique name 0:mainImage21:fragCoord, index 249, declared at line 142, column 44
+// variable fragColor, unique name 0:mainImage21:fragColor, index 249, declared at line 142, column 25
+// variable fragCoord, unique name 0:mainImage21:fragCoord, index 250, declared at line 142, column 44
 // references:
 // undefined variables 
