@@ -143,5 +143,3 @@ console.log("Example 9");
     console.log(expand("{{text}}", { today : "Tuesday", text : "Today is {{today}}" }));
 }
 
-process.exit();
-

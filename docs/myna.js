@@ -1,6 +1,7 @@
 // Myna Parsing Library
 // Copyright (c) 2016 Christopher Diggins
 // Usage permitted under terms of MIT License
+"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -1169,6 +1170,7 @@ var Myna;
     Myna.atSpace = atChar(" ");
     Myna.atTab = atChar("\t");
     Myna.atWs = atChar(" \t\r\n\u00A0\uFEFF");
+    Myna.atIdentifierNext = choice(Myna.atAlphaNumeric, Myna.atUnderscore);
     Myna.letterLower = Myna.atLetterLower.advance;
     Myna.letterUpper = Myna.atLetterUpper.advance;
     Myna.letter = Myna.atLetter.advance;
@@ -1293,7 +1295,10 @@ var Myna;
     // Initialization
     // The entire module is a grammar because it is an object that exposes rules as properties
     registerGrammar("core", Myna, null);
-})(Myna || (Myna = {}));
-if (typeof module === "object" && module.exports)
+})(Myna = exports.Myna || (exports.Myna = {}));
+if (typeof module === "object" && module.exports) {
     module.exports = Myna;
+    // When importing from TypeScript the imports expect a "Myna" variable 
+    module.exports.Myna = Myna;
+}
 //# sourceMappingURL=myna.js.map

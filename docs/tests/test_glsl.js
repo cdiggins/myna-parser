@@ -26,13 +26,11 @@ function fromDir(startPath,filter,results){
     return results;
 };
 
-function createGlslVisitor() {
+// TODO: uncomment only when you want to recreate a visitor file. 
+/*
     var visitorCode = genVisitor(myna, "glsl");
     fs.writeFileSync("./tests/output/glsl_visitor.js", visitorCode); 
-}
-
-// TODO: uncomment when you want to recreate a visitor 
-// createGlslVisitor();
+*/
 
 var prims = heronTools.parsePrimitives('./tests/input/primitives.heron');
 console.log(prims);

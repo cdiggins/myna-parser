@@ -64,5 +64,3 @@ let qs = [
 for (let q of qs) {
     testQuery(q);   
 }
-
-process.exit();

@@ -13,7 +13,7 @@
 // TODO: we know a-priori which rules are "non-advancing".
 // This can allow us to use optimized parser and lexer functions for the following rules: Sequence, Quantified, Optional.  
 
-module Myna
+export module Myna
 {   
     //====================================================================================
     // Internal variables used by the Myna library
@@ -178,7 +178,7 @@ module Myna
 
     //===============================================================
     // class Rule
-    
+        
     // A Rule is both a rule in the PEG grammar and a parser. The parse function takes  
     // a particular parse location (in either a string, or array of tokens) and will return 
     // the location of the end of the parse if successful or null if not successful.  
@@ -985,6 +985,7 @@ module Myna
     export var atSpace            = atChar(" ");
     export var atTab              = atChar("\t");    
     export var atWs               = atChar(" \t\r\n\u00A0\uFEFF");
+    export var atIdentifierNext   = choice(atAlphaNumeric, atUnderscore);
 
     export var letterLower      = atLetterLower.advance;
     export var letterUpper      = atLetterUpper.advance;
@@ -1121,8 +1122,9 @@ module Myna
 }
 
 // Export the function for use with Node.js and the CommonJS module system. 
-// In TypeScript we have to "declare" the module variable to make it a valid symbol, 
-// before we check if it exists. 
 declare var module;
-if (typeof module === "object" && module.exports) 
+if (typeof module === "object" && module.exports) {
     module.exports = Myna;
+    // When importing from TypeScript the imports expect a "Myna" variable 
+    module.exports.Myna = Myna;
+}

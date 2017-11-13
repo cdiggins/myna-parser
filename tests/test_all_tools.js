@@ -9,9 +9,7 @@ console.log("Testing Mustaches style template expander");
 let test_mustache_expander = require('../tests/test_mustache_expander');
 
 console.log("");
-console.log("Testing arithmetic evaluator");
-let test_arithmetic = require('../tests/test_arithmetic');
-
-console.log("");
 console.log("Testing Lucene parser");
 let test_lucene = require('../tests/test_lucene');
+
+process.exit();
