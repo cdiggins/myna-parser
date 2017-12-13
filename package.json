@@ -26,7 +26,7 @@
     "copyfiles":  "cpx {myna.ts,myna.js,examples/*.*,tests/*.*,grammars/*.js} docs",
     "full":       "npm run build && npm test && npm run makesite && npm run copyfiles && npm run makedist",
     "publish" :   "npm run full && npm publish",
-    "patch" :     "npm version patch && pm publish"
+    "patch" :     "npm version patch && npm run publish"
   },
   "devDependencies": 
   {

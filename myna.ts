@@ -13,7 +13,7 @@
 // TODO: we know a-priori which rules are "non-advancing".
 // This can allow us to use optimized parser and lexer functions for the following rules: Sequence, Quantified, Optional.  
 
-export module Myna
+module Myna
 {   
     //====================================================================================
     // Internal variables used by the Myna library
