@@ -1,16 +1,11 @@
 // Myna Parsing Library
 // Copyright (c) 2016 Christopher Diggins
 // Usage permitted under terms of MIT License
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 // A parsing combinator library for JavaScript/TypeScript based on the PEG formalism.
 // For more information see http://www.github.com/cdiggins/myna-parser
 // NOTE: we are explicitly bypassing using the TypeScript "export" keyword for 
@@ -457,16 +452,16 @@ var Myna;
     var Sequence = (function (_super) {
         __extends(Sequence, _super);
         function Sequence(rule1, rule2) {
-            var _this = _super.call(this, [rule1, rule2]) || this;
-            _this.rule1 = rule1;
-            _this.rule2 = rule2;
-            _this.type = "seq";
-            _this.className = "Sequence";
+            _super.call(this, [rule1, rule2]);
+            this.rule1 = rule1;
+            this.rule2 = rule2;
+            this.type = "seq";
+            this.className = "Sequence";
             var parser1 = rule1.parser;
             var parser2 = rule2.parser;
             var lexer1 = rule1.lexer;
             var lexer2 = rule2.lexer;
-            _this.parser = function (p) {
+            this.parser = function (p) {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
                 if (parser1(p) === false)
@@ -482,7 +477,7 @@ var Myna;
                 }
                 return true;
             };
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 var original = p.index;
                 if (lexer1(p) === false)
                     return false;
@@ -493,9 +488,8 @@ var Myna;
                 return true;
             };
             // When none of the child rules create a node, we can use the lexer to parse
-            if (!_this.createsAstNode)
-                _this.parser = _this.lexer;
-            return _this;
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
         Object.defineProperty(Sequence.prototype, "definition", {
             get: function () {
@@ -529,25 +523,24 @@ var Myna;
     var Choice = (function (_super) {
         __extends(Choice, _super);
         function Choice(rule1, rule2) {
-            var _this = _super.call(this, [rule1, rule2]) || this;
-            _this.rule1 = rule1;
-            _this.rule2 = rule2;
-            _this.type = "choice";
-            _this.className = "Choice";
+            _super.call(this, [rule1, rule2]);
+            this.rule1 = rule1;
+            this.rule2 = rule2;
+            this.type = "choice";
+            this.className = "Choice";
             var parser1 = rule1.parser;
             var parser2 = rule2.parser;
             var lexer1 = rule1.lexer;
             var lexer2 = rule2.lexer;
-            _this.parser = function (p) {
+            this.parser = function (p) {
                 return parser1(p) || parser2(p);
             };
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 return lexer1(p) || lexer2(p);
             };
             // When none of the child rules create a node, we can use the lexer to parse
-            if (!_this.createsAstNode)
-                _this.parser = _this.lexer;
-            return _this;
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
         Object.defineProperty(Choice.prototype, "definition", {
             get: function () {
@@ -582,17 +575,18 @@ var Myna;
     var Quantified = (function (_super) {
         __extends(Quantified, _super);
         function Quantified(rule, min, max) {
+            var _this = this;
             if (min === void 0) { min = 0; }
             if (max === void 0) { max = Infinity; }
-            var _this = _super.call(this, [rule]) || this;
-            _this.min = min;
-            _this.max = max;
-            _this.type = "quantified";
-            _this.className = "Quantified";
+            _super.call(this, [rule]);
+            this.min = min;
+            this.max = max;
+            this.type = "quantified";
+            this.className = "Quantified";
             if (max === Infinity && rule.nonAdvancing)
                 throw new Error("Rule would create an infinite loop");
-            var pChild = _this.firstChild.parser;
-            _this.parser = function (p) {
+            var pChild = this.firstChild.parser;
+            this.parser = function (p) {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
                 for (var i = 0; i < max; ++i) {
@@ -614,8 +608,8 @@ var Myna;
                 }
                 return true;
             };
-            var lChild = _this.firstChild.lexer;
-            _this.lexer = function (p) {
+            var lChild = this.firstChild.lexer;
+            this.lexer = function (p) {
                 var originalIndex = p.index;
                 for (var i = 0; i < max; ++i) {
                     var index = p.index;
@@ -631,9 +625,8 @@ var Myna;
                 return true;
             };
             // When none of the child rules create a node, we can use the lexer to parse
-            if (!_this.createsAstNode)
-                _this.parser = _this.lexer;
-            return _this;
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
         Object.defineProperty(Quantified.prototype, "definition", {
             // Used for creating a human readable definition of the grammar.
@@ -664,23 +657,22 @@ var Myna;
     var Optional = (function (_super) {
         __extends(Optional, _super);
         function Optional(rule) {
-            var _this = _super.call(this, rule, 0, 1) || this;
-            _this.type = "optional";
-            _this.className = "Optional";
-            var pChild = _this.firstChild.parser;
-            _this.parser = function (p) {
+            _super.call(this, rule, 0, 1);
+            this.type = "optional";
+            this.className = "Optional";
+            var pChild = this.firstChild.parser;
+            this.parser = function (p) {
                 pChild(p);
                 return true;
             };
-            var lChild = _this.firstChild.lexer;
-            _this.lexer = function (p) {
+            var lChild = this.firstChild.lexer;
+            this.lexer = function (p) {
                 lChild(p);
                 return true;
             };
             // When none of the child rules create a node, we can use the lexer to parse
-            if (!_this.createsAstNode)
-                _this.parser = _this.lexer;
-            return _this;
+            if (!this.createsAstNode)
+                this.parser = this.lexer;
         }
         Object.defineProperty(Optional.prototype, "definition", {
             // Used for creating a human readable definition of the grammar.
@@ -698,14 +690,13 @@ var Myna;
     var Advance = (function (_super) {
         __extends(Advance, _super);
         function Advance() {
-            var _this = _super.call(this, []) || this;
-            _this.type = "advance";
-            _this.className = "Advance";
-            _this.lexer = function (p) {
+            _super.call(this, []);
+            this.type = "advance";
+            this.className = "Advance";
+            this.lexer = function (p) {
                 return p.index < p.length ? ++p.index >= 0 : false;
             };
-            _this.parser = _this.lexer;
-            return _this;
+            this.parser = this.lexer;
         }
         Object.defineProperty(Advance.prototype, "definition", {
             get: function () { return "<advance>"; },
@@ -720,15 +711,14 @@ var Myna;
     var AdvanceIf = (function (_super) {
         __extends(AdvanceIf, _super);
         function AdvanceIf(condition) {
-            var _this = _super.call(this, [condition]) || this;
-            _this.type = "advanceIf";
-            _this.className = "AdvanceIf";
+            _super.call(this, [condition]);
+            this.type = "advanceIf";
+            this.className = "AdvanceIf";
             var lexCondition = condition.lexer;
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 return lexCondition(p) && p.index < p.length ? ++p.index !== 0 : false;
             };
-            _this.parser = _this.lexer;
-            return _this;
+            this.parser = this.lexer;
         }
         Object.defineProperty(AdvanceIf.prototype, "definition", {
             get: function () { return "advanceIf(" + this.firstChild.toString() + ")"; },
@@ -743,15 +733,15 @@ var Myna;
     var Text = (function (_super) {
         __extends(Text, _super);
         function Text(text) {
-            var _this = _super.call(this, []) || this;
-            _this.text = text;
-            _this.type = "text";
-            _this.className = "Text";
+            _super.call(this, []);
+            this.text = text;
+            this.type = "text";
+            this.className = "Text";
             var length = text.length;
             var vals = [];
             for (var i = 0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 var index = p.index;
                 // TODO: consider pulling the sub-string out of the text.        
                 for (var _i = 0, vals_1 = vals; _i < vals_1.length; _i++) {
@@ -762,8 +752,7 @@ var Myna;
                 p.index = index;
                 return true;
             };
-            _this.parser = _this.lexer;
-            return _this;
+            this.parser = this.lexer;
         }
         Object.defineProperty(Text.prototype, "definition", {
             get: function () { return '"' + escapeChars(this.text) + '"'; },
@@ -779,15 +768,14 @@ var Myna;
     var Delay = (function (_super) {
         __extends(Delay, _super);
         function Delay(fn) {
-            var _this = _super.call(this, []) || this;
-            _this.fn = fn;
-            _this.type = "delay";
-            _this.className = "Delay";
+            _super.call(this, []);
+            this.fn = fn;
+            this.type = "delay";
+            this.className = "Delay";
             var tmpParser = null;
-            _this.parser = function (p) { return (tmpParser ? tmpParser : tmpParser = fn().parser)(p); };
+            this.parser = function (p) { return (tmpParser ? tmpParser : tmpParser = fn().parser)(p); };
             var tmpLexer = null;
-            _this.lexer = function (p) { return (tmpLexer ? tmpLexer : tmpLexer = fn().lexer)(p); };
-            return _this;
+            this.lexer = function (p) { return (tmpLexer ? tmpLexer : tmpLexer = fn().lexer)(p); };
         }
         Delay.prototype.cloneImplementation = function () { return new Delay(this.fn); };
         Object.defineProperty(Delay.prototype, "definition", {
@@ -812,9 +800,8 @@ var Myna;
     var NonAdvancingRule = (function (_super) {
         __extends(NonAdvancingRule, _super);
         function NonAdvancingRule(rules) {
-            var _this = _super.call(this, rules) || this;
-            _this.type = "charSet";
-            return _this;
+            _super.call(this, rules);
+            this.type = "charSet";
         }
         Object.defineProperty(NonAdvancingRule.prototype, "nonAdvancing", {
             get: function () {
@@ -830,21 +817,20 @@ var Myna;
     var CharSet = (function (_super) {
         __extends(CharSet, _super);
         function CharSet(chars) {
-            var _this = _super.call(this, []) || this;
-            _this.chars = chars;
-            _this.type = "charSet";
-            _this.className = "CharSet";
+            _super.call(this, []);
+            this.chars = chars;
+            this.type = "charSet";
+            this.className = "CharSet";
             var vals = [];
             var length = chars.length;
             for (var i = 0; i < length; ++i)
                 vals[i] = chars.charCodeAt(i);
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 // TODO: Try this instead, could be faster.
                 // chars.indexOf(p.input[p.index]) >= 0;
                 return vals.indexOf(p.input.charCodeAt(p.index)) >= 0;
             };
-            _this.parser = _this.lexer;
-            return _this;
+            this.parser = this.lexer;
         }
         Object.defineProperty(CharSet.prototype, "definition", {
             get: function () { return "[" + escapeChars(this.chars) + "]"; },
@@ -860,19 +846,18 @@ var Myna;
     var CharRange = (function (_super) {
         __extends(CharRange, _super);
         function CharRange(min, max) {
-            var _this = _super.call(this, []) || this;
-            _this.min = min;
-            _this.max = max;
-            _this.type = "charRange";
-            _this.className = "CharRange";
+            _super.call(this, []);
+            this.min = min;
+            this.max = max;
+            this.type = "charRange";
+            this.className = "CharRange";
             var minCode = min.charCodeAt(0);
             var maxCode = max.charCodeAt(0);
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 var code = p.input.charCodeAt(p.index);
                 return code >= minCode && code <= maxCode;
             };
-            _this.parser = _this.lexer;
-            return _this;
+            this.parser = this.lexer;
         }
         Object.defineProperty(CharRange.prototype, "definition", {
             get: function () { return "[" + this.min + ".." + this.max + "]"; },
@@ -888,11 +873,11 @@ var Myna;
     var Not = (function (_super) {
         __extends(Not, _super);
         function Not(rule) {
-            var _this = _super.call(this, [rule]) || this;
-            _this.type = "not";
-            _this.className = "Not";
+            _super.call(this, [rule]);
+            this.type = "not";
+            this.className = "Not";
             var childLexer = rule.lexer;
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 if (p.index >= p.length)
                     return true;
                 var index = p.index;
@@ -901,8 +886,7 @@ var Myna;
                 p.index = index;
                 return false;
             };
-            _this.parser = _this.lexer;
-            return _this;
+            this.parser = this.lexer;
         }
         Not.prototype.cloneImplementation = function () { return new Not(this.firstChild); };
         Object.defineProperty(Not.prototype, "definition", {
@@ -917,19 +901,18 @@ var Myna;
     var At = (function (_super) {
         __extends(At, _super);
         function At(rule) {
-            var _this = _super.call(this, [rule]) || this;
-            _this.type = "at";
-            _this.className = "At";
+            _super.call(this, [rule]);
+            this.type = "at";
+            this.className = "At";
             var childLexer = rule.lexer;
-            _this.lexer = function (p) {
+            this.lexer = function (p) {
                 var index = p.index;
                 if (childLexer(p) === false)
                     return false;
                 p.index = index;
                 return true;
             };
-            _this.parser = _this.lexer;
-            return _this;
+            this.parser = this.lexer;
         }
         At.prototype.cloneImplementation = function () { return new At(this.firstChild); };
         Object.defineProperty(At.prototype, "definition", {
@@ -944,13 +927,12 @@ var Myna;
     var Predicate = (function (_super) {
         __extends(Predicate, _super);
         function Predicate(fn) {
-            var _this = _super.call(this, []) || this;
-            _this.fn = fn;
-            _this.type = "predicate";
-            _this.className = "Predicate";
-            _this.lexer = fn;
-            _this.parser = _this.lexer;
-            return _this;
+            _super.call(this, []);
+            this.fn = fn;
+            this.type = "predicate";
+            this.className = "Predicate";
+            this.lexer = fn;
+            this.parser = this.lexer;
         }
         Predicate.prototype.cloneImplementation = function () { return new Predicate(this.fn); };
         Object.defineProperty(Predicate.prototype, "definition", {
@@ -970,7 +952,7 @@ var Myna;
     function seq() {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i] = arguments[_i];
+            rules[_i - 0] = arguments[_i];
         }
         var rs = rules.map(RuleTypeToRule);
         if (rs.length == 0)
@@ -989,7 +971,7 @@ var Myna;
     function choice() {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i] = arguments[_i];
+            rules[_i - 0] = arguments[_i];
         }
         var rs = rules.map(RuleTypeToRule);
         if (rs.length == 0)
@@ -1161,7 +1143,7 @@ var Myna;
     function keywords() {
         var words = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            words[_i] = arguments[_i];
+            words[_i - 0] = arguments[_i];
         }
         return choice.apply(void 0, words.map(keyword));
     }
