@@ -21,9 +21,7 @@
     "makesite": "node tools/myna_build_site.js",
     "makedist": "uglifyjs myna.js -o dist/myna.min.js",
     "copyfiles": "cpx {myna.ts,myna.js,examples/*.*,tests/*.*,grammars/*.js} docs",
-    "full": "npm run build && npm test && npm run makesite && npm run copyfiles && npm run makedist",
-    "publish": "npm run full && npm publish",
-    "patch": "npm version patch && npm run publish"
+    "full": "npm run build && npm test && npm run makesite && npm run copyfiles && npm run makedist"
   },
   "devDependencies": {
     "cpx": "~1.5",

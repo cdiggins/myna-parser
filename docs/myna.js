@@ -1,6 +1,7 @@
 // Myna Parsing Library
 // Copyright (c) 2016 Christopher Diggins
 // Usage permitted under terms of MIT License
+"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -8,12 +9,6 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 // A parsing combinator library for JavaScript/TypeScript based on the PEG formalism.
 // For more information see http://www.github.com/cdiggins/myna-parser
-// NOTE: we are explicitly bypassing using the TypeScript "export" keyword for 
-// the Myna module otherwise the module won't be usable from browsers without 
-// using an additional moduler loader library. Instead we have manual  
-// export code at the bottom of the file. 
-// TODO: we know a-priori which rules are "non-advancing".
-// This can allow us to use optimized parser and lexer functions for the following rules: Sequence, Quantified, Optional.  
 var Myna;
 (function (Myna) {
     //====================================================================================
@@ -1294,7 +1289,7 @@ var Myna;
     // Initialization
     // The entire module is a grammar because it is an object that exposes rules as properties
     registerGrammar("core", Myna, null);
-})(Myna || (Myna = {}));
+})(Myna = exports.Myna || (exports.Myna = {}));
 if (typeof module === "object" && module.exports) {
     module.exports = Myna;
     // When importing from TypeScript the imports expect a "Myna" variable 
