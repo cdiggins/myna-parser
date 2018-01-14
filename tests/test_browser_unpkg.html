@@ -5,8 +5,14 @@
     <title>Title</title>
 </head>
 <body>
-
+<script>
+    var exports = {};
+</script>
 <script src="https://unpkg.com/myna-parser/myna.js"></script>
+<script>    
+    for (let r of Myna.allGrammarRules())
+        console.log(r.toString());
+</script>
 
 </body>
 </html>
