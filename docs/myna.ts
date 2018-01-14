@@ -629,7 +629,7 @@ export namespace Myna
         constructor(public text:string) { 
             super([]); 
             var length = text.length;
-            var vals = [];
+            var vals:number[] = [];
             for (var i=0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = (p : ParseState) => {
@@ -645,6 +645,33 @@ export namespace Myna
         }           
         get definition() : string { return '"' + escapeChars(this.text) + '"' }
         cloneImplementation() : Rule { return new Text(this.text); }        
+    }
+
+    // Used to match a string in the input string ignoring case, advances the token. 
+    export class AnyCaseText extends Rule
+    {
+        type = "anyCaseText";
+        className = "AnyCaseText";
+        constructor(public text:string) { 
+            super([]); 
+            text = text.toLowerCase();
+            this.text = text; 
+            var length = text.length;
+            var vals:string[] = [];
+            for (var i=0; i < length; ++i)
+                vals.push(text[i]);
+            this.lexer = (p : ParseState) => {
+                let index = p.index; 
+                for (let val of vals)
+                    if (p.input[index++].toLowerCase() !== val) 
+                        return false;
+                p.index = index;
+                return true;
+            }
+            this.parser = this.lexer;
+        }           
+        get definition() : string { return 'AnyCase("' + escapeChars(this.text) + '")' }
+        cloneImplementation() : Rule { return new AnyCaseText(this.text); }        
     }
 
     // Creates a rule that is defined from a function that generates the rule. 
@@ -784,7 +811,10 @@ export namespace Myna
     // Create a rule that matches the text 
     export function text(text:string) { return new Text(text);  }
 
-    // Creates a rule that matches a series of rules in order, and succeeds if they all do
+    // Create a rule that matches the text 
+    export function textAnyCase(text:string) { return new AnyCaseText(text);  }
+    
+        // Creates a rule that matches a series of rules in order, and succeeds if they all do
     export function seq(...rules:RuleType[]) { 
         var rs = rules.map(RuleTypeToRule);
         if (rs.length == 0) throw new Error("At least one rule is expected when calling `seq`");
@@ -949,7 +979,10 @@ export namespace Myna
     // A complete identifier, with no other letters or numbers
     export function keyword(text:string) { return seq(text, not(identifierNext)).setType("keyword"); }
 
-    // Chooses one of a a list of identifiers
+    // A complete identifier, with no other letters or numbers, but case insensitive
+    export function keywordAnyCase(text:string) { return seq(textAnyCase(text), not(identifierNext)).setType("keywordAnyCase"); }
+    
+        // Chooses one of a a list of identifiers
     export function keywords(...words:string[]) { return choice(...words.map(keyword)); }
 
     //===============================================================    

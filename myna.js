@@ -758,6 +758,41 @@ var Myna;
         return Text;
     }(Rule));
     Myna.Text = Text;
+    // Used to match a string in the input string ignoring case, advances the token. 
+    var AnyCaseText = (function (_super) {
+        __extends(AnyCaseText, _super);
+        function AnyCaseText(text) {
+            _super.call(this, []);
+            this.text = text;
+            this.type = "anyCaseText";
+            this.className = "AnyCaseText";
+            text = text.toLowerCase();
+            this.text = text;
+            var length = text.length;
+            var vals = [];
+            for (var i = 0; i < length; ++i)
+                vals.push(text[i]);
+            this.lexer = function (p) {
+                var index = p.index;
+                for (var _i = 0, vals_2 = vals; _i < vals_2.length; _i++) {
+                    var val = vals_2[_i];
+                    if (p.input[index++].toLowerCase() !== val)
+                        return false;
+                }
+                p.index = index;
+                return true;
+            };
+            this.parser = this.lexer;
+        }
+        Object.defineProperty(AnyCaseText.prototype, "definition", {
+            get: function () { return 'AnyCase("' + escapeChars(this.text) + '")'; },
+            enumerable: true,
+            configurable: true
+        });
+        AnyCaseText.prototype.cloneImplementation = function () { return new AnyCaseText(this.text); };
+        return AnyCaseText;
+    }(Rule));
+    Myna.AnyCaseText = AnyCaseText;
     // Creates a rule that is defined from a function that generates the rule. 
     // This allows two rules to have a cyclic relation. 
     var Delay = (function (_super) {
@@ -943,6 +978,9 @@ var Myna;
     // Create a rule that matches the text 
     function text(text) { return new Text(text); }
     Myna.text = text;
+    // Create a rule that matches the text 
+    function textAnyCase(text) { return new AnyCaseText(text); }
+    Myna.textAnyCase = textAnyCase;
     // Creates a rule that matches a series of rules in order, and succeeds if they all do
     function seq() {
         var rules = [];
@@ -1134,6 +1172,9 @@ var Myna;
     // A complete identifier, with no other letters or numbers
     function keyword(text) { return seq(text, not(Myna.identifierNext)).setType("keyword"); }
     Myna.keyword = keyword;
+    // A complete identifier, with no other letters or numbers, but case insensitive
+    function keywordAnyCase(text) { return seq(textAnyCase(text), not(Myna.identifierNext)).setType("keywordAnyCase"); }
+    Myna.keywordAnyCase = keywordAnyCase;
     // Chooses one of a a list of identifiers
     function keywords() {
         var words = [];

@@ -18,10 +18,12 @@
   "scripts": {
     "build": "tsc",
     "test": "mocha tests/mocha_runner.js",
+    "testBrowser": ".\\tests\\qunit.html",
+    "testTools": "node .\\tests\\test_all_tools",
     "makesite": "node tools/myna_build_site.js",
     "makedist": "uglifyjs myna.js -o dist/myna.min.js",
     "copyfiles": "cpx {myna.ts,myna.js,examples/*.*,tests/*.*,grammars/*.js} docs",
-    "full": "npm run build && npm test && npm run makesite && npm run copyfiles && npm run makedist"
+    "full": "npm run build && npm test && npm run testBrowser && npm run makesite && npm run copyfiles && npm run makedist"
   },
   "devDependencies": {
     "cpx": "~1.5",
