@@ -1,6 +1,6 @@
 {
   "name": "myna-parser",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "A text parsing (syntactic analysis) library written in JavaScript / TypeScript.",
   "main": "myna.js",
   "homepage": "https://cdiggins.github.io/myna-parser",
