@@ -1,7 +1,7 @@
 "use strict";
 
 // This class tests parser rules given an array of inputs. 
-// Each input is an array [rule, [passing inputs], [failint inputs]]
+// Each input is an array [rule, [passing inputs], [failing inputs]]
 // The TestRunner is a function like QUnit.test 
 function RuleTester(myna, inputs, testRunner)
 {    

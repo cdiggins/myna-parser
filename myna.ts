@@ -662,9 +662,11 @@ export namespace Myna
                 vals.push(text[i]);
             this.lexer = (p : ParseState) => {
                 let index = p.index; 
-                for (let val of vals)
-                    if (p.input[index++].toLowerCase() !== val) 
+                for (let val of vals) {
+                    var inp = p.input[index++];
+                    if (!inp || inp.toLowerCase() !== val) 
                         return false;
+                }
                 p.index = index;
                 return true;
             }
