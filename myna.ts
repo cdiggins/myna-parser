@@ -275,31 +275,6 @@ export namespace Myna
             return r;
         }
 
-        // Returns a copy of the rule that will create a node in the parse tree.
-        // This property is the only way to create rules that generate nodes in a parse tree. 
-        // TODO: this might be better in a Rule class? 
-        get ast() : Rule {
-            var r = this.copy;
-            r._createAstNode = true;
-            var parser = r.parser;
-            r.parser = (p : ParseState) => {
-                var originalIndex = p.index; 
-                var originalNodes = p.nodes;
-                p.nodes = [];
-                if (!parser(p)) {
-                    p.nodes = originalNodes;
-                    p.index = originalIndex;
-                    return false;
-                }                
-                let node = new AstNode(r, p.input, originalIndex, p.index);
-                node.children = p.nodes;
-                p.nodes = originalNodes;
-                p.nodes.push(node);
-                return true;
-            }
-            return r;
-        }
-
         // Returns true if any of the child rules are "ast rules" meaning they create nodes in the parse tree.
         get hasAstChildRule() : boolean {
             return this.rules.filter(r => r.createsAstNode).length > 0;
@@ -365,6 +340,7 @@ export namespace Myna
         get all() : Rule { return this.then(all); }
         get end() : Rule { return this.then(end); }
         get assert() : Rule { return assert(this); }
+        get ast() : Rule { return new AstRule(this); }
 
         then(r:RuleType) : Rule { return seq(this, r); }
         thenAt(r:RuleType) : Rule { return this.then(at(r)); }
@@ -372,10 +348,10 @@ export namespace Myna
         or(r:RuleType) : Rule { return choice(this, r); } 
         until(r:RuleType) : Rule { return repeatWhileNot(this, r); }
         untilPast(r:RuleType) : Rule { return repeatUntilPast(this, r); }        
-        repeat(count:number) { return repeat(this, count); }
-        quantified(min:number, max:number) { return quantified(this, min, max); }
-        delimited(delimiter:RuleType) { return delimited(this, delimiter); }        
-        unless(r:RuleType) { return unless(this, r); }
+        repeat(count:number) : Rule { return repeat(this, count); }
+        quantified(min:number, max:number) : Rule { return quantified(this, min, max); }
+        delimited(delimiter:RuleType) : Rule { return delimited(this, delimiter); }        
+        unless(r:RuleType) : Rule { return unless(this, r); }
     }
 
     //===============================================================
@@ -385,6 +361,35 @@ export namespace Myna
     // If you fork this code, think twice before adding new classes here. Maybe you can implement your new Rule
     // in terms of functions or other low-level rules. Then you can be happy knowing that the same code is being 
     // re-used and tested all the time.  
+
+    // Creates a node in the AST tree 
+    export class AstRule extends Rule 
+    {
+        type = 'ast';
+        className = "AstRule";
+        
+        _createAstNode = true;
+
+        constructor(public r:Rule) { 
+            super([r]);            
+            this.parser = (p : ParseState) => {
+                var originalIndex = p.index; 
+                var originalNodes = p.nodes;
+                p.nodes = [];
+                if (!r.parser(p)) {
+                    p.nodes = originalNodes;
+                    p.index = originalIndex;
+                    return false;
+                }                
+                let node = new AstNode(r, p.input, originalIndex, p.index);
+                node.children = p.nodes;
+                p.nodes = originalNodes;
+                p.nodes.push(node);
+                return true;
+            }
+            this.lexer = r.lexer;
+        }
+    }
 
     // Matches a series of rules in order. Succeeds only if all sub-rules succeed. 
     export class Sequence extends Rule 
