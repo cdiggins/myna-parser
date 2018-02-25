@@ -198,6 +198,18 @@ export namespace Myna
         // Lexers should only update the index. 
         lexer : (ParseState)=>boolean = null;
 
+        // Creates a node with the given children. This is used to manually build parts of the AST.
+        node(text: string = '', ...children): AstNode {
+            let r = new AstNode(this, text, 0, text.length);
+            r.children = children;
+            return r;
+        }
+
+        // Parses a string into an AST node
+        parse(s: string): AstNode {
+            return Myna.parse(this, s);
+        }
+
         // Constructor
         // Note: child-rules are exposed as a public field
         constructor(
@@ -382,19 +394,15 @@ export namespace Myna
 
         constructor(public rule1:Rule, public rule2:Rule) { 
             super([rule1, rule2]);
-            var parser1 = rule1.parser;
-            var parser2 = rule2.parser;
-            var lexer1 = rule1.lexer;
-            var lexer2 = rule2.lexer;
             this.parser = (p : ParseState) => {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
                 
-                if (parser1(p) === false)
+                if (rule1.parser(p) === false)
                     // The first parser will restore everything automatically 
                     return false; 
                 
-                if (parser2(p) === false) {                        
+                if (rule2.parser(p) === false) {                        
                     // Any created nodes need to be popped off the list 
                     if (p.nodes.length !== originalCount) 
                         p.nodes.splice(-1, p.nodes.length - originalCount);
@@ -406,10 +414,10 @@ export namespace Myna
             };
             this.lexer = (p : ParseState) => {
                 var original = p.index;
-                if (lexer1(p) === false)
+                if (rule1.lexer(p) === false)
                     return false;
                 
-                if (lexer2(p) === false) {                        
+                if (rule2.lexer(p) === false) {                        
                     p.index = original;
                     return false;
                 }
@@ -447,15 +455,11 @@ export namespace Myna
 
         constructor(public rule1:Rule, public rule2:Rule) { 
             super([rule1, rule2]);
-            var parser1 = rule1.parser;
-            var parser2 = rule2.parser;
-            var lexer1 = rule1.lexer;
-            var lexer2 = rule2.lexer;
             this.parser = (p : ParseState) => {
-                return parser1(p) || parser2(p);
+                return rule1.parser(p) || rule2.parser(p);
             };
             this.lexer = (p : ParseState) => {
-                return lexer1(p) || lexer2(p);
+                return rule1.lexer(p) || rule2.lexer(p);
             }
             // When none of the child rules create a node, we can use the lexer to parse
             if (!this.createsAstNode)
@@ -491,7 +495,6 @@ export namespace Myna
             super([rule]); 
             if (max === Infinity && rule.nonAdvancing)
                 throw new Error("Rule would create an infinite loop");                
-            var pChild = this.firstChild.parser;
             this.parser = (p : ParseState) => {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;                
@@ -500,7 +503,7 @@ export namespace Myna
 
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
-                    if (pChild(p) === false) {
+                    if (rule.parser(p) === false) {
                         if (i >= min) 
                             return true;
                          
@@ -518,12 +521,11 @@ export namespace Myna
                 }            
                 return true;
             };
-            var lChild = this.firstChild.lexer;
             this.lexer = (p : ParseState) => {
                 var originalIndex = p.index;
                 for (var i=0; i < max; ++i) {
                     var index = p.index;
-                    if (lChild(p) === false) {
+                    if (rule.lexer(p) === false) {
                         if (i >= min) 
                             return true;
                         p.index = originalIndex;
@@ -566,14 +568,12 @@ export namespace Myna
        
         constructor(rule:Rule) { 
             super(rule, 0, 1); 
-            var pChild = this.firstChild.parser;
             this.parser = (p : ParseState) => {
-                pChild(p);
+                rule.parser(p);
                 return true;
             };
-            var lChild = this.firstChild.lexer;
             this.lexer = (p : ParseState) => {
-                lChild(p);
+                rule.lexer(p);
                 return true;
             };
             // When none of the child rules create a node, we can use the lexer to parse
@@ -611,9 +611,8 @@ export namespace Myna
         className = "AdvanceIf";
         constructor(condition:Rule) { 
             super([condition]); 
-            var lexCondition = condition.lexer;
             this.lexer = (p : ParseState) => {
-                return lexCondition(p) && p.index < p.length ? ++p.index !== 0 : false;
+                return condition.lexer(p) && p.index < p.length ? ++p.index !== 0 : false;
             }
             this.parser = this.lexer;
         }

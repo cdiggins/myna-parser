@@ -211,6 +211,21 @@ var Myna;
             // Lexers should only update the index. 
             this.lexer = null;
         }
+        // Creates a node with the given children. This is used to manually build parts of the AST.
+        Rule.prototype.node = function (text) {
+            if (text === void 0) { text = ''; }
+            var children = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                children[_i - 1] = arguments[_i];
+            }
+            var r = new AstNode(this, text, 0, text.length);
+            r.children = children;
+            return r;
+        };
+        // Parses a string into an AST node
+        Rule.prototype.parse = function (s) {
+            return Myna.parse(this, s);
+        };
         // Sets the name of the rule, and the grammar 
         // Warning: this modifies the rule, use "copy" first if you don't want to update the rule.
         Rule.prototype.setName = function (grammarName, ruleName) {
@@ -452,17 +467,13 @@ var Myna;
             this.rule2 = rule2;
             this.type = "seq";
             this.className = "Sequence";
-            var parser1 = rule1.parser;
-            var parser2 = rule2.parser;
-            var lexer1 = rule1.lexer;
-            var lexer2 = rule2.lexer;
             this.parser = function (p) {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
-                if (parser1(p) === false)
+                if (rule1.parser(p) === false)
                     // The first parser will restore everything automatically 
                     return false;
-                if (parser2(p) === false) {
+                if (rule2.parser(p) === false) {
                     // Any created nodes need to be popped off the list 
                     if (p.nodes.length !== originalCount)
                         p.nodes.splice(-1, p.nodes.length - originalCount);
@@ -474,9 +485,9 @@ var Myna;
             };
             this.lexer = function (p) {
                 var original = p.index;
-                if (lexer1(p) === false)
+                if (rule1.lexer(p) === false)
                     return false;
-                if (lexer2(p) === false) {
+                if (rule2.lexer(p) === false) {
                     p.index = original;
                     return false;
                 }
@@ -523,15 +534,11 @@ var Myna;
             this.rule2 = rule2;
             this.type = "choice";
             this.className = "Choice";
-            var parser1 = rule1.parser;
-            var parser2 = rule2.parser;
-            var lexer1 = rule1.lexer;
-            var lexer2 = rule2.lexer;
             this.parser = function (p) {
-                return parser1(p) || parser2(p);
+                return rule1.parser(p) || rule2.parser(p);
             };
             this.lexer = function (p) {
-                return lexer1(p) || lexer2(p);
+                return rule1.lexer(p) || rule2.lexer(p);
             };
             // When none of the child rules create a node, we can use the lexer to parse
             if (!this.createsAstNode)
@@ -580,7 +587,6 @@ var Myna;
             this.className = "Quantified";
             if (max === Infinity && rule.nonAdvancing)
                 throw new Error("Rule would create an infinite loop");
-            var pChild = this.firstChild.parser;
             this.parser = function (p) {
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
@@ -588,7 +594,7 @@ var Myna;
                     var index = p.index;
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
-                    if (pChild(p) === false) {
+                    if (rule.parser(p) === false) {
                         if (i >= min)
                             return true;
                         // Any created nodes need to be popped off the list 
@@ -603,12 +609,11 @@ var Myna;
                 }
                 return true;
             };
-            var lChild = this.firstChild.lexer;
             this.lexer = function (p) {
                 var originalIndex = p.index;
                 for (var i = 0; i < max; ++i) {
                     var index = p.index;
-                    if (lChild(p) === false) {
+                    if (rule.lexer(p) === false) {
                         if (i >= min)
                             return true;
                         p.index = originalIndex;
@@ -655,14 +660,12 @@ var Myna;
             _super.call(this, rule, 0, 1);
             this.type = "optional";
             this.className = "Optional";
-            var pChild = this.firstChild.parser;
             this.parser = function (p) {
-                pChild(p);
+                rule.parser(p);
                 return true;
             };
-            var lChild = this.firstChild.lexer;
             this.lexer = function (p) {
-                lChild(p);
+                rule.lexer(p);
                 return true;
             };
             // When none of the child rules create a node, we can use the lexer to parse
@@ -709,9 +712,8 @@ var Myna;
             _super.call(this, [condition]);
             this.type = "advanceIf";
             this.className = "AdvanceIf";
-            var lexCondition = condition.lexer;
             this.lexer = function (p) {
-                return lexCondition(p) && p.index < p.length ? ++p.index !== 0 : false;
+                return condition.lexer(p) && p.index < p.length ? ++p.index !== 0 : false;
             };
             this.parser = this.lexer;
         }
