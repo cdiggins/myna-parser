@@ -6,6 +6,12 @@
 // For more information see http://www.github.com/cdiggins/myna-parser
 export namespace Myna
 {   
+
+    // A parser error class
+    export class ParserError extends Error {
+
+    }
+
     //====================================================================================
     // Internal variables used by the Myna library
 
@@ -938,7 +944,7 @@ export namespace Myna
 
     // Throw a Error if reached 
     export function err(message) {  return action(p => { 
-        var e = new Error(message + '\n' + p.location.toString()); 
+        var e = new ParserError(message + '\n' + p.location.toString()); 
         throw e;
     }).setType("err");  }
 
