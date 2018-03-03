@@ -24,7 +24,7 @@ function RuleTester(myna, inputs, testRunner)
                 result = node.end;            
         }
         catch (e) {
-            if (e instanceof myna.ParserError === false) {
+            if (e.type !== 'ParserError') {
                 throw e;
             }
             err = e;

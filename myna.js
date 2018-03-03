@@ -11,6 +11,16 @@ var __extends = (this && this.__extends) || function (d, b) {
 // For more information see http://www.github.com/cdiggins/myna-parser
 var Myna;
 (function (Myna) {
+    // A parser error class
+    var ParserError = (function (_super) {
+        __extends(ParserError, _super);
+        function ParserError() {
+            _super.apply(this, arguments);
+            this.type = 'ParserError';
+        }
+        return ParserError;
+    }(Error));
+    Myna.ParserError = ParserError;
     //====================================================================================
     // Internal variables used by the Myna library
     // A lookup table of all grammars registered with the Myna module 
@@ -778,7 +788,8 @@ var Myna;
                 var index = p.index;
                 for (var _i = 0, vals_2 = vals; _i < vals_2.length; _i++) {
                     var val = vals_2[_i];
-                    if (p.input[index++].toLowerCase() !== val)
+                    var inp = p.input[index++];
+                    if (!inp || inp.toLowerCase() !== val)
                         return false;
                 }
                 p.index = index;
@@ -1127,7 +1138,7 @@ var Myna;
     // Throw a Error if reached 
     function err(message) {
         return action(function (p) {
-            var e = new Error(message + '\n' + p.location.toString());
+            var e = new ParserError(message + '\n' + p.location.toString());
             throw e;
         }).setType("err");
     }
