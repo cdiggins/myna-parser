@@ -632,7 +632,9 @@ export namespace Myna
             for (var i=0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = (p : ParseState) => {
-                let index = p.index; 
+                let index = p.index;
+                if (index + vals.length > p.input.length)
+                    return false;
                 // TODO: consider pulling the sub-string out of the text.        
                 for (let val of vals)
                     if (p.input.charCodeAt(index++) !== val) 
@@ -660,10 +662,11 @@ export namespace Myna
             for (var i=0; i < length; ++i)
                 vals.push(text[i]);
             this.lexer = (p : ParseState) => {
-                let index = p.index; 
+                let index = p.index;
+                if (index + vals.length > p.input.length)
+                    return false;
                 for (let val of vals) {
-                    var inp = p.input[index++];
-                    if (!inp || inp.toLowerCase() !== val) 
+                    if (p.input[index++].toLowerCase() !== val) 
                         return false;
                 }
                 p.index = index;
