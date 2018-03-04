@@ -758,6 +758,8 @@ var Myna;
                 vals.push(text.charCodeAt(i));
             _this.lexer = function (p) {
                 var index = p.index;
+                if (index + vals.length > p.input.length)
+                    return false;
                 // TODO: consider pulling the sub-string out of the text.        
                 for (var _i = 0, vals_1 = vals; _i < vals_1.length; _i++) {
                     var val = vals_1[_i];
@@ -795,6 +797,8 @@ var Myna;
                 vals.push(text[i]);
             _this.lexer = function (p) {
                 var index = p.index;
+                if (index + vals.length > p.input.length)
+                    return false;
                 for (var _i = 0, vals_2 = vals; _i < vals_2.length; _i++) {
                     var val = vals_2[_i];
                     var inp = p.input[index++];
