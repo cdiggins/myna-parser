@@ -367,11 +367,10 @@ export namespace Myna
     {
         type = 'ast';
         className = "AstRule";
-        
-        _createAstNode = true;
-
+    
         constructor(public r:Rule) { 
             super([r]);            
+            this._createAstNode = true;
             this.parser = (p : ParseState) => {
                 var originalIndex = p.index; 
                 var originalNodes = p.nodes;
@@ -381,7 +380,7 @@ export namespace Myna
                     p.index = originalIndex;
                     return false;
                 }                
-                let node = new AstNode(r, p.input, originalIndex, p.index);
+                let node = new AstNode(this, p.input, originalIndex, p.index);
                 node.children = p.nodes;
                 p.nodes = originalNodes;
                 p.nodes.push(node);

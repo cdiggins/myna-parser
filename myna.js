@@ -459,7 +459,7 @@ var Myna;
                     p.index = originalIndex;
                     return false;
                 }
-                var node = new AstNode(r, p.input, originalIndex, p.index);
+                var node = new AstNode(_this, p.input, originalIndex, p.index);
                 node.children = p.nodes;
                 p.nodes = originalNodes;
                 p.nodes.push(node);
