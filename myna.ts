@@ -1063,11 +1063,13 @@ export namespace Myna
     }
 
     // Returns the root node of the abstract syntax tree created 
-    // by parsing the rule. 
+    // by parsing the rule.  
     export function parse(r : Rule, s : string) : AstNode
     {
-        var p = new ParseState(s, 0, []);        
-        if (!r.ast.parser(p)) 
+        var p = new ParseState(s, 0, []); 
+        if (!(r instanceof AstRule))
+            r = r.ast;
+        if (!r.parser(p)) 
             return null;
         return p && p.nodes ? p.nodes[0] : null;
     }

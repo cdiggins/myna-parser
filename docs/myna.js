@@ -11,6 +11,16 @@ var __extends = (this && this.__extends) || function (d, b) {
 // For more information see http://www.github.com/cdiggins/myna-parser
 var Myna;
 (function (Myna) {
+    // A parser error class
+    var ParserError = (function (_super) {
+        __extends(ParserError, _super);
+        function ParserError() {
+            _super.apply(this, arguments);
+            this.type = 'ParserError';
+        }
+        return ParserError;
+    }(Error));
+    Myna.ParserError = ParserError;
     //====================================================================================
     // Internal variables used by the Myna library
     // A lookup table of all grammars registered with the Myna module 
@@ -296,34 +306,6 @@ var Myna;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Rule.prototype, "ast", {
-            // Returns a copy of the rule that will create a node in the parse tree.
-            // This property is the only way to create rules that generate nodes in a parse tree. 
-            // TODO: this might be better in a Rule class? 
-            get: function () {
-                var r = this.copy;
-                r._createAstNode = true;
-                var parser = r.parser;
-                r.parser = function (p) {
-                    var originalIndex = p.index;
-                    var originalNodes = p.nodes;
-                    p.nodes = [];
-                    if (!parser(p)) {
-                        p.nodes = originalNodes;
-                        p.index = originalIndex;
-                        return false;
-                    }
-                    var node = new AstNode(r, p.input, originalIndex, p.index);
-                    node.children = p.nodes;
-                    p.nodes = originalNodes;
-                    p.nodes.push(node);
-                    return true;
-                };
-                return r;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(Rule.prototype, "hasAstChildRule", {
             // Returns true if any of the child rules are "ast rules" meaning they create nodes in the parse tree.
             get: function () {
@@ -439,6 +421,11 @@ var Myna;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Rule.prototype, "ast", {
+            get: function () { return new AstRule(this); },
+            enumerable: true,
+            configurable: true
+        });
         Rule.prototype.then = function (r) { return seq(this, r); };
         Rule.prototype.thenAt = function (r) { return this.then(at(r)); };
         Rule.prototype.thenNot = function (r) { return this.then(not(r)); };
@@ -458,6 +445,36 @@ var Myna;
     // If you fork this code, think twice before adding new classes here. Maybe you can implement your new Rule
     // in terms of functions or other low-level rules. Then you can be happy knowing that the same code is being 
     // re-used and tested all the time.  
+    // Creates a node in the AST tree 
+    var AstRule = (function (_super) {
+        __extends(AstRule, _super);
+        function AstRule(r) {
+            var _this = this;
+            _super.call(this, [r]);
+            this.r = r;
+            this.type = 'ast';
+            this.className = "AstRule";
+            this._createAstNode = true;
+            this.parser = function (p) {
+                var originalIndex = p.index;
+                var originalNodes = p.nodes;
+                p.nodes = [];
+                if (!r.parser(p)) {
+                    p.nodes = originalNodes;
+                    p.index = originalIndex;
+                    return false;
+                }
+                var node = new AstNode(_this, p.input, originalIndex, p.index);
+                node.children = p.nodes;
+                p.nodes = originalNodes;
+                p.nodes.push(node);
+                return true;
+            };
+            this.lexer = r.lexer;
+        }
+        return AstRule;
+    }(Rule));
+    Myna.AstRule = AstRule;
     // Matches a series of rules in order. Succeeds only if all sub-rules succeed. 
     var Sequence = (function (_super) {
         __extends(Sequence, _super);
@@ -740,6 +757,8 @@ var Myna;
                 vals.push(text.charCodeAt(i));
             this.lexer = function (p) {
                 var index = p.index;
+                if (index + vals.length > p.input.length)
+                    return false;
                 // TODO: consider pulling the sub-string out of the text.        
                 for (var _i = 0, vals_1 = vals; _i < vals_1.length; _i++) {
                     var val = vals_1[_i];
@@ -776,6 +795,8 @@ var Myna;
                 vals.push(text[i]);
             this.lexer = function (p) {
                 var index = p.index;
+                if (index + vals.length > p.input.length)
+                    return false;
                 for (var _i = 0, vals_2 = vals; _i < vals_2.length; _i++) {
                     var val = vals_2[_i];
                     if (p.input[index++].toLowerCase() !== val)
@@ -1127,7 +1148,7 @@ var Myna;
     // Throw a Error if reached 
     function err(message) {
         return action(function (p) {
-            var e = new Error(message + '\n' + p.location.toString());
+            var e = new ParserError(message + '\n' + p.location.toString());
             throw e;
         }).setType("err");
     }
@@ -1243,10 +1264,12 @@ var Myna;
     }
     Myna.tokenize = tokenize;
     // Returns the root node of the abstract syntax tree created 
-    // by parsing the rule. 
+    // by parsing the rule.  
     function parse(r, s) {
         var p = new ParseState(s, 0, []);
-        if (!r.ast.parser(p))
+        if (!(r instanceof AstRule))
+            r = r.ast;
+        if (!r.parser(p))
             return null;
         return p && p.nodes ? p.nodes[0] : null;
     }
