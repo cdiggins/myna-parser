@@ -17,6 +17,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // For more information see http://www.github.com/cdiggins/myna-parser
 var Myna;
 (function (Myna) {
+    // A parser error class
+    var ParserError = (function (_super) {
+        __extends(ParserError, _super);
+        function ParserError() {
+            _super.apply(this, arguments);
+            this.type = 'ParserError';
+        }
+        return ParserError;
+    }(Error));
+    Myna.ParserError = ParserError;
     //====================================================================================
     // Internal variables used by the Myna library
     // A lookup table of all grammars registered with the Myna module 
@@ -1159,7 +1169,7 @@ var Myna;
     // Throw a Error if reached 
     function err(message) {
         return action(function (p) {
-            var e = new Error(message + '\n' + p.location.toString());
+            var e = new ParserError(message + '\n' + p.location.toString());
             throw e;
         }).setType("err");
     }
