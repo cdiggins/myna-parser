@@ -14,8 +14,8 @@ var Myna;
     // A parser error class
     var ParserError = (function (_super) {
         __extends(ParserError, _super);
-        function ParserError() {
-            _super.apply(this, arguments);
+        function ParserError(message) {
+            _super.call(this, message);
             this.type = 'ParserError';
         }
         return ParserError;

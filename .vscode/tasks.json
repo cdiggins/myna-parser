@@ -9,7 +9,10 @@
 		
 		// Under windows use tsc.exe. This ensures we don't need a shell.
 		"windows": {
-			"command": "tsc"
+			"command": "tsc",
+			"args": [
+				"-w"
+			]
 		},
 		
 		// args is the program to compile.
