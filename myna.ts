@@ -10,6 +10,9 @@ export namespace Myna
     // A parser error class
     export class ParserError extends Error {
         type = 'ParserError'
+        constructor(message?: string) {
+            super(message);
+        }
     }
 
     //====================================================================================
