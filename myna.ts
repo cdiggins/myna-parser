@@ -512,8 +512,6 @@ export namespace Myna
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;                
                 for (var i=0; i < max; ++i) {
-                    var index = p.index;
-
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
                     if (rule.parser(p) === false) {
@@ -537,7 +535,6 @@ export namespace Myna
             this.lexer = (p : ParseState) => {
                 var originalIndex = p.index;
                 for (var i=0; i < max; ++i) {
-                    var index = p.index;
                     if (rule.lexer(p) === false) {
                         if (i >= min) 
                             return true;
