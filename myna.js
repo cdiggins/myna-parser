@@ -87,6 +87,7 @@ var Myna;
             this.index = index;
             this.nodes = nodes;
             this.length = 0;
+            this.rules = [];
             this.length = this.input.length;
         }
         Object.defineProperty(ParseState.prototype, "location", {
@@ -465,16 +466,21 @@ var Myna;
                 var originalIndex = p.index;
                 var originalNodes = p.nodes;
                 p.nodes = [];
+                p.rules.push(_this);
                 if (!r.parser(p)) {
+                    p.rules.pop();
                     p.nodes = originalNodes;
                     p.index = originalIndex;
                     return false;
                 }
-                var node = new AstNode(_this, p.input, originalIndex, p.index);
-                node.children = p.nodes;
-                p.nodes = originalNodes;
-                p.nodes.push(node);
-                return true;
+                else {
+                    p.rules.pop();
+                    var node = new AstNode(_this, p.input, originalIndex, p.index);
+                    node.children = p.nodes;
+                    p.nodes = originalNodes;
+                    p.nodes.push(node);
+                    return true;
+                }
             };
             _this.lexer = r.lexer;
             return _this;

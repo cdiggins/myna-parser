@@ -83,7 +83,8 @@ export namespace Myna
     export class ParseState
     {
         length:number = 0;
-
+        rules:AstRule[] = [];
+        
         constructor(
             public input:string, 
             public index:number,
@@ -384,16 +385,21 @@ export namespace Myna
                 const originalIndex = p.index; 
                 const originalNodes = p.nodes;
                 p.nodes = [];
+                p.rules.push(this);
                 if (!r.parser(p)) {
+                    p.rules.pop();
                     p.nodes = originalNodes;
                     p.index = originalIndex;
                     return false;
-                }                
-                let node = new AstNode(this, p.input, originalIndex, p.index);
-                node.children = p.nodes;
-                p.nodes = originalNodes;
-                p.nodes.push(node);
-                return true;
+                }
+                else {                
+                    p.rules.pop();
+                    let node = new AstNode(this, p.input, originalIndex, p.index);
+                    node.children = p.nodes;
+                    p.nodes = originalNodes;
+                    p.nodes.push(node);
+                    return true;
+                }
             }
             this.lexer = r.lexer;
         }
