@@ -48,7 +48,7 @@ function expandAst(ast, data, lines) {
 
     switch (ast.rule.name) 
     {
-        case "document":
+        case "document":    
         case "sectionContent":
             ast.children.forEach(function(c) { 
                 expandAst(c, data, lines); });
