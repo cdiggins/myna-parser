@@ -19,13 +19,13 @@ export namespace Myna
     // Internal variables used by the Myna library
 
     // A lookup table of all grammars registered with the Myna module 
-    export var grammars = {}
+    export const grammars = {}
 
     // A lookup table of all named rules registered with the Myna module
-    export var allRules = {}
+    export const allRules = {}
 
     // A lookup table of parsing functions for each registered grammar  
-    export var parsers = {}
+    export const parsers = {}
 
     //===========================================================================
     // class ParseLocation
@@ -44,9 +44,9 @@ export namespace Myna
             public input:string,
             public index:number)
         {
-            var r1 = 0;
-            var r2 = 1;
-            for (var i=0; i < this.index; ++i) {
+            let r1 = 0;
+            let r2 = 1;
+            for (let i=0; i < this.index; ++i) {
                 if (this.input.charCodeAt(i) == 13) { 
                     this.lineStart = i;
                     r1++;
@@ -83,7 +83,8 @@ export namespace Myna
     export class ParseState
     {
         length:number = 0;
-
+        rules:AstRule[] = [];
+        
         constructor(
             public input:string, 
             public index:number,
@@ -136,7 +137,7 @@ export namespace Myna
         // Returns the first child with the given name, or null if no named child is found. 
         child(name:string) : AstNode { 
             if (this.children)
-                for (var c of this.children) 
+                for (const c of this.children) 
                     if (c.name == name) return c; 
             return null; 
         }
@@ -275,7 +276,7 @@ export namespace Myna
 
         // Returns a copy of this rule with all fields copied.  
         get copy() : Rule {
-            var r = this.cloneImplementation();
+            const r = this.cloneImplementation();
             if (typeof(r) !== typeof(this))
                 throw new Error("Error in implementation of cloneImplementation: not returning object of correct type");
             r.name = this.name;
@@ -303,23 +304,23 @@ export namespace Myna
         // Returns a string that describes the AST nodes created by this rule.
         // Will throw an exception if this is not a valid AST rule (this.isAstRule != true)
         astRuleDefn(inSeq:boolean=false, inChoice:boolean=false) : string {    
-            var rules = this.rules.filter(r => r.createsAstNode);        
+            const rules = this.rules.filter(r => r.createsAstNode);        
             if (!rules.length)
                 return this.name;
             if (rules.length == 1) {
-                var result = rules[0].astRuleNameOrDefn(inSeq, inChoice);
+                let result = rules[0].astRuleNameOrDefn(inSeq, inChoice);
                 if (this instanceof Quantified)
                     result += "[" + this.min + "," + this.max + "]";     
                 return result;
             }
             if (this instanceof Sequence) {                
-                var tmp = rules.map(r => r.astRuleNameOrDefn(true, false)).join(",");
+                const tmp = rules.map(r => r.astRuleNameOrDefn(true, false)).join(",");
                 if (inSeq) return tmp;
                 return "seq(" + tmp + ")";
             }
 
             if (this instanceof Choice) {
-                var tmp = rules.map(r => r.astRuleNameOrDefn(false, true)).join(",");
+                const tmp = rules.map(r => r.astRuleNameOrDefn(false, true)).join(",");
                 if (inChoice) return tmp;                
                 return "choice(" + tmp + ")";
             }
@@ -381,19 +382,24 @@ export namespace Myna
             super([r]);            
             this._createAstNode = true;
             this.parser = (p : ParseState) => {
-                var originalIndex = p.index; 
-                var originalNodes = p.nodes;
+                const originalIndex = p.index; 
+                const originalNodes = p.nodes;
                 p.nodes = [];
+                p.rules.push(this);
                 if (!r.parser(p)) {
+                    p.rules.pop();
                     p.nodes = originalNodes;
                     p.index = originalIndex;
                     return false;
-                }                
-                let node = new AstNode(this, p.input, originalIndex, p.index);
-                node.children = p.nodes;
-                p.nodes = originalNodes;
-                p.nodes.push(node);
-                return true;
+                }
+                else {                
+                    p.rules.pop();
+                    let node = new AstNode(this, p.input, originalIndex, p.index);
+                    node.children = p.nodes;
+                    p.nodes = originalNodes;
+                    p.nodes.push(node);
+                    return true;
+                }
             }
             this.lexer = r.lexer;
         }
@@ -408,8 +414,8 @@ export namespace Myna
         constructor(public rule1:Rule, public rule2:Rule) { 
             super([rule1, rule2]);
             this.parser = (p : ParseState) => {
-                var originalCount = p.nodes.length;
-                var originalIndex = p.index;
+                const originalCount = p.nodes.length;
+                const originalIndex = p.index;
                 
                 if (rule1.parser(p) === false)
                     // The first parser will restore everything automatically 
@@ -426,7 +432,7 @@ export namespace Myna
                 return true;
             };
             this.lexer = (p : ParseState) => {
-                var original = p.index;
+                const original = p.index;
                 if (rule1.lexer(p) === false)
                     return false;
                 
@@ -443,7 +449,7 @@ export namespace Myna
         }
 
         get definition() : string {
-            var result = this.rules.map((r) => r.toString()).join(" ");
+            let result = this.rules.map((r) => r.toString()).join(" ");
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
@@ -480,7 +486,7 @@ export namespace Myna
         }
 
         get definition() : string {
-            var result = this.rules.map((r) => r.toString()).join(" / ");
+            let result = this.rules.map((r) => r.toString()).join(" / ");
             if (this.rules.length > 1)   
                 result = "(" + result + ")";
             return result;
@@ -509,11 +515,9 @@ export namespace Myna
             if (max === Infinity && rule.nonAdvancing)
                 throw new Error("Rule would create an infinite loop");                
             this.parser = (p : ParseState) => {
-                var originalCount = p.nodes.length;
-                var originalIndex = p.index;                
-                for (var i=0; i < max; ++i) {
-                    var index = p.index;
-
+                const originalCount = p.nodes.length;
+                const originalIndex = p.index;                
+                for (let i=0; i < max; ++i) {
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
                     if (rule.parser(p) === false) {
@@ -535,9 +539,8 @@ export namespace Myna
                 return true;
             };
             this.lexer = (p : ParseState) => {
-                var originalIndex = p.index;
-                for (var i=0; i < max; ++i) {
-                    var index = p.index;
+                const originalIndex = p.index;
+                for (let i=0; i < max; ++i) {
                     if (rule.lexer(p) === false) {
                         if (i >= min) 
                             return true;
@@ -546,7 +549,7 @@ export namespace Myna
                     }
 
                     // Check for progress, to assure we aren't hitting an infinite loop  
-                    debugAssert(max !== Infinity || p.index !== originalIndex, this);
+                    debugAssert(max !== Infinity || p.index !== originalIndex, this, "Infinite loop");
                 }            
                 return true;
             };
@@ -640,9 +643,9 @@ export namespace Myna
         className = "Text";
         constructor(public text:string) { 
             super([]); 
-            var length = text.length;
-            var vals:number[] = [];
-            for (var i=0; i < length; ++i)
+            const length = text.length;
+            const vals:number[] = [];
+            for (let i=0; i < length; ++i)
                 vals.push(text.charCodeAt(i));
             this.lexer = (p : ParseState) => {
                 let index = p.index;
@@ -670,9 +673,9 @@ export namespace Myna
             super([]); 
             text = text.toLowerCase();
             this.text = text; 
-            var length = text.length;
-            var vals:string[] = [];
-            for (var i=0; i < length; ++i)
+            const length = text.length;
+            const vals:string[] = [];
+            for (let i=0; i < length; ++i)
                 vals.push(text[i]);
             this.lexer = (p : ParseState) => {
                 let index = p.index;
@@ -699,9 +702,9 @@ export namespace Myna
         className = "Delay";
         constructor(public fn:()=>Rule) { 
             super([]); 
-            var tmpParser = null;
+            let tmpParser = null;
             this.parser = (p : ParseState) => (tmpParser ? tmpParser : tmpParser = fn().parser)(p);
-            var tmpLexer = null;
+            let tmpLexer = null;
             this.lexer = (p : ParseState) => (tmpLexer ? tmpLexer : tmpLexer = fn().lexer)(p);
         }
         cloneImplementation() : Rule { return new Delay(this.fn); }    
@@ -735,7 +738,7 @@ export namespace Myna
             super([]);
             let vals = [];
             let length = chars.length;
-            for (var i=0; i < length; ++i)
+            for (let i=0; i < length; ++i)
                 vals[i] = chars.charCodeAt(i);
             this.lexer = (p : ParseState) => 
                 // TODO: Try this instead, could be faster.
@@ -772,7 +775,7 @@ export namespace Myna
         className = "Not";
         constructor(rule:Rule) { 
             super([rule]); 
-            var childLexer = rule.lexer; 
+            const childLexer = rule.lexer; 
             this.lexer = (p : ParseState) => { 
                 if (p.index >= p.length) return true;
                 let index = p.index; 
@@ -794,7 +797,7 @@ export namespace Myna
         className = "At";
         constructor(rule:Rule) { 
             super([rule]); 
-            var childLexer = rule.lexer; 
+            const childLexer = rule.lexer; 
             this.lexer = (p : ParseState) => { 
                 let index = p.index; 
                 if (childLexer(p) === false) 
@@ -833,11 +836,11 @@ export namespace Myna
     
         // Creates a rule that matches a series of rules in order, and succeeds if they all do
     export function seq(...rules:RuleType[]) { 
-        var rs = rules.map(RuleTypeToRule);
+        const rs = rules.map(RuleTypeToRule);
         if (rs.length == 0) throw new Error("At least one rule is expected when calling `seq`");
         if (rs.length == 1) return rs[0];
-        var rule1 = rs[0];
-        var rule2 = seq(...rs.slice(1));
+        const rule1 = rs[0];
+        const rule2 = seq(...rs.slice(1));
         if (rule1.nonAdvancing && rule2 instanceof Advance)
             return new AdvanceIf(rule1);
         else
@@ -846,11 +849,11 @@ export namespace Myna
 
     // Creates a rule that tries to match each rule in order, and succeeds if at least one does 
     export function choice(...rules:RuleType[]) { 
-        var rs = rules.map(RuleTypeToRule);
+        const rs = rules.map(RuleTypeToRule);
         if (rs.length == 0) throw new Error("At least one rule is expected when calling `choice`");
         if (rs.length == 1) return rs[0];
-        var rule1 = rs[0];
-        var rule2 = choice(...rs.slice(1));
+        const rule1 = rs[0];
+        const rule2 = choice(...rs.slice(1));
         if (rule1 instanceof AdvanceIf && rule2 instanceof AdvanceIf)
             return new AdvanceIf(choice(rule1.firstChild, rule2.firstChild));
         else
@@ -954,7 +957,7 @@ export namespace Myna
 
     // Throw a Error if reached 
     export function err(message) {  return action(p => { 
-        var e = new ParserError(message + '\n' + p.location.toString()); 
+        const e = new ParserError(message + '\n' + p.location.toString()); 
         throw e;
     }).setType("err");  }
 
@@ -1005,52 +1008,52 @@ export namespace Myna
     //===============================================================    
     // Core grammar rules 
         
-    export var truePredicate    = new Predicate((p : ParseState) => true);
-    export var falsePredicate   = new Predicate((p : ParseState) => false);
-    export var end              = new Predicate((p : ParseState) => p.index >= p.length);
-    export var notEnd           = new Predicate((p : ParseState) => p.index < p.length);
-    export var advance          = new Advance();   
-    export var all              = advance.zeroOrMore;
+    export const truePredicate    = new Predicate((p : ParseState) => true);
+    export const falsePredicate   = new Predicate((p : ParseState) => false);
+    export const end              = new Predicate((p : ParseState) => p.index >= p.length);
+    export const notEnd           = new Predicate((p : ParseState) => p.index < p.length);
+    export const advance          = new Advance();   
+    export const all              = advance.zeroOrMore;
 
-    export var atLetterLower      = atRange('a','z');
-    export var atLetterUpper      = atRange('A','Z');
-    export var atLetter           = choice(atLetterLower, atLetterUpper);
-    export var atDigit            = atRange('0', '9');
-    export var atDigitNonZero     = atRange('1', '9');
-    export var atHexDigit         = choice(atDigit, atRange('a','f'), atRange('A','F'));
-    export var atBinaryDigit      = atChar('01');
-    export var atOctalDigit       = atRange('0','7');
-    export var atAlphaNumeric     = choice(atLetter, atDigit);
-    export var atUnderscore       = atChar("_");
-    export var atSpace            = atChar(" ");
-    export var atTab              = atChar("\t");    
-    export var atWs               = atChar(" \t\r\n\u00A0\uFEFF");
-    export var atIdentifierNext   = choice(atAlphaNumeric, atUnderscore);
+    export const atLetterLower      = atRange('a','z');
+    export const atLetterUpper      = atRange('A','Z');
+    export const atLetter           = choice(atLetterLower, atLetterUpper);
+    export const atDigit            = atRange('0', '9');
+    export const atDigitNonZero     = atRange('1', '9');
+    export const atHexDigit         = choice(atDigit, atRange('a','f'), atRange('A','F'));
+    export const atBinaryDigit      = atChar('01');
+    export const atOctalDigit       = atRange('0','7');
+    export const atAlphaNumeric     = choice(atLetter, atDigit);
+    export const atUnderscore       = atChar("_");
+    export const atSpace            = atChar(" ");
+    export const atTab              = atChar("\t");    
+    export const atWs               = atChar(" \t\r\n\u00A0\uFEFF");
+    export const atIdentifierNext   = choice(atAlphaNumeric, atUnderscore);
 
-    export var letterLower      = atLetterLower.advance;
-    export var letterUpper      = atLetterUpper.advance;
-    export var letter           = atLetter.advance;
-    export var letters          = letter.oneOrMore;
-    export var digit            = atDigit.advance;
-    export var digitNonZero     = atDigitNonZero.advance;
-    export var digits           = digit.oneOrMore;
-    export var integer          = char('0').or(digits);
-    export var hexDigit         = atHexDigit.advance;
-    export var binaryDigit      = atBinaryDigit.advance;
-    export var octalDigit       = atOctalDigit.advance;
-    export var alphaNumeric     = atAlphaNumeric.advance;
-    export var underscore       = atUnderscore.advance;
-    export var identifierFirst  = choice(atLetter, atUnderscore).advance;
-    export var identifierNext   = choice(atAlphaNumeric, atUnderscore).advance;
-    export var identifier       = seq(identifierFirst, identifierNext.zeroOrMore);     
-    export var hyphen           = text("-");
-    export var crlf             = text("\r\n");
-    export var newLine          = choice(crlf, "\n");          
-    export var space            = text(" ");
-    export var tab              = text("\t");    
+    export const letterLower      = atLetterLower.advance;
+    export const letterUpper      = atLetterUpper.advance;
+    export const letter           = atLetter.advance;
+    export const letters          = letter.oneOrMore;
+    export const digit            = atDigit.advance;
+    export const digitNonZero     = atDigitNonZero.advance;
+    export const digits           = digit.oneOrMore;
+    export const integer          = char('0').or(digits);
+    export const hexDigit         = atHexDigit.advance;
+    export const binaryDigit      = atBinaryDigit.advance;
+    export const octalDigit       = atOctalDigit.advance;
+    export const alphaNumeric     = atAlphaNumeric.advance;
+    export const underscore       = atUnderscore.advance;
+    export const identifierFirst  = choice(atLetter, atUnderscore).advance;
+    export const identifierNext   = choice(atAlphaNumeric, atUnderscore).advance;
+    export const identifier       = seq(identifierFirst, identifierNext.zeroOrMore);     
+    export const hyphen           = text("-");
+    export const crlf             = text("\r\n");
+    export const newLine          = choice(crlf, "\n");          
+    export const space            = text(" ");
+    export const tab              = text("\t");    
     
     // JSON definition of white-space 
-    export var ws               = atWs.advance.zeroOrMore;        
+    export const ws               = atWs.advance.zeroOrMore;        
 
     //===============================================================
     // Parsing function 
@@ -1061,7 +1064,7 @@ export namespace Myna
     // flag set explicitly. 
     export function tokenize(r:Rule, s:string) : AstNode[]
     {
-        var result = this.parse(r.ast.zeroOrMore, s);
+        const result = this.parse(r.ast.zeroOrMore, s);
         return result ? result.children : [];
     }
 
@@ -1069,7 +1072,7 @@ export namespace Myna
     // by parsing the rule.  
     export function parse(r : Rule, s : string) : AstNode
     {
-        var p = new ParseState(s, 0, []); 
+        const p = new ParseState(s, 0, []); 
         if (!(r instanceof AstRule))
             r = r.ast;
         if (!r.parser(p)) 
@@ -1118,9 +1121,9 @@ export namespace Myna
     // name of the grammar. Each rule is stored in Myna.rules and each grammar is stored in Myna.grammars. 
     export function registerGrammar(grammarName:string, grammar:any, defaultRule:Rule)
     {
-        for (var k in grammar) {
+        for (const k in grammar) {
             if (grammar[k] instanceof Rule) {
-                var rule = grammar[k];
+                const rule = grammar[k];
                 rule.setName(grammarName, k);
                 allRules[rule.fullName] = rule;
             }
@@ -1138,7 +1141,7 @@ export namespace Myna
 
     // Replaces characters with the JSON escaped version
     export function escapeChars(text:string) {
-        var r = JSON.stringify(text);
+        const r = JSON.stringify(text);
         return r.slice(1, r.length - 1);
     }
 
@@ -1151,9 +1154,9 @@ export namespace Myna
     }     
 
     // These should be commented out in the filnal version 
-    export function debugAssert(condition: boolean, rule: Rule) {
+    export function debugAssert(condition: boolean, rule: Rule, message?: string) {
         if (!condition)
-            throw new Error("Error occured while parsing rule: " + rule.fullName);
+            throw new Error("Error occured while parsing rule: " + rule.fullName + " " + (message || ""));
     }
 
     //===========================================================================
@@ -1164,7 +1167,7 @@ export namespace Myna
 }
 
 // Export the function for use with Node.js and the CommonJS module system. 
-declare var module;
+declare const module;
 if (typeof module === "object" && module.exports) {
     module.exports = Myna;
     // When importing from TypeScript the imports expect a "Myna" variable 

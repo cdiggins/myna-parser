@@ -549,7 +549,7 @@ export namespace Myna
                     }
 
                     // Check for progress, to assure we aren't hitting an infinite loop  
-                    debugAssert(max !== Infinity || p.index !== originalIndex, this);
+                    debugAssert(max !== Infinity || p.index !== originalIndex, this, "Infinite loop");
                 }            
                 return true;
             };
@@ -1154,9 +1154,9 @@ export namespace Myna
     }     
 
     // These should be commented out in the filnal version 
-    export function debugAssert(condition: boolean, rule: Rule) {
+    export function debugAssert(condition: boolean, rule: Rule, message?: string) {
         if (!condition)
-            throw new Error("Error occured while parsing rule: " + rule.fullName);
+            throw new Error("Error occured while parsing rule: " + rule.fullName + " " + (message || ""));
     }
 
     //===========================================================================

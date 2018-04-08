@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // This file demonstrates how to use Myna from a TypeScript project 
 var myna_1 = require("../myna");
 for (var _i = 0, _a = myna_1.Myna.allGrammarRules(); _i < _a.length; _i++) {

@@ -80,6 +80,7 @@ var Myna;
             this.index = index;
             this.nodes = nodes;
             this.length = 0;
+            this.rules = [];
             this.length = this.input.length;
         }
         Object.defineProperty(ParseState.prototype, "location", {
@@ -459,16 +460,21 @@ var Myna;
                 var originalIndex = p.index;
                 var originalNodes = p.nodes;
                 p.nodes = [];
+                p.rules.push(_this);
                 if (!r.parser(p)) {
+                    p.rules.pop();
                     p.nodes = originalNodes;
                     p.index = originalIndex;
                     return false;
                 }
-                var node = new AstNode(_this, p.input, originalIndex, p.index);
-                node.children = p.nodes;
-                p.nodes = originalNodes;
-                p.nodes.push(node);
-                return true;
+                else {
+                    p.rules.pop();
+                    var node = new AstNode(_this, p.input, originalIndex, p.index);
+                    node.children = p.nodes;
+                    p.nodes = originalNodes;
+                    p.nodes.push(node);
+                    return true;
+                }
             };
             this.lexer = r.lexer;
         }
@@ -608,7 +614,6 @@ var Myna;
                 var originalCount = p.nodes.length;
                 var originalIndex = p.index;
                 for (var i = 0; i < max; ++i) {
-                    var index = p.index;
                     // If parsing the rule fails, we return the last result, or failed 
                     // if the minimum number of matches is not met. 
                     if (rule.parser(p) === false) {
@@ -629,7 +634,6 @@ var Myna;
             this.lexer = function (p) {
                 var originalIndex = p.index;
                 for (var i = 0; i < max; ++i) {
-                    var index = p.index;
                     if (rule.lexer(p) === false) {
                         if (i >= min)
                             return true;
@@ -637,7 +641,7 @@ var Myna;
                         return false;
                     }
                     // Check for progress, to assure we aren't hitting an infinite loop  
-                    debugAssert(max !== Infinity || p.index !== originalIndex, _this);
+                    debugAssert(max !== Infinity || p.index !== originalIndex, _this, "Infinite loop");
                 }
                 return true;
             };
@@ -1346,9 +1350,9 @@ var Myna;
     }
     Myna.RuleTypeToRule = RuleTypeToRule;
     // These should be commented out in the filnal version 
-    function debugAssert(condition, rule) {
+    function debugAssert(condition, rule, message) {
         if (!condition)
-            throw new Error("Error occured while parsing rule: " + rule.fullName);
+            throw new Error("Error occured while parsing rule: " + rule.fullName + " " + (message || ""));
     }
     Myna.debugAssert = debugAssert;
     //===========================================================================
