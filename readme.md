@@ -23,6 +23,7 @@ Below is an example of how to use Myna from Node.JS in a single self-contained e
 ```
     // Reference the Myna module
     var m = require('myna-parser');
+    var delimiter = ",";
 
     // Construct a grammar object 
     var g = new function() 
@@ -42,7 +43,7 @@ Below is an example of how to use Myna from Node.JS in a single self-contained e
     
     // Parse some input and print the AST
     var input = 'a,1,"hello"\nb,2,"goodbye"';
-    console.log(parse(input));
+    console.log(parser(input));
 ```
 
 Only rules that are defined with the `.ast` property will create nodes in the output parse tree. This saves the work of having to convert from a Concrete Syntax Tree (CST) to an  Abstract Syntax Tree (AST).
