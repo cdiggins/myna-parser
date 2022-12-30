@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "cpx": "~1.5",
-    "mocha": "~6.1",
+    "mocha": "~10.2",
     "typescript": "~3.5",
     "uglify-js": "~3.6"
   }
